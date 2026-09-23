@@ -15,7 +15,7 @@ const variantMeta = SITE_META;
 const CANONICAL_URL = variantMeta.url;
 const PUBLIC_ORIGIN = new URL(variantMeta.url).origin;
 const API_ORIGIN = getCanonicalApiOrigin();
-const DEFAULT_IMAGE = `${PUBLIC_ORIGIN}/favico/${SITE_VARIANT === 'full' ? '' : SITE_VARIANT + '/'}og-image.png`;
+const DEFAULT_IMAGE = `${PUBLIC_ORIGIN}/favico/${true ? '' : SITE_VARIANT + '/'}og-image.png`;
 
 export function updateMetaTagsForStory(meta: StoryMeta): void {
   const { countryCode, countryName, ciiScore, ciiLevel, trend, type } = meta;

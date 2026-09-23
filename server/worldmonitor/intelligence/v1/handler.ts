@@ -1,13 +1,11 @@
 import type { IntelligenceServiceHandler } from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
 
 import { getRiskScores } from './get-risk-scores';
+import { classifyEvent, deductSituation, getCountryIntelBrief } from './_removed-ai-stubs';
 import { getCountryRisk } from './get-country-risk';
 import { getPizzintStatus } from './get-pizzint-status';
-import { classifyEvent } from './classify-event';
-import { getCountryIntelBrief } from './get-country-intel-brief';
 import { getCountryCoverage } from './get-country-coverage';
 import { searchGdeltDocuments } from './search-gdelt-documents';
-import { deductSituation } from './deduct-situation';
 import { getCountryFacts } from './get-country-facts';
 import { listSecurityAdvisories } from './list-security-advisories';
 import { listSatellites } from './list-satellites';

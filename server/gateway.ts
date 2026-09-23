@@ -91,13 +91,6 @@ import {
   ENTERPRISE_API_RATE_LIMIT,
 } from './_shared/api-key-rate-limit';
 import {
-  DIRECT_LLM_DAILY_QUOTA_LIMIT,
-  DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT,
-  DIRECT_LLM_GATEWAY_QUOTA_PATHS,
-  resolveActiveDirectLlmLimit,
-  reserveDirectLlmQuota,
-} from './_shared/direct-llm-quota';
-import {
   deliverUsageEvents,
   buildRequestEvent,
   deriveRequestId,
@@ -837,74 +830,6 @@ function createGatewayAuthErrorResponse(
   });
 }
 
-const GATEWAY_DIRECT_LLM_QUOTA_METHODS: Record<string, string> = {
-  '/api/intelligence/v1/classify-event': 'GET',
-  '/api/intelligence/v1/deduct-situation': 'POST',
-  '/api/intelligence/v1/get-country-intel-brief': 'GET',
-  '/api/market/v1/analyze-stock': 'GET',
-  '/api/news/v1/summarize-article': 'POST',
-};
-
-const COUNTRY_INTEL_BRIEF_PATH = '/api/intelligence/v1/get-country-intel-brief';
-
-function methodForGetEquivalentPolicy(method: string): string {
-  return method === 'HEAD' ? 'GET' : method;
-}
-
-async function shouldReserveGatewayDirectLlmQuota(request: Request, pathname: string): Promise<boolean> {
-  if (!DIRECT_LLM_GATEWAY_QUOTA_PATHS.has(pathname)) return false;
-  if (GATEWAY_DIRECT_LLM_QUOTA_METHODS[pathname] !== methodForGetEquivalentPolicy(request.method)) return false;
-  if (pathname !== '/api/news/v1/summarize-article') return true;
-
-  const contentLength = Number(request.headers.get('Content-Length') ?? '0');
-  if (Number.isFinite(contentLength) && contentLength >= POST_TO_GET_MAX_BODY_BYTES) {
-    return true;
-  }
-  try {
-    const body = await request.clone().json() as { mode?: unknown };
-    return body.mode !== 'translate';
-  } catch {
-    // Malformed summarize requests cannot reach provider spend; let the handler
-    // return the established validation error without charging quota.
-    return false;
-  }
-}
-
-function createDirectLlmQuotaFailureResponse(
-  reservation: Awaited<ReturnType<typeof reserveDirectLlmQuota>>,
-  corsHeaders: Record<string, string>,
-): Response {
-  if (reservation.ok) {
-    throw new Error('createDirectLlmQuotaFailureResponse called for successful reservation');
-  }
-
-  if (reservation.reason === 'cap-exceeded') {
-    return new Response(JSON.stringify({
-      error: 'Direct LLM daily quota exceeded',
-      limit: reservation.floor ?? DIRECT_LLM_DAILY_QUOTA_LIMIT,
-      resetsAt: 'next UTC midnight',
-    }), {
-      status: 429,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-        'Retry-After': String(reservation.retryAfterSec),
-        ...corsHeaders,
-      },
-    });
-  }
-
-  return new Response(JSON.stringify({ error: 'Direct LLM quota unavailable' }), {
-    status: 503,
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store',
-      'Retry-After': String(reservation.retryAfterSec),
-      ...corsHeaders,
-    },
-  });
-}
-
 function markAuthErrorNoStore(response: Response): Response {
   response.headers.set('Cache-Control', 'no-store');
   response.headers.delete('CDN-Cache-Control');
@@ -931,9 +856,10 @@ export const CREDENTIAL_BEARING_HEADERS = [
   'Authorization',
   'X-WorldMonitor-Key',
   'X-Api-Key',
-  // Widget tester keys (validated in api/widget-agent.ts:273-274). Both are
-  // per-principal credentials like the operator keys above: X-Widget-Key
-  // unlocks basic, X-Pro-Key unlocks Pro-tier generation.
+  // Widget tester keys (previously validated in api/widget-agent.ts, removed
+  // with the AI chat surfaces). Kept in the credential list so a stale client
+  // still presenting them never flips a per-principal response into a public
+  // cache tier.
   'X-Widget-Key',
   'X-Pro-Key',
   'Cookie',
@@ -1013,7 +939,7 @@ export function createDomainGateway(
     // controllable, and emitting it as `customer_id` would let unauthenticated
     // callers poison per-customer dashboards (per koala #3403 review). We only
     // populate `widgetKey` after validating it against the configured
-    // WIDGET_AGENT_KEY — same check used in api/widget-agent.ts.
+    // WIDGET_AGENT_KEY — same check used in api/wm-session.js.
     const rawWidgetKey = request.headers.get('x-widget-key') ?? null;
     const widgetAgentKey = process.env.WIDGET_AGENT_KEY ?? '';
     const validatedWidgetKey =
@@ -1454,27 +1380,12 @@ export function createDomainGateway(
     // Resolve the quota policy against the route POST compatibility will use.
     // Keep body validation after auth and abuse limiting; invalid bodies still
     // return before reservation or dispatch.
-    let directLlmPolicyRequest = request;
-    if (
-      request.method === 'POST'
-      && GATEWAY_DIRECT_LLM_QUOTA_METHODS[pathname] === 'GET'
-      && isPostToGetCompatibleBodySize(request.headers)
-      && !router.match(request)
-    ) {
-      const getProbe = new Request(request.url, { method: 'GET', headers: request.headers });
-      if (router.match(getProbe)) directLlmPolicyRequest = getProbe;
-    }
-    const requiresDirectLlmQuota = !internalMcpVerified && await shouldReserveGatewayDirectLlmQuota(directLlmPolicyRequest, pathname);
     const isTierGated = !internalMcpVerified && !isPublicNoAuthRpc && !seedRefreshVerified && !relayWarmPingVerified && getRequiredTier(pathname) !== null;
     // Docker self-hosting has no Clerk/Convex entitlement backend. Its browser
     // still obtains and presents a server-signed anonymous session, so that
     // proof remains the gateway authentication boundary on this one route.
     // Cloud deployments do not set LOCAL_API_MODE=docker, and every other
     // premium route retains forceKey + entitlement enforcement below.
-    const isDockerSelfHostCountryBrief =
-      (request.method === 'GET' || request.method === 'HEAD') &&
-      pathname === COUNTRY_INTEL_BRIEF_PATH &&
-      process.env.LOCAL_API_MODE === 'docker';
     const needsLegacyProBearerGate = !internalMcpVerified && !isPublicNoAuthRpc && PREMIUM_RPC_PATHS.has(pathname) && !isTierGated;
     const isProFreshCacheRpc = PRO_FRESH_CACHE_RPC_PATHS.has(pathname);
     const needsProFreshnessResolution =
@@ -1489,9 +1400,7 @@ export function createDomainGateway(
     // market allowlist to avoid JWKS lookup on every request.
     let sessionUserId: string | null = null;
     let sessionRole: 'free' | 'pro' | null = null;
-    let quotaEntitlements: CachedEntitlements | null = null;
-    let directLlmDailyLimit: number | null | undefined;
-    if (isTierGated || requiresDirectLlmQuota || needsProFreshnessResolution) {
+    if (isTierGated || needsProFreshnessResolution) {
       const session = await resolveClerkSession(request);
       if (session && 'reason' in session) {
         emitRequest(503, 'billing_verification_503', null);
@@ -1518,8 +1427,7 @@ export function createDomainGateway(
     let keyCheck: { valid: boolean; required: boolean; error?: string; kind?: 'enterprise' | 'session' | 'user'; credential?: string } = internalMcpVerified || isPublicNoAuthRpc || seedRefreshVerified || relayWarmPingVerified
       ? { valid: true, required: false }
       : ((await validateApiKey(request, {
-          forceKey: ((isTierGated && !sessionUserId) || needsLegacyProBearerGate)
-            && !isDockerSelfHostCountryBrief,
+          forceKey: (isTierGated && !sessionUserId) || needsLegacyProBearerGate,
         })) as { valid: boolean; required: boolean; error?: string; kind?: 'enterprise' | 'session' | 'user'; credential?: string });
 
     // User-owned API keys (wm_ prefix): when the static WORLDMONITOR_VALID_KEYS
@@ -1531,11 +1439,6 @@ export function createDomainGateway(
     // pass the #4611 apiAccess gate.
     let isUserApiKey = false;
     const wmKey = getHeaderApiKey(request);
-    const dockerSelfHostSessionAuthorized =
-      isDockerSelfHostCountryBrief &&
-      keyCheck.valid &&
-      !keyCheck.required &&
-      keyCheck.kind === 'session';
     if (keyCheck.required && !keyCheck.valid && wmKey.startsWith('wm_')) {
       // Unknown wm_ credentials require a Convex-backed hash lookup before we
       // know the account principal. Bound that unattributed work by IP first:
@@ -1697,7 +1600,7 @@ export function createDomainGateway(
     // Clerk-authenticated user who hasn't also minted a wms_ session token.
     // Override: routes that deliberately resolved a sessionUserId pass this layer.
     if (
-      (isTierGated || requiresDirectLlmQuota || needsProFreshnessResolution) &&
+      (isTierGated || needsProFreshnessResolution) &&
       sessionUserId &&
       keyCheck.required &&
       !keyCheck.valid
@@ -1905,7 +1808,6 @@ export function createDomainGateway(
       && !isUserApiKey
       && keyCheck.kind === 'enterprise';
     if (
-      !dockerSelfHostSessionAuthorized &&
       !isEnterpriseAuth &&
       !internalMcpVerified &&
       !seedRefreshVerified &&
@@ -1914,7 +1816,6 @@ export function createDomainGateway(
       const entitlementCheck = await checkEntitlementDetailed(sessionUserId, pathname, corsHeaders, {
         clerkRole: sessionRole,
       });
-      quotaEntitlements = entitlementCheck.entitlements;
       recordUsageEntitlement(entitlementCheck.entitlements);
       const entitlementResponse = entitlementCheck.response;
       if (entitlementResponse) {
@@ -1936,60 +1837,12 @@ export function createDomainGateway(
       if (sessionUserId && isTierGated) {
         rateLimitPrincipalUserId = sessionUserId;
       }
-
-      // #5206: summarize refreshes from multiple active Pro users can share a
-      // NAT/public IP and collectively exhaust the endpoint's 30/min abuse
-      // bucket. Keep the exact same fail-closed endpoint policy, but isolate
-      // confirmed active paid principals. Signed-in free, anonymous, expired,
-      // and unresolvable callers deliberately retain the per-IP bucket.
-      // requiresDirectLlmQuota intentionally limits this exception to
-      // spend-bearing summarize requests: translate/malformed requests do not
-      // spend direct LLM quota and keep ordinary per-IP behavior, while cache
-      // lookup is handled by its distinct route.
-      if (
-        pathname === '/api/news/v1/summarize-article' &&
-        requiresDirectLlmQuota &&
-        sessionUserId
-      ) {
-        // This guard runs before the entitlement lookup needed to choose the
-        // final endpoint bucket. Its distinct 600/min IP namespace matches the
-        // repo-wide global ceiling (20x the endpoint's 30/min spend cap): enough
-        // NAT headroom for legitimate Pro refreshes, while bounding per-IP
-        // entitlement-I/O amplification and failing closed when Redis degrades.
-        const attributionGuardResponse = await checkFailClosedScopedIpRateLimit(
-          request,
-          'summarize-article:principal-attribution',
-          600,
-          '60 s',
-          corsHeaders,
-        );
-        if (attributionGuardResponse) {
-          const reason = getRateLimitTelemetryReason(
-            attributionGuardResponse,
-            'rate_limit_429',
-          );
-          emitRequest(attributionGuardResponse.status, reason, null);
-          return attributionGuardResponse;
-        }
-
-        const ent = entitlementCheck.entitlements ?? (
-          userKeyEntitlement !== undefined
-            ? userKeyEntitlement
-            : await getEntitlements(sessionUserId)
-        );
-        quotaEntitlements = ent;
-        recordUsageEntitlement(ent);
-        if (ent && ent.features.tier >= 1 && hasCurrentEntitlementCoverage(ent)) {
-          rateLimitPrincipalUserId = sessionUserId;
-        }
-      }
     }
 
     // Route matching — if POST doesn't match, convert to GET for stale clients.
     // Strict compatibility 400s stay pending until the normal endpoint/global
     // limiter path runs so malformed or nested bodies still consume the GET
-    // route's abuse budget. The pending response is returned before
-    // direct-LLM quota and handler dispatch.
+    // route's abuse budget. The pending response is returned before handler dispatch.
     let matchedHandler = router.match(request);
     let pendingPostToGetCompatError: Response | null = null;
     if (!matchedHandler && request.method === 'POST') {
@@ -2319,62 +2172,6 @@ export function createDomainGateway(
     if (pendingPostToGetCompatError) {
       emitRequest(400, 'malformed_request', null);
       return pendingPostToGetCompatError;
-    }
-
-    if (requiresDirectLlmQuota && !isEnterpriseAuth) {
-      // The Docker principal is deliberately derived from nginx's trusted
-      // X-Real-IP value (docker/nginx.conf stamps $remote_addr), not from the
-      // freely mintable token: rotating sessions must not reset spend.
-      // Hashing keeps the raw address out of Redis keys.
-      const dockerQuotaUserId = dockerSelfHostSessionAuthorized
-        ? `docker:${hashKeySync(deriveIp(request) ?? 'unknown')}`
-        : null;
-      const quotaUserId = sessionUserId ?? dockerQuotaUserId;
-      if (!quotaUserId) {
-        emitRequest(401, 'auth_401', null);
-        return createGatewayAuthErrorResponse(401, 'Pro authentication required', corsHeaders);
-      }
-
-      // Tier-1 legacy Clerk-role grants intentionally bypass the ordinary
-      // entitlement lookup. Re-read the cached row when available so Pro
-      // Business/API plans still receive their catalog-specific dashboard-AI
-      // allowance.
-      const ent = quotaEntitlements ?? (
-        sessionUserId
-          ? userKeyEntitlement !== undefined
-            ? userKeyEntitlement
-            : await getEntitlements(sessionUserId)
-          : null
-      );
-      if (ent) recordUsageEntitlement(ent);
-      // resolveActiveDirectLlmLimit — NOT the raw catalog read — decides this.
-      // A caller we cannot confirm as actively paid (free tier, lapsed row, no
-      // row, or a verification outage) must land on the unverified floor, never
-      // on the paid default: this endpoint spends real provider budget, and
-      // two of the DIRECT_LLM_GATEWAY_QUOTA_PATHS carry no tier gate at all.
-      directLlmDailyLimit = sessionUserId
-        ? resolveActiveDirectLlmLimit(ent)
-        : DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT;
-
-      // Enterprise subscription rows carry an explicit null allowance. Do not
-      // hit Redis for those unlimited callers; static enterprise keys already
-      // bypass this block above.
-      if (directLlmDailyLimit !== null) {
-        const reservation = await reserveDirectLlmQuota({
-          userId: quotaUserId,
-          limit: directLlmDailyLimit,
-          pipeline: (cmds) => runRedisPipeline(cmds, true),
-        });
-        if (!reservation.ok) {
-          const response = createDirectLlmQuotaFailureResponse(reservation, corsHeaders);
-          emitRequest(
-            response.status,
-            response.status === 429 ? 'rate_limit_429_direct_llm' : 'rate_limit_degraded',
-            null,
-          );
-          return response;
-        }
-      }
     }
 
     // Gate on presence (not truthiness) so a present-but-empty header is

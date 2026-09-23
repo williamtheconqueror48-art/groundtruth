@@ -197,8 +197,8 @@ test.describe('mission presets', () => {
     expect(box!.x + box!.width).toBeLessThanOrEqual(390);
     expect(box!.y + box!.height).toBeLessThanOrEqual(844);
 
-    await page.locator('[data-mission-id="energy-security"]').click();
-    await expect.poll(() => readLocalStorage(page, PRESET_KEY)).toBe('energy-security');
+    await page.locator('[data-mission-id="supply-chain-risk"]').click();
+    await expect.poll(() => readLocalStorage(page, PRESET_KEY)).toBe('supply-chain-risk');
     await expect
       .poll(() => readJsonLocalStorage<Record<string, boolean>>(page, 'worldmonitor-layers').then((layers) => layers?.pipelines ?? false))
       .toBe(true);

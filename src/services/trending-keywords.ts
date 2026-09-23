@@ -1,7 +1,9 @@
 import type { CorrelationSignal } from './correlation';
 import { effectivePubDateMs } from './feed-date';
-import { mlWorker } from './ml-worker';
-import { generateSummary } from './summarization';
+// GROUNDTRUTH (2026-09-23 strip): the LLM worker and summarization service were
+// removed. Entity extraction falls back to regex; auto-summaries are disabled.
+const mlWorker = { isAvailable: false, extractEntities: async (_b: string[]): Promise<MLEntity[][]> => [] };
+async function generateSummary(..._args: unknown[]): Promise<{ summary?: string } | null> { return null; }
 import { SUPPRESSED_TRENDING_TERMS, generateSignalId } from '@/utils/analysis-constants';
 // The pure spike primitives (regex entity extractors, term candidacy, display
 // normalization, spike decision math) live in shared/keyword-spike-core.js

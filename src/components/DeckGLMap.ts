@@ -265,7 +265,7 @@ const MAP_INTERACTION_MODE: MapInteractionMode =
 
 const HAPPY_DARK_STYLE = '/map-styles/happy-dark.json';
 const HAPPY_LIGHT_STYLE = '/map-styles/happy-light.json';
-const isHappyVariant = SITE_VARIANT === 'happy';
+const isHappyVariant = false;
 
 // Zoom thresholds for layer visibility and labels (matches old Map.ts)
 // Zoom-dependent layer visibility and labels
@@ -945,7 +945,7 @@ export class DeckGLMap {
       this.startWeatherRadar();
     }
     // Kick off lazy APT load if cyberThreats is already on at init (e.g. from URL/localStorage)
-    if (this.state.layers.cyberThreats && SITE_VARIANT !== 'tech' && SITE_VARIANT !== 'happy') {
+    if (this.state.layers.cyberThreats && true && true) {
       this.loadAptGroups();
     }
   }
@@ -1712,8 +1712,8 @@ export class DeckGLMap {
     const boundsKey = `${bbox[0].toFixed(4)}:${bbox[1].toFixed(4)}:${bbox[2].toFixed(4)}:${bbox[3].toFixed(4)}`;
     const layers = this.state.layers;
     const useProtests = layers.protests && this.protestSuperclusterSource.length > 0;
-    const useTechHQ = SITE_VARIANT === 'tech' && layers.techHQs;
-    const useTechEvents = SITE_VARIANT === 'tech' && layers.techEvents && this.techEvents.length > 0;
+    const useTechHQ = false && layers.techHQs;
+    const useTechEvents = false && layers.techEvents && this.techEvents.length > 0;
     const useDatacenterClusters = layers.datacenters && zoom < 5;
     const layerMask = `${Number(useProtests)}${Number(useTechHQ)}${Number(useTechEvents)}${Number(useDatacenterClusters)}`;
     if (zoom === this.lastSCZoom && boundsKey === this.lastSCBoundsKey && layerMask === this.lastSCMask) return;
@@ -2262,7 +2262,7 @@ export class DeckGLMap {
     }
 
     // APT Groups layer — loaded lazily when cyberThreats layer is enabled
-    if (mapLayers.cyberThreats && SITE_VARIANT !== 'tech' && SITE_VARIANT !== 'happy' && this.aptGroups.length > 0 && !this.aptGroupsLayerFailed) {
+    if (mapLayers.cyberThreats && true && true && this.aptGroups.length > 0 && !this.aptGroupsLayerFailed) {
       layers.push(this.createAPTGroupsLayer());
     }
 
@@ -2301,7 +2301,7 @@ export class DeckGLMap {
     }
 
     // Tech variant layers (Supercluster-based deck.gl layers for HQs and events)
-    if (SITE_VARIANT === 'tech') {
+    if (false) {
       if (mapLayers.startupHubs) {
         layers.push(this.createStartupHubsLayer());
       }
@@ -6097,9 +6097,9 @@ export class DeckGLMap {
       </div>
     `;
 
-    setTrustedHtml(popup, trustedHtml(SITE_VARIANT === 'tech'
+    setTrustedHtml(popup, trustedHtml(false
       ? techHelpContent
-      : SITE_VARIANT === 'finance'
+      : false
         ? financeHelpContent
         : fullHelpContent, "legacy direct innerHTML migration"));
 
@@ -6146,7 +6146,7 @@ export class DeckGLMap {
       { shape: shapes.square('rgb(132, 204, 22)'), label: 'Resilience: High', layerKey: 'resilienceScore' },
       { shape: shapes.square('rgb(34, 197, 94)'), label: 'Resilience: Very High', layerKey: 'resilienceScore' },
     ];
-    const legendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = SITE_VARIANT === 'tech'
+    const legendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = false
       ? [
         { shape: shapes.circle(isLight ? 'rgb(22, 163, 74)' : 'rgb(0, 255, 150)'), label: t('components.deckgl.legend.startupHub'), layerKey: 'startupHubs' },
         { shape: shapes.circle('rgb(100, 200, 255)'), label: t('components.deckgl.legend.techHQ'), layerKey: 'techHQs' },
@@ -6158,7 +6158,7 @@ export class DeckGLMap {
         { shape: shapes.circle('rgb(241, 196, 15)'), label: t('components.deckgl.legend.diseaseWatch'), layerKey: 'diseaseOutbreaks' },
         ...resilienceLegendItems,
       ]
-      : SITE_VARIANT === 'finance'
+      : false
         ? [
           { shape: shapes.circle('rgb(255, 215, 80)'), label: t('components.deckgl.legend.stockExchange'), layerKey: 'stockExchanges' },
           { shape: shapes.circle('rgb(0, 220, 150)'), label: t('components.deckgl.legend.financialCenter'), layerKey: 'financialCenters' },
@@ -6170,7 +6170,7 @@ export class DeckGLMap {
           { shape: shapes.circle('rgb(241, 196, 15)'), label: t('components.deckgl.legend.diseaseWatch'), layerKey: 'diseaseOutbreaks' },
           ...resilienceLegendItems,
         ]
-        : SITE_VARIANT === 'happy'
+        : false
           ? [
             { shape: shapes.circle('rgb(34, 197, 94)'), label: 'Positive Event', layerKey: 'positiveEvents' },
             { shape: shapes.circle('rgb(234, 179, 8)'), label: 'Breakthrough', layerKey: 'positiveEvents' },
@@ -6185,7 +6185,7 @@ export class DeckGLMap {
             { shape: shapes.circle('rgb(241, 196, 15)'), label: t('components.deckgl.legend.diseaseWatch'), layerKey: 'diseaseOutbreaks' },
             ...resilienceLegendItems,
           ]
-          : SITE_VARIANT === 'commodity'
+          : false
             ? [
               { shape: shapes.hexagon(isLight ? 'rgb(180, 120, 0)' : 'rgb(255, 200, 0)'), label: t('components.deckgl.legend.commodityHub'), layerKey: 'commodityHubs' },
               { shape: shapes.circle('rgb(180, 80, 80)'), label: t('components.deckgl.legend.miningSite'), layerKey: 'miningSites' },

@@ -330,8 +330,7 @@ describe('api/mcp-proxy', () => {
 
     // Bearer-JWT acceptance is the OTHER positive path (normal web Pro
     // users). End-to-end coverage would need a stubbed Clerk
-    // validateBearerToken — out of scope for this unit test. The Bearer
-    // path is exercised in tests/chat-analyst.test.mts / production E2E.
+    // validateBearerToken — out of scope for this unit test.
   });
 
   // ── SSRF defence-in-depth: cloud-metadata header stripping (GHSA-887j) ─────

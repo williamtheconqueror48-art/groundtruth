@@ -45,7 +45,7 @@ const RENDERER_SET = new Set<string>(WEBMCP_MAP_LAYER_RENDERERS);
 const STATE_SET = new Set<string>(WEBMCP_MAP_LAYER_STATES);
 const LAYER_ID_PATTERN = new RegExp(DASHBOARD_LAYER_ACTION_TARGET_ID_PATTERN);
 const MAP_VARIANTS = new Set<MapVariant>([
-  'full', 'tech', 'finance', 'happy', 'commodity', 'energy',
+  'full',
 ]);
 
 export type MapLayerCatalogInvalidReason =
@@ -109,8 +109,9 @@ export type MapLayerCatalogResult = MapLayerCatalogSuccess | MapLayerCatalogInva
 
 const CATALOG_ARG_KEYS = ['monitor', 'renderer', 'state', 'cursor', 'limit'] as const;
 
-export function monitorToVariant(monitor: WebMcpMapLayerMonitor): MapVariant {
-  return monitor === 'world' ? 'full' : monitor;
+export function monitorToVariant(_monitor: WebMcpMapLayerMonitor): MapVariant {
+  // GROUNDTRUTH (2026-09-23 strip): single app — always 'full'.
+  return 'full';
 }
 
 export function rendererFamily(kind: RendererKind): WebMcpMapLayerRenderer {

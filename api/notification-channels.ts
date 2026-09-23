@@ -406,9 +406,9 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
       // #5600: an entitlement the backend could not VERIFY (Convex 5xx/timeout,
       // or a renewal re-check in flight) is not a confirmed free user. Answer
       // it with the shared retryable contract — 503 + Retry-After +
-      // X-Billing-Verification — the same way the gateway, widget-agent, and
-      // MCP surfaces do, so the client can retry instead of rendering a
-      // terminal "upgrade to Pro".
+      // X-Billing-Verification — the same way the gateway and MCP surfaces
+      // do, so the client can retry instead of rendering a terminal
+      // "upgrade to Pro".
       //
       // Scope note: this does NOT cover the day-0 poisoned-marker cohort. That
       // one arrives as a plain tier-0 answer (no billingStatus, no

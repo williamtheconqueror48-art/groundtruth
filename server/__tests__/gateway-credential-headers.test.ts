@@ -7,8 +7,7 @@
  * Failure mode this pins: a GET authenticated by a missing header resolves
  * `hasCredentialedNonPublicGet` to false and the gateway emits a per-principal
  * response under a public cache tier — a cached body served to the wrong
- * principal. The drift vector is concrete: X-Widget-Key / X-Pro-Key were both
- * introduced (api/widget-agent.ts) after the function was written.
+ * principal.
  *
  * Two layers, matching the repo's two-list-sync precedent (premium-paths-guard):
  *   1. Behavioural: every header in CREDENTIAL_BEARING_HEADERS classifies a
@@ -161,10 +160,6 @@ describe('credential-bearing headers force a private tier (#8400)', () => {
     const credentialReads: Array<{ file: string; header: string }> = [
       { file: 'api/_api-key.js', header: 'X-WorldMonitor-Key' },
       { file: 'api/_api-key.js', header: 'X-Api-Key' },
-      { file: 'api/widget-agent.ts', header: 'X-WorldMonitor-Key' },
-      { file: 'api/widget-agent.ts', header: 'X-Api-Key' },
-      { file: 'api/widget-agent.ts', header: 'X-Widget-Key' },
-      { file: 'api/widget-agent.ts', header: 'X-Pro-Key' },
       { file: 'api/embed/entitlement.ts', header: 'X-WorldMonitor-Key' },
       { file: 'api/embed/entitlement.ts', header: 'X-Api-Key' },
       { file: 'api/embed/session.ts', header: 'X-WorldMonitor-Key' },

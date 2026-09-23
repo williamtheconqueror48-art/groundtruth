@@ -1,4 +1,3 @@
-import { SITE_VARIANT } from '@/config';
 import { h } from '@/utils/dom-utils'; // kept for Panel base class compat
 
 export type StatusLevel = 'ok' | 'warning' | 'error' | 'disabled';
@@ -82,8 +81,8 @@ export class StatusPanel extends Panel {
   }
 
   private init(): void {
-    this.allowedFeeds = SITE_VARIANT === 'tech' ? TECH_FEEDS : WORLD_FEEDS;
-    this.allowedApis = SITE_VARIANT === 'tech' ? TECH_APIS : WORLD_APIS;
+    this.allowedFeeds = false ? TECH_FEEDS : WORLD_FEEDS;
+    this.allowedApis = false ? TECH_APIS : WORLD_APIS;
 
     this.element = h('div', { className: 'status-panel-container' });
     this.initDefaultStatuses();

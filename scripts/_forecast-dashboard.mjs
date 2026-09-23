@@ -16,9 +16,8 @@
  * for content the overwhelming majority never expand.
  *
  * The bootstrap key therefore carries the LIST the panel renders (188 KB -> 41 KB).
- * The canonical key keeps the dossiers and still serves the RPC, the MCP widget and
- * chat-analyst-context; the panel fetches a dossier lazily when someone actually
- * opens one.
+ * The canonical key keeps the dossiers and still serves the RPC and the MCP
+ * widget; the panel fetches a dossier lazily when someone actually opens one.
  *
  * NOTE: this file must not import anything outside `scripts/` — Railway builds the
  * seeders from a scripts-only Nixpacks root, and a `../api/` import crashes the

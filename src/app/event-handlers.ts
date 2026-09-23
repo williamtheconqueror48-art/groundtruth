@@ -7,8 +7,7 @@ import type {
 import { applyVisibleMapDimension } from '@/app/map-dimension-control';
 import type { UnifiedSettingsConfig } from '@/components/UnifiedSettings';
 import type { AirlineIntelPanel } from '@/components/AirlineIntelPanel';
-import type { CustomWidgetPanel } from '@/components/CustomWidgetPanel';
-import { deleteWidget, getWidget, saveWidget, isProUser, isProTierResolved } from '@/services/widget-store';
+import { deleteWidget, isProUser, isProTierResolved } from '@/services/widget-store';
 import { hasPremiumAccess } from '@/services/open-tier';
 import {
   sanitizeLockedLayers,
@@ -34,7 +33,6 @@ import type { ClusteredEvent } from '@/types';
 import type { DashboardSnapshot } from '@/services/storage';
 import { PlaybackControl } from '@/components/PlaybackControl';
 import { PizzIntIndicator } from '@/components/PizzIntIndicator';
-import { LlmStatusIndicator } from '@/components/LlmStatusIndicator';
 import type { PredictionPanel } from '@/components/PredictionPanel';
 import {
   buildMapUrl,
@@ -59,7 +57,6 @@ import {
 } from '@/config';
 import { resolveNewsCategories, enabledNewsCategoryKeys } from '@/config/feed-resolution';
 import { SITE_META } from '@/config/site-meta';
-import { isDesktopRuntime } from '@/services/runtime';
 import {
   getMissionPresetsForVariant,
   applyMissionPresetToState,
@@ -102,7 +99,6 @@ import { WM_OPEN_NOTIFICATIONS_FOR_COUNTRY } from '@/utils/notify-country-link';
 import { AuthLauncher } from '@/components/AuthLauncher';
 import { AuthHeaderWidget } from '@/components/AuthHeaderWidget';
 import { t } from '@/services/i18n';
-import { TvModeController } from '@/services/tv-mode';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
 import { evaluateAvailableExportFormats, evaluateExportGate, exportLockToGateReason } from '@/services/gates/export';
@@ -299,7 +295,6 @@ export class EventHandlerManager implements AppModule {
   private boundDesktopExternalLinkHandler: ((e: MouseEvent) => void) | null = null;
   private boundIdleResetHandler: (() => void) | null = null;
   private boundStorageHandler: ((e: StorageEvent) => void) | null = null;
-  private boundTvKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private boundThemeChangedHandler: (() => void) | null = null;
   private boundDropdownClickHandler: ((e: MouseEvent) => void) | null = null;
   private boundDropdownKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -319,7 +314,6 @@ export class EventHandlerManager implements AppModule {
   private boundSearchKeyHandler: ((e: KeyboardEvent) => void) | null = null;
   private readonly mobilePrimaryNav: MobilePrimaryNav;
   private boundPanelCloseHandler: ((e: Event) => void) | null = null;
-  private boundWidgetModifyHandler: ((e: Event) => void) | null = null;
   private boundUndoHandler: ((e: KeyboardEvent) => void) | null = null;
   private boundNotifyForCountryHandler: ((e: Event) => void) | null = null;
   private boundMissionOutsideHandler: ((e: MouseEvent) => void) | null = null;
@@ -369,7 +363,6 @@ export class EventHandlerManager implements AppModule {
     this.setupEventListeners();
     this.mobilePrimaryNav.init();
     this.setupIdleDetection();
-    this.setupTvMode();
   }
 
   private performUndo(): void {
@@ -446,48 +439,6 @@ export class EventHandlerManager implements AppModule {
     );
   }
 
-  private setupTvMode(): void {
-    if (SITE_VARIANT !== 'happy') return;
-
-    const tvBtn = document.getElementById('tvModeBtn');
-    const tvExitBtn = document.getElementById('tvExitBtn');
-    if (tvBtn) {
-      tvBtn.addEventListener('click', () => this.toggleTvMode());
-    }
-    if (tvExitBtn) {
-      tvExitBtn.addEventListener('click', () => this.toggleTvMode());
-    }
-    // Keyboard shortcut: Shift+T
-    this.boundTvKeydownHandler = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.key === 'T' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const active = document.activeElement;
-        if (active?.tagName !== 'INPUT' && active?.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          this.toggleTvMode();
-        }
-      }
-    };
-    document.addEventListener('keydown', this.boundTvKeydownHandler);
-  }
-
-  private toggleTvMode(): void {
-    const panelKeys = Object.keys(this.ctx.panelSettings).filter(
-      key => this.ctx.panelSettings[key]?.enabled !== false
-    );
-    if (!this.ctx.tvMode) {
-      this.ctx.tvMode = new TvModeController({
-        panelKeys,
-        onPanelChange: () => {
-          document.getElementById('tvModeBtn')?.classList.toggle('active', this.ctx.tvMode?.active ?? false);
-        }
-      });
-    } else {
-      this.ctx.tvMode.updatePanelKeys(panelKeys);
-    }
-    this.ctx.tvMode.toggle();
-    document.getElementById('tvModeBtn')?.classList.toggle('active', this.ctx.tvMode.active);
-  }
-
   destroy(): void {
     this.closeEmbedDialog();
     this.debouncedUrlSync.cancel();
@@ -529,10 +480,6 @@ export class EventHandlerManager implements AppModule {
     if (this.boundStorageHandler) {
       window.removeEventListener('storage', this.boundStorageHandler);
       this.boundStorageHandler = null;
-    }
-    if (this.boundTvKeydownHandler) {
-      document.removeEventListener('keydown', this.boundTvKeydownHandler);
-      this.boundTvKeydownHandler = null;
     }
     if (this.boundThemeChangedHandler) {
       window.removeEventListener('theme-changed', this.boundThemeChangedHandler);
@@ -603,10 +550,6 @@ export class EventHandlerManager implements AppModule {
     if (this.boundPanelCloseHandler) {
       this.ctx.container.removeEventListener('wm:panel-close', this.boundPanelCloseHandler);
       this.boundPanelCloseHandler = null;
-    }
-    if (this.boundWidgetModifyHandler) {
-      this.ctx.container.removeEventListener('wm:widget-modify', this.boundWidgetModifyHandler);
-      this.boundWidgetModifyHandler = null;
     }
     if (this.boundUndoHandler) {
       document.removeEventListener('keydown', this.boundUndoHandler);
@@ -761,24 +704,6 @@ export class EventHandlerManager implements AppModule {
       if (this.closedPanelStack.length > 20) this.closedPanelStack.shift();
     }) as EventListener;
     this.ctx.container.addEventListener('wm:panel-close', this.boundPanelCloseHandler);
-
-    this.boundWidgetModifyHandler = ((e: CustomEvent<{ widgetId: string }>) => {
-      const spec = getWidget(e.detail.widgetId);
-      if (!spec) return;
-      void import('@/components/WidgetChatModal').then((m) => m.openWidgetChatModal({
-        mode: 'modify',
-        existingSpec: spec,
-        onComplete: (updated) => {
-          void saveWidget(updated).then(() => {
-            (this.ctx.panels[updated.id] as CustomWidgetPanel | undefined)?.updateSpec(updated);
-          }).catch((error) => {
-            console.error('[widget-chat] failed to save widget', error);
-            showToast(t('widgets.saveFailed'));
-          });
-        },
-      })).catch((err) => console.error('[widget-chat] failed to lazy-load WidgetChatModal', err));
-    }) as EventListener;
-    this.ctx.container.addEventListener('wm:widget-modify', this.boundWidgetModifyHandler);
 
     this.ctx.container.addEventListener('wm:mcp-configure', ((e: CustomEvent<{ panelId: string }>) => {
       const spec = getMcpPanel(e.detail.panelId);
@@ -1514,17 +1439,13 @@ export class EventHandlerManager implements AppModule {
     const state = this.ctx.map.getState();
     const center = this.ctx.map.getCenter();
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
-    const briefPage = this.ctx.countryBriefPage;
-    const isCountryVisible = briefPage?.isVisible() ?? false;
     return buildMapUrl(baseUrl, {
       view: state.view,
       zoom: state.zoom,
       center,
       timeRange: state.timeRange,
       layers: state.layers,
-      country: isCountryVisible ? (briefPage?.getCode() ?? undefined) : undefined,
-      expanded: isCountryVisible && briefPage?.getIsMaximized?.() ? true : undefined,
-      chokepoint: !isCountryVisible ? (this.ctx.activeChokepoint ?? undefined) : undefined,
+      chokepoint: this.ctx.activeChokepoint ?? undefined,
     });
   }
 
@@ -1925,21 +1846,12 @@ export class EventHandlerManager implements AppModule {
   }
 
   setupPizzIntIndicator(): void {
-    if (SITE_VARIANT !== 'full') return;
+    if (false) return;
 
     this.ctx.pizzintIndicator = new PizzIntIndicator();
     const headerLeft = this.ctx.container.querySelector('.header-left');
     if (headerLeft) {
       headerLeft.appendChild(this.ctx.pizzintIndicator.getElement());
-    }
-  }
-
-  setupLlmStatusIndicator(): void {
-    if (!isDesktopRuntime()) return;
-    this.ctx.llmStatusIndicator = new LlmStatusIndicator();
-    const headerRight = this.ctx.container.querySelector('.header-right');
-    if (headerRight) {
-      headerRight.appendChild(this.ctx.llmStatusIndicator.getElement());
     }
   }
 

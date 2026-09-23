@@ -18,10 +18,6 @@ import {
   getInternalMcpVerifiedNonce,
 } from './mcp-internal-hmac';
 import { validateUserApiKey } from './user-api-key';
-import {
-  DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT,
-  resolveActiveDirectLlmLimit,
-} from './direct-llm-quota';
 
 export type PremiumCallerIdentity =
   | { isPremium: true; userId: string; kind: 'internal-mcp'; quotaExempt: true }
@@ -30,16 +26,6 @@ export type PremiumCallerIdentity =
       userId: string;
       kind: 'user-api-key' | 'bearer';
       quotaExempt: false;
-      /**
-       * Daily direct-LLM budget for this caller. `null` is unlimited.
-       *
-       * REQUIRED, not optional: every arm that builds this identity must state
-       * the budget explicitly. When it was optional an arm was added without
-       * it, and the absent field fell through to the paid default — so the two
-       * surfaces sharing this counter enforced two different caps. Always
-       * source it from `resolveActiveDirectLlmLimit`.
-       */
-      directLlmDailyLimit: number | null;
     }
   | { isPremium: true; userId: null; kind: 'enterprise'; quotaExempt: true }
   | {
@@ -73,8 +59,9 @@ export type PremiumCallerIdentity =
      * — nothing was presented, or what was presented did not validate — rather
      * than on a verdict about an identified account's plan.
      *
-     * Without it every denial looked the same, so `api/chat-analyst.ts` told a
-     * signed-out visitor to buy a Pro subscription. The fix for that caller is a
+     * Without it every denial looked the same, so the (now removed)
+     * `api/chat-analyst.ts` route told a signed-out visitor to buy a Pro
+     * subscription. The fix for that caller is a
      * session, not a purchase, and the client classifier has carried a
      * `sign_in_required` verdict since #5608 that no 403 on this route could
      * ever reach.
@@ -305,7 +292,6 @@ export async function resolvePremiumCallerIdentity(request: Request): Promise<Pr
             userId: userKey.userId,
             kind: 'user-api-key',
             quotaExempt: false,
-            directLlmDailyLimit: resolveActiveDirectLlmLimit(ent),
           };
         }
         // Preserve main's billing-verification tag on confirmed denials (#5622).
@@ -352,14 +338,11 @@ export async function resolvePremiumCallerIdentity(request: Request): Promise<Pr
       // A Clerk-role grant is premium WITHOUT a Convex row to price it: the Dodo
       // pipeline never syncs publicMetadata.role (see server/gateway.ts), so
       // this arm is complimentary/tester/legacy grants, not paying subscribers.
-      // Unpriceable is exactly the unverified case, so name the floor here
-      // rather than letting an absent field fall through to the paid default.
       return {
         isPremium: true,
         userId: session.userId,
         kind: 'bearer',
         quotaExempt: false,
-        directLlmDailyLimit: DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT,
       };
     }
     // Clerk role isn't 'pro' — check Dodo entitlement tier as second signal.
@@ -372,7 +355,6 @@ export async function resolvePremiumCallerIdentity(request: Request): Promise<Pr
           userId: session.userId,
           kind: 'bearer',
           quotaExempt: false,
-          directLlmDailyLimit: resolveActiveDirectLlmLimit(ent),
         };
       }
       return denyFor(ent);
@@ -408,7 +390,8 @@ export async function resolvePremiumCallerIdentity(request: Request): Promise<Pr
  * "Pro subscription required" 403 — that flattens a backend blip into a
  * misleading upsell for a paying customer. Those callers must use
  * `resolvePremiumCallerIdentity()` and render `identity.billingDenial` via
- * `getBillingVerificationDenial` instead (see api/chat-analyst.ts). Threading
+ * `getBillingVerificationDenial` instead (see the removed api/chat-analyst.ts
+ * for the original call-site pattern). Threading
  * the signal through this boolean would mean changing its return type and every
  * caller, which is why the identity API carries it instead.
  *

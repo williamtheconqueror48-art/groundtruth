@@ -45,39 +45,11 @@
       "digest": "sha256:1794b12335095bd66b311502a3c9c5b8e1a104cf6845fab9dcee1b26e8b0435e"
     },
     {
-      "name": "fetch-country-brief",
-      "type": "skill-md",
-      "description": "Retrieve the current AI-generated strategic intelligence brief for a country, keyed by ISO 3166-1 alpha-2 code. Use when the user asks for a summary of the current geopolitical, economic, or security situation in a specific country.",
-      "url": "https://worldmonitor.app/.well-known/agent-skills/fetch-country-brief/SKILL.md",
-      "digest": "sha256:da0911e598596a393f956f84d2903f340565ae9d3b14411d1812fadd1aa2bf4c"
-    },
-    {
-      "name": "fetch-news-digest",
-      "type": "skill-md",
-      "description": "Retrieve the pre-aggregated digest of World Monitor's curated news feeds, bucketed by category, with per-article threat classification and alert flags. Use when the user asks what's in the news right now, wants headlines by topic, or needs a current-events sweep.",
-      "url": "https://worldmonitor.app/.well-known/agent-skills/fetch-news-digest/SKILL.md",
-      "digest": "sha256:4fef85256b45465f53070fd5424a6e5e47a2b9dd5ad53132c1529c495677b57d"
-    },
-    {
       "name": "fetch-resilience-score",
       "type": "skill-md",
       "description": "Retrieve the composite country resilience score (0-100) and its domain/pillar breakdown for a single country. Use when the user asks how resilient a country is, or wants its numeric resilience score, trend, or per-domain breakdown.",
       "url": "https://worldmonitor.app/.well-known/agent-skills/fetch-resilience-score/SKILL.md",
       "digest": "sha256:6dec69fa8566b683ba272331c71bdcc41cd8eb30a51470f9e129cb4a37c9354a"
-    },
-    {
-      "name": "get-market-quotes",
-      "type": "skill-md",
-      "description": "Retrieve real-time equity, index, and ETF quotes with price, change, and sparkline history. Use when the user asks for current market prices, how a ticker is doing, or a quick market snapshot.",
-      "url": "https://worldmonitor.app/.well-known/agent-skills/get-market-quotes/SKILL.md",
-      "digest": "sha256:60a4f48c154f11f9b47ab65f70337e38c0289b7bc5f9811c5a22018cc2468224"
-    },
-    {
-      "name": "get-prediction-markets",
-      "type": "skill-md",
-      "description": "Retrieve active prediction-market contracts (Polymarket) with live yes-price probabilities, volume, and close dates, filterable by category or keyword. Use when the user asks what the market odds are on a geopolitical, economic, or election outcome.",
-      "url": "https://worldmonitor.app/.well-known/agent-skills/get-prediction-markets/SKILL.md",
-      "digest": "sha256:c81dd07c39300f85d0c19923c14470ae0ee1a7ea0375f7fbad525d829d626e9d"
     },
     {
       "name": "monitor-energy-disruptions",

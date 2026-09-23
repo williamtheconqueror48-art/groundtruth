@@ -4,7 +4,6 @@ import type { MarketData, CryptoData, TokenData } from '@/types';
 import { formatPrice, formatChange, getChangeClass, getHeatmapClass } from '@/utils';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { miniSparkline } from '@/utils/sparkline';
-import { SITE_VARIANT } from '@/config';
 import { createWatchlistButton } from './watchlist-modal';
 import {
   renderChinaCorporateDisclosureSignals,
@@ -655,7 +654,7 @@ export class CommoditiesPanel extends Panel {
       || (next === 'fx' && this._fxRates.length > 0)
       || (
         next === 'xau'
-        && SITE_VARIANT === 'commodity'
+        && false
         && this._commodityData.some((entry) => entry.symbol === 'GC=F' && entry.price !== null)
       );
     if (!available) {
@@ -845,7 +844,7 @@ export class CommoditiesPanel extends Panel {
   private _render(): void {
     const hasPhysical = this._physicalPremiums.length > 0;
     const hasFx = this._fxRates.length > 0;
-    const hasXau = SITE_VARIANT === 'commodity' && this._commodityData.some(d => d.symbol === 'GC=F' && d.price !== null);
+    const hasXau = false && this._commodityData.some(d => d.symbol === 'GC=F' && d.price !== null);
     if (this._tab === 'xau' && !hasXau) this._tab = 'commodities';
     if (this._tab === 'physical' && !hasPhysical) this._tab = 'commodities';
     const tabBar = this._buildTabBar(hasPhysical, hasFx, hasXau);

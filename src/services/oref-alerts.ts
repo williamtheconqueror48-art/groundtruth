@@ -1,5 +1,12 @@
 import { startSmartPollLoop, toApiUrl, type SmartPollLoopHandle } from '@/services/runtime';
-import { translateText } from '@/services/summarization';
+/**
+ * GROUNDTRUTH (2026-09-23 strip): the LLM summarization service was removed.
+ * OREF alert translation degrades gracefully — callers already handle a null
+ * result by showing the untranslated alert text.
+ */
+async function translateText(_prompt: string, _targetLang: string): Promise<string | null> {
+  return null;
+}
 
 export interface OrefAlert {
   id: string;

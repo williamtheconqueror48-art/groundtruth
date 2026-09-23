@@ -81,7 +81,7 @@ export const ACCOUNT_DELETION_REGISTRY: readonly RegistryEntry[] = [
     action: "delete",
     notes: "Delete referrer-owned credits; anonymize referee email on surviving credits",
   },
-  { target: "entitlements", action: "delete", notes: "Access, not invoices" },
+  { target: "entitlements", action: "skip", notes: "Table removed in GROUNDTRUTH strip (2026-09-23); single open tier, no entitlements stored" },
   { target: "apiUsageRollups", action: "delete", notes: "Usage windows" },
   { target: "apiPlanLimitNotices", action: "delete", notes: "Plan-limit notices" },
   { target: "checkoutAdmissions", action: "delete", notes: "Checkout admission counters" },
@@ -169,8 +169,8 @@ export const ACCOUNT_DELETION_REGISTRY: readonly RegistryEntry[] = [
   },
   {
     target: "redis:entitlements",
-    action: "delete",
-    notes: "entitlements:{env}:{userId}",
+    action: "skip",
+    notes: "Removed in GROUNDTRUTH strip (2026-09-23); was entitlements:{env}:{userId}",
   },
   {
     target: "redis:user-api-key",

@@ -1,16 +1,16 @@
 /**
  * GROUNDTRUTH (2026-09-23 strip): single app. The variant system was removed —
- * SITE_VARIANT is always 'full'. The list/type below are kept only because
- * Tier-2 variant panel catalogs still iterate them; they will be collapsed
- * in the Tier 2 strip.
+ * SITE_VARIANT is always 'full'. SITE_VARIANTS is retained as a single-element
+ * list so the webmcp catalog builders (which iterate variants) keep working
+ * unchanged; they now produce single-variant catalogs.
  */
-export const SITE_VARIANTS = ['full', 'tech', 'finance', 'happy', 'commodity', 'energy'] as const;
+export const SITE_VARIANTS = ['full'] as const;
 
 export type SiteVariant = (typeof SITE_VARIANTS)[number];
 
 export function isSiteVariant(value: string | null | undefined): value is SiteVariant {
-  return typeof value === 'string' && (SITE_VARIANTS as readonly string[]).includes(value);
+  return value === 'full';
 }
 
-/** @deprecated Single-app build: always 'full'. */
-export const SITE_VARIANT: string = 'full';
+/** Single-app build: always 'full'. */
+export const SITE_VARIANT: SiteVariant = 'full';

@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { Panel } from './Panel';
-import { fetchServerInsights, getServerInsights, type ServerInsights } from '@/services/insights-loader';
+import type { ServerInsights } from './threat-timeline-utils';
 import { escapeHtml, sanitizeUrl, unsafeRawHtml } from '@/utils/sanitize';
 import type { ClusteredEvent } from '@/types';
 import {
@@ -51,17 +51,12 @@ export class ThreatTimelinePanel extends Panel {
       this.lastClusters = fallbackClusters;
     }
 
-    try {
-      const serverInsights = getServerInsights() ?? await fetchServerInsights();
-      if (serverInsights) {
-        this.updateFromServerInsights(serverInsights);
-        return;
-      }
-    } catch (err) {
-      console.warn('[ThreatTimeline] insight refresh failed, falling back to clusters:', err);
-    }
-
-    this.updateFromClusters(this.lastClusters, 'degraded', 'Server insight snapshot unavailable');
+    // GROUNDTRUTH (2026-09-23 strip): the server AI-insights snapshot feed was
+    // deleted with the AI brief pipeline. The timeline renders from live news
+    // clusters; updateFromServerInsights() remains for external snapshot input.
+    const hasClusters = this.lastClusters.length > 0;
+    this.updateFromClusters(this.lastClusters, hasClusters ? 'ok' : 'degraded',
+      hasClusters ? '' : 'Intelligence snapshot feed removed — awaiting cluster data');
   }
 
   public updateFromServerInsights(insights: ServerInsights): void {

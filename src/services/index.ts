@@ -36,7 +36,7 @@ export * from './country-instability';
 export * from './infrastructure-cascade';
 export * from './data-freshness';
 export * from './usa-spending';
-export { generateSummary, translateText } from './summarization';
+// summarization: removed in GROUNDTRUTH strip (2026-09-23) — AI briefs/summaries deleted.
 export * from './cached-theater-posture';
 // trade: not re-exported (#4571) — eager service client; kept tree-shakeable out of main.js
 // supply-chain: not re-exported (#4571 review) — eager service client; kept tree-shakeable out of main.js

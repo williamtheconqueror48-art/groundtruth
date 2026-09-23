@@ -152,10 +152,3 @@ Rules:
 
   return { systemPrompt, userPrompt };
 }
-
-// ========================================================================
-// SummarizeArticle: Provider credential resolution (canonical source)
-// ========================================================================
-
-export { getProviderCredentials } from '../../../_shared/llm';
-export type { ProviderCredentials } from '../../../_shared/llm';

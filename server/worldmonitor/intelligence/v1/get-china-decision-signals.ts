@@ -8,9 +8,6 @@ import {
   type ChinaDecisionSignalSnapshot,
 } from '../../../../shared/china-decision-signals';
 import { getCachedJsonBatch } from '../../../_shared/redis';
-import { getChinaMacroSnapshot } from '../../economic/v1/get-china-macro-snapshot';
-import { getChinaActivityNowcast } from '../../economic/v1/get-china-activity-nowcast';
-import { resolveChinaCorridorSnapshot } from '../../supply-chain/v1/get-china-corridor-control-towers';
 
 export const CHINA_DECISION_SIGNAL_SOURCE_KEYS = Object.freeze({
   policy: 'china:policy-events:v1',
@@ -31,19 +28,16 @@ export interface ChinaDecisionSignalDependencies {
   getNowcast: (ctx: ServerContext) => Promise<unknown>;
 }
 
+// The economic and supply-chain domains (get-china-macro-snapshot,
+// get-china-activity-nowcast, get-china-corridor-control-towers) were stripped
+// as Tier-3. Those groups now resolve to null and surface as 'unavailable'
+// rather than pulling the deleted domains back in.
 const defaultDependencies: ChinaDecisionSignalDependencies = {
   now: () => new Date().toISOString(),
   readBatch: getCachedJsonBatch,
-  getMacro: (ctx) => getChinaMacroSnapshot(ctx, {}),
-  getCorridors: (generatedAt) => resolveChinaCorridorSnapshot(generatedAt),
-  getNowcast: async (ctx) => {
-    const response = await getChinaActivityNowcast(ctx, {});
-    try {
-      return JSON.parse(response.payloadJson) as unknown;
-    } catch {
-      return null;
-    }
-  },
+  getMacro: async (_ctx) => null,
+  getCorridors: async (_generatedAt) => null,
+  getNowcast: async (_ctx) => null,
 };
 
 async function settledValue<T>(promise: Promise<T>): Promise<T | null> {

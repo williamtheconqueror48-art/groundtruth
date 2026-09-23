@@ -18,6 +18,7 @@ import {
   WEBMCP_TOOL_CANCELLATION_POLICY,
 } from '../src/services/webmcp.ts';
 import {
+  buildMissionPresetCatalogItem,
   evaluateMissionPresetApply,
   isMissionPresetMonitorCompatible,
   listMissionPresetCatalog,
@@ -98,43 +99,37 @@ describe('webmcp mission preset catalog', () => {
     assert.ok(JSON.stringify(result).length <= WEBMCP_TOOL_BUDGETS.outputJsonChars);
   });
 
-  it('omits NQ Day Trader from non-finance monitors and lists it on finance', () => {
-    for (const variant of SITE_VARIANTS.filter((item) => item !== 'finance')) {
-      const result = listMissionPresetCatalog(live({ variant }));
-      assert.equal(result.presets.some((preset) => preset.id === 'nq-day-trader'), false);
-      assert.equal(result.count, getMissionPresetsForVariant(variant).length);
-    }
-    const finance = listMissionPresetCatalog(live({ variant: 'finance' }));
-    assert.equal(finance.presets.some((preset) => preset.id === 'nq-day-trader'), true);
-    assert.equal(finance.count, getMissionPresetsForVariant('finance').length);
-    assert.equal(finance.count, getMissionPresetsForVariant('full').length + 1);
+  it('lists NQ Day Trader in the single full variant catalog', () => {
+    // Single-variant app: the old finance-only gate was removed, so the
+    // preset is listed for every monitor.
+    const result = listMissionPresetCatalog(live({ variant: 'full' }));
+    assert.equal(result.presets.some((preset) => preset.id === 'nq-day-trader'), true);
+    assert.equal(result.count, getMissionPresetsForVariant('full').length);
   });
 
-  it('marks monitor-incompatible presets with a stable reason', () => {
-    const result = listMissionPresetCatalog(live({ variant: 'happy' }));
-    const crisis = result.presets.find((preset) => preset.id === 'crisis-desk');
-    assert.ok(crisis);
-    assert.equal(crisis.monitorCompatible, false);
-    assert.equal(crisis.available, false);
-    assert.equal(crisis.unavailableReason, 'preset_incompatible');
-    assert.equal(crisis.panelCount, 0);
-    assert.equal(crisis.layerCount, 0);
-    assert.equal('view' in crisis, false);
-    assert.equal('timeRange' in crisis, false);
+  it('marks every bundled preset monitor-compatible on the single variant', () => {
+    // Single-variant app: no bundled preset can be monitor-incompatible on
+    // 'full', so every entry carries the available shape. The
+    // 'preset_incompatible' reason stays in the catalog code for API
+    // robustness, but it is unreachable with the bundled presets.
+    const result = listMissionPresetCatalog(live({ variant: 'full' }));
+    for (const preset of MISSION_PRESETS) {
+      const item = result.presets.find((entry) => entry.id === preset.id);
+      assert.ok(item, `${preset.id} should be listed`);
+      assert.equal(item.monitorCompatible, true);
+      assert.equal(item.available, true);
+      assert.equal(item.unavailableReason, undefined);
+      assert.equal(typeof item.view, 'string');
+      assert.equal(typeof item.timeRange, 'string');
+      assert.ok(item.panelCount >= 2, `${preset.id} should keep a useful workspace`);
+      assert.ok(item.layerCount > 0, `${preset.id} should enable map layers`);
+    }
 
-    const goodNews = result.presets.find((preset) => preset.id === 'good-news-explorer');
-    assert.ok(goodNews);
-    assert.equal(goodNews.monitorCompatible, true);
-    assert.equal(goodNews.available, true);
-    assert.equal(goodNews.unavailableReason, undefined);
-    assert.equal(goodNews.view, 'global');
-    assert.equal(goodNews.timeRange, '7d');
-
-    const countryWatcher = result.presets.find((preset) => preset.id === 'country-watcher');
-    assert.ok(countryWatcher);
-    assert.equal(countryWatcher.monitorCompatible, true);
-    assert.equal(countryWatcher.available, true);
-    assert.equal(countryWatcher.panelCount, 6);
+    const watcher = result.presets.find((preset) => preset.id === 'country-watcher');
+    assert.ok(watcher);
+    assert.equal(watcher.view, 'global');
+    assert.equal(watcher.timeRange, '48h');
+    assert.equal(watcher.panelCount, 10);
   });
 
   it('reports entitlement denials without leaking premium payloads', () => {
@@ -175,11 +170,11 @@ describe('webmcp mission preset catalog', () => {
   });
 
   it('filters available=true to eligible presets only', () => {
-    const result = listMissionPresetCatalog(live({ variant: 'happy' }), { available: true });
+    const result = listMissionPresetCatalog(live({ variant: 'full' }), { available: true });
     assert.ok(result.presets.every((preset) => preset.available));
-    assert.ok(result.presets.some((preset) => preset.id === 'good-news-explorer'));
+    assert.ok(result.presets.some((preset) => preset.id === 'osint-newsroom'));
     assert.ok(result.presets.some((preset) => preset.id === 'country-watcher'));
-    assert.ok(!result.presets.some((preset) => preset.id === 'crisis-desk'));
+    assert.ok(result.presets.some((preset) => preset.id === 'crisis-desk'));
   });
 
   it('evaluates compatibility for every bundled preset on every monitor', () => {

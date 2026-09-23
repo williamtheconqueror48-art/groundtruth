@@ -5,9 +5,9 @@ import { THREAT_PRIORITY } from '@/services/threat-classifier';
 import { formatTime, getCSSColor } from '@/utils';
 import { escapeHtml, sanitizeUrl, unsafeRawHtml } from '@/utils/sanitize';
 import { computeNewSinceVisit } from '@/utils/new-since-visit';
-import { analysisWorker, enrichWithVelocityML, getClusterAssetContext, MAX_DISTANCE_KM, activityTracker, generateSummary, translateText, preloadRelatedAssetTables } from '@/services';
+import { analysisWorker, enrichWithVelocityML, getClusterAssetContext, MAX_DISTANCE_KM, activityTracker, preloadRelatedAssetTables } from '@/services';
 import { SITE_VARIANT } from '@/config';
-import { t, getCurrentLanguage, getCurrentLanguageTag } from '@/services/i18n';
+import { t, getCurrentLanguage } from '@/services/i18n';
 import { track } from '@/services/analytics';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import {
@@ -21,14 +21,12 @@ import {
   type SourceCoverage,
 } from './news/source-coverage';
 
-
 type SortMode = 'relevance' | 'newest';
 
 /** Threshold for enabling virtual scrolling */
 const VIRTUAL_SCROLL_THRESHOLD = 15;
 
 /** Summary cache TTL in milliseconds (10 minutes) */
-const SUMMARY_CACHE_TTL = 10 * 60 * 1000;
 
 /** Prepared cluster data for rendering */
 interface PreparedCluster {
@@ -78,15 +76,6 @@ export class NewsPanel extends Panel {
   private renderedBadgeState: 'none' | 'live' | 'cached' | 'unavailable' = 'none';
 
   // Panel summary feature
-  private summaryBtn: HTMLButtonElement | null = null;
-  private summaryContainer: HTMLElement | null = null;
-  private currentHeadlines: string[] = [];
-  // RSS descriptions paired 1:1 with currentHeadlines. Used to ground the
-  // SummarizeArticle LLM (U7) so it stops hallucinating across unrelated
-  // headlines. Empty strings preserve today headline-only behavior (R6).
-  private currentBodies: string[] = [];
-  private lastHeadlineSignature = '';
-  private isSummarizing = false;
 
   // Optional risk score getter: computes 0-100 score per cluster for badge display
   private riskScoreGetter: ((cluster: ClusteredEvent) => number | null) | null = null;
@@ -100,7 +89,6 @@ export class NewsPanel extends Panel {
     this.sortMode = this.loadSortMode();
     this.createDeviationIndicator();
     this.createSortToggle();
-    this.createSummarizeButton();
     this.setupActivityTracking();
     this.initWindowedList();
     this.setupContentDelegation();
@@ -221,198 +209,6 @@ export class NewsPanel extends Panel {
     this.sortBtn.setAttribute('aria-label', tooltip);
   }
 
-  private createSummarizeButton(): void {
-    // Create summary container (inserted between header and content)
-    this.summaryContainer = document.createElement('div');
-    this.summaryContainer.className = 'panel-summary';
-    this.summaryContainer.style.display = 'none';
-    this.element.insertBefore(this.summaryContainer, this.content);
-
-    // Event delegation: handle close button clicks inside summaryContainer
-    // regardless of how many times innerHTML is replaced by showSummary()
-    this.summaryContainer.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.panel-summary-close')) {
-        this.hideSummary();
-      }
-    });
-
-    // Create summarize button
-    this.summaryBtn = document.createElement('button');
-    this.summaryBtn.className = 'panel-summarize-btn';
-    setTrustedHtml(this.summaryBtn, trustedHtml('✨', "legacy direct innerHTML migration"));
-    this.summaryBtn.title = t('components.newsPanel.summarize');
-    this.summaryBtn.addEventListener('click', () => {
-      track('news-summarize', { panelId: this.panelId });
-      this.handleSummarize();
-    });
-
-    // Insert before count element (use inherited this.header directly)
-    const countEl = this.header.querySelector('.panel-count');
-    if (countEl) {
-      this.header.insertBefore(this.summaryBtn, countEl);
-    } else {
-      this.header.appendChild(this.summaryBtn);
-    }
-  }
-
-  private async handleSummarize(): Promise<void> {
-    if (this.isSummarizing || !this.summaryContainer || !this.summaryBtn) return;
-    if (this.currentHeadlines.length === 0) return;
-
-    // Check cache first (include variant, version, and language)
-    // The full tag, not the stripped code: this is the language the model is
-    // asked to WRITE in, and a Traditional reader asking for `zh` gets
-    // Simplified prose back. It keys the cache too, so the two scripts cannot
-    // serve each other's summary.
-    const currentLang = getCurrentLanguageTag();
-    const cacheKey = `panel_summary_v3_${SITE_VARIANT}_${this.panelId}_${currentLang}`;
-    const cached = this.getCachedSummary(cacheKey);
-    if (cached) {
-      this.showSummary(cached);
-      return;
-    }
-
-    // Show loading state
-    this.isSummarizing = true;
-    setTrustedHtml(this.summaryBtn, trustedHtml('<span class="panel-summarize-spinner"></span>', "legacy direct innerHTML migration"));
-    this.summaryBtn.disabled = true;
-    this.summaryContainer.style.display = 'block';
-    setTrustedHtml(this.summaryContainer, trustedHtml(`<div class="panel-summary-loading">${t('components.newsPanel.generatingSummary')}</div>`, "legacy direct innerHTML migration"));
-
-    const sigAtStart = this.lastHeadlineSignature;
-
-    try {
-      const result = await generateSummary(
-        this.currentHeadlines.slice(0, 8),
-        undefined,
-        this.panelId,
-        currentLang,
-        { bodies: this.currentBodies.slice(0, 8) },
-      );
-      if (!this.element?.isConnected) return;
-      if (this.lastHeadlineSignature !== sigAtStart) {
-        this.hideSummary();
-        return;
-      }
-      if (result?.summary) {
-        this.setCachedSummary(cacheKey, result.summary);
-        this.showSummary(result.summary);
-      } else {
-        setTrustedHtml(this.summaryContainer, trustedHtml(`<div class="panel-summary-error">${t('components.newsPanel.summaryError')}</div>`, "legacy direct innerHTML migration"));
-        setTimeout(() => this.hideSummary(), 3000);
-      }
-    } catch {
-      if (!this.element?.isConnected) return;
-      setTrustedHtml(this.summaryContainer, trustedHtml(`<div class="panel-summary-error">${t('components.newsPanel.summaryFailed')}</div>`, "legacy direct innerHTML migration"));
-      setTimeout(() => this.hideSummary(), 3000);
-    } finally {
-      this.isSummarizing = false;
-      if (this.summaryBtn) {
-        setTrustedHtml(this.summaryBtn, trustedHtml('✨', "legacy direct innerHTML migration"));
-        this.summaryBtn.disabled = false;
-      }
-    }
-  }
-
-  private async handleTranslate(element: HTMLElement, text: string): Promise<void> {
-    // Target language for the translation, so the full tag — same reason as
-    // handleSummarize above. The `en` short-circuit is unaffected: no tag that
-    // resolves to a Chinese catalogue equals 'en'.
-    const currentLang = getCurrentLanguageTag();
-    if (currentLang === 'en') return; // Assume news is mostly English, no need to translate if UI is English (or add detection later)
-
-    const titleEl = element.closest('.item')?.querySelector('.item-title') as HTMLElement;
-    if (!titleEl) return;
-
-    const originalText = titleEl.textContent || '';
-
-    // Visual feedback
-    setTrustedHtml(element, trustedHtml('...', "legacy direct innerHTML migration"));
-    element.style.pointerEvents = 'none';
-
-    try {
-      const translated = await translateText(text, currentLang);
-      if (!this.element?.isConnected) return;
-      if (translated) {
-        titleEl.textContent = translated;
-        titleEl.dataset.original = originalText;
-        setTrustedHtml(element, trustedHtml('✓', "legacy direct innerHTML migration"));
-        element.title = 'Original: ' + originalText;
-        element.classList.add('translated');
-      } else {
-        setTrustedHtml(element, trustedHtml('文', "legacy direct innerHTML migration"));
-        // Shake animation or error state could be added here
-      }
-    } catch (e) {
-      if (!this.element?.isConnected) return;
-      console.error('Translation failed', e);
-      setTrustedHtml(element, trustedHtml('文', "legacy direct innerHTML migration"));
-    } finally {
-      if (element.isConnected) {
-        element.style.pointerEvents = 'auto';
-      }
-    }
-  }
-
-  private showSummary(summary: string): void {
-    if (!this.summaryContainer || !this.element?.isConnected) return;
-    this.summaryContainer.style.display = 'block';
-    setTrustedHtml(this.summaryContainer, trustedHtml(`
-      <div class="panel-summary-content">
-        <span class="panel-summary-text">${escapeHtml(summary)}</span>
-        <button class="panel-summary-close" title="${t('components.newsPanel.close')}" aria-label="${t('components.newsPanel.close')}">×</button>
-      </div>
-    `, "legacy direct innerHTML migration"));
-    // Close button click is handled via event delegation on summaryContainer (set up in constructor)
-  }
-
-  private hideSummary(): void {
-    if (!this.summaryContainer) return;
-    this.summaryContainer.style.display = 'none';
-    setTrustedHtml(this.summaryContainer, trustedHtml('', "legacy direct innerHTML migration"));
-  }
-
-  private getHeadlineSignature(): string {
-    return JSON.stringify([
-      this.currentHeadlines.slice(0, 5).sort(),
-      this.currentBodies.slice(0, 5), // NOT sorted — paired with headlines
-    ]);
-  }
-
-  private updateHeadlineSignature(): void {
-    const newSig = this.getHeadlineSignature();
-    if (newSig !== this.lastHeadlineSignature) {
-      this.lastHeadlineSignature = newSig;
-      if (this.summaryContainer?.style.display === 'block') {
-        this.hideSummary();
-      }
-    }
-  }
-
-  private getCachedSummary(key: string): string | null {
-    try {
-      const cached = localStorage.getItem(key);
-      if (!cached) return null;
-      const parsed = JSON.parse(cached);
-      if (!parsed.headlineSignature) { localStorage.removeItem(key); return null; }
-      if (parsed.headlineSignature !== this.lastHeadlineSignature) return null;
-      if (Date.now() - parsed.timestamp > SUMMARY_CACHE_TTL) { localStorage.removeItem(key); return null; }
-      return parsed.summary;
-    } catch {
-      return null;
-    }
-  }
-
-  private setCachedSummary(key: string, summary: string): void {
-    try {
-      localStorage.setItem(key, JSON.stringify({
-        headlineSignature: this.lastHeadlineSignature,
-        summary,
-        timestamp: Date.now(),
-      }));
-    } catch { /* storage full */ }
-  }
-
   public setDeviation(zScore: number, percentChange: number, level: DeviationLevel): void {
     if (!this.deviationEl) return;
 
@@ -499,9 +295,7 @@ export class NewsPanel extends Panel {
     this.renderCurrentDataBadge();
     this.setCount(0);
     this.relatedAssetContext.clear();
-    this.currentHeadlines = [];
-    this.currentBodies = [];
-    this.updateHeadlineSignature();
+
     this.setSafeContent(unsafeRawHtml(`<div class="panel-empty">${escapeHtml(message)}</div>`, 'legacy Panel.setContent() migration'));
   }
 
@@ -537,15 +331,9 @@ export class NewsPanel extends Panel {
     }
 
     this.setCount(sorted.length);
-    const topItems = sorted
-      .slice(0, 5)
-      .filter((item) => typeof item.title === 'string' && item.title.trim().length > 0);
-    this.currentHeadlines = topItems.map((item) => item.title);
-    // Paired RSS descriptions for LLM grounding; empty string falls back to
-    // headline-only on the server (R6).
-    this.currentBodies = topItems.map((item) => typeof item.snippet === 'string' ? item.snippet : '');
 
-    this.updateHeadlineSignature();
+
+
 
     const html = sorted
       .map(
@@ -564,7 +352,6 @@ export class NewsPanel extends Panel {
         ${item.snippet ? `<div class="item-snippet">${escapeHtml(item.snippet.length > 200 ? item.snippet.slice(0, 200).replace(/\s+\S*$/, '') + '…' : item.snippet)}</div>` : ''}
         <div class="item-time">
           ${formatTime(item.pubDate)}
-          ${getCurrentLanguage() !== 'en' ? `<button class="item-translate-btn" title="Translate" data-text="${escapeHtml(item.title)}">文</button>` : ''}
         </div>
       </div>
     `
@@ -596,14 +383,12 @@ export class NewsPanel extends Panel {
     this.relatedAssetContext.clear();
 
     // Store headlines for summarization (cap at 5 to reduce entity conflation in small models)
-    this.currentHeadlines = sorted.slice(0, 5).map(c => c.primaryTitle);
     // Cluster objects don't carry a description (news:insights:v1 producer
     // doesn't plumb it yet). Passing empty bodies preserves today behavior
     // (R6); when the producer adds a primarySnippet, this falls through to
     // grounded mode without further code change.
-    this.currentBodies = sorted.slice(0, 5).map(() => '');
 
-    this.updateHeadlineSignature();
+
 
     const clusterIds = sorted.map(c => c.id);
     let newItemIds: Set<string>;
@@ -822,7 +607,6 @@ export class NewsPanel extends Panel {
         <div class="cluster-meta">
           <span class="top-sources">${topSourcesHtml}</span>
           <span class="item-time">${formatTime(cluster.lastUpdated)}</span>
-          ${getCurrentLanguage() !== 'en' ? `<button class="item-translate-btn" title="Translate" data-text="${escapeHtml(cluster.primaryTitle)}">文</button>` : ''}
         </div>
         ${relatedAssetsHtml}
       </div>
@@ -846,13 +630,6 @@ export class NewsPanel extends Panel {
         return;
       }
 
-      const translateBtn = target.closest<HTMLElement>('.item-translate-btn');
-      if (translateBtn) {
-        e.stopPropagation();
-        const text = translateBtn.dataset.text;
-        if (text) this.handleTranslate(translateBtn, text);
-        return;
-      }
     });
 
     this.content.addEventListener('mouseover', (e) => {

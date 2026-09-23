@@ -49,40 +49,27 @@ describe('getVariantPanelCategories', () => {
     assert.ok(forFinance.some((c) => c.key === 'gulfMena'));
   });
 
-  it('unscoped categories (core) are available to every variant', () => {
+  it('unscoped categories (core) are available to the single full variant', () => {
     assert.equal(PANEL_CATEGORY_MAP['core']!.variants, undefined, 'core stays unscoped');
     const enabled = settings({ 'live-news': true });
-    for (const variant of ['full', 'tech', 'finance', 'commodity', 'energy', 'happy']) {
-      const result = getVariantPanelCategories(enabled, variant);
-      assert.ok(
-        result.some((c) => c.key === 'core'),
-        `variant ${variant} should see the core category`,
-      );
-    }
+    const result = getVariantPanelCategories(enabled, 'full');
+    assert.ok(result.some((c) => c.key === 'core'), 'full should see the core category');
   });
 
   // Chip-clutter guardrail: before the variants tags were populated, every
   // variant surfaced 10-15 categories (incl. two distinct chips both labeled
   // "Markets") because cross-variant panel keys lit up foreign categories.
   // The mobile nav and the settings filter both depend on this curation.
-  it('variant defaults yield the curated category set, free of duplicate labels', () => {
-    const expected: Record<string, string[]> = {
-      full: ['core', 'intelligence', 'correlation', 'regionalNews', 'marketsFinance', 'topical', 'dataTracking'],
-      tech: ['core', 'techAi', 'startupsVc', 'securityPolicy', 'techMarkets'],
-      finance: ['core', 'finMarkets', 'fixedIncomeFx', 'finCommodities', 'cryptoDigital', 'centralBanksEcon', 'dealsInstitutional', 'gulfMena'],
-      commodity: ['core', 'commodityPrices', 'miningIndustry', 'commodityEcon'],
-      energy: ['core', 'marketsFinance', 'topical', 'dataTracking'],
-      happy: ['core', 'happyNews', 'happyPlanet'],
-    };
-    for (const [variant, expectedKeys] of Object.entries(expected)) {
-      const enabledDefaults = settings(
-        Object.fromEntries((VARIANT_DEFAULTS[variant] ?? []).map((k: string) => [k, true])),
-      );
-      const result = getVariantPanelCategories(enabledDefaults, variant);
-      assert.deepEqual(result.map((c) => c.key), expectedKeys, `variant ${variant}`);
-      const labels = result.map((c) => c.labelKey);
-      assert.equal(new Set(labels).size, labels.length, `duplicate category labels for ${variant}`);
-    }
+  it('full-variant defaults yield the curated category set, free of duplicate labels', () => {
+    // Site variants were collapsed to the single 'full' app (GROUNDTRUTH strip).
+    const expectedKeys = ['core', 'intelligence', 'correlation', 'regionalNews', 'marketsFinance', 'topical', 'dataTracking'];
+    const enabledDefaults = settings(
+      Object.fromEntries((VARIANT_DEFAULTS['full'] ?? []).map((k: string) => [k, true])),
+    );
+    const result = getVariantPanelCategories(enabledDefaults, 'full');
+    assert.deepEqual(result.map((c) => c.key), expectedKeys);
+    const labels = result.map((c) => c.labelKey);
+    assert.equal(new Set(labels).size, labels.length, 'duplicate category labels');
   });
 
   it('preserves PANEL_CATEGORY_MAP declaration order', () => {
@@ -103,12 +90,12 @@ describe('getProPanelKeys (mobile nav PRO chip)', () => {
   // assertions cover the web gating shape.
   it('includes enabled premium panels, excludes free and disabled ones', () => {
     const result = getProPanelKeys(settings({
-      'stock-analysis': true,   // premium: 'locked' on all surfaces
-      'chat-analyst': true,     // premium: 'locked' on all surfaces
+      'trade-policy': true,     // premium: 'locked' on all surfaces
+      'global-procurement': true, // premium: 'locked' on all surfaces
       'daily-market-brief': false, // premium but disabled
       intel: true,              // free panel
     }), 'full');
-    assert.deepEqual(result.sort(), ['chat-analyst', 'stock-analysis']);
+    assert.deepEqual(result.sort(), ['global-procurement', 'trade-policy']);
   });
 
   it('drops unknown keys (custom widgets / MCP panels)', () => {
@@ -121,9 +108,9 @@ describe('getProPanelKeys (mobile nav PRO chip)', () => {
       Object.fromEntries((VARIANT_DEFAULTS['full'] ?? []).map((k: string) => [k, true])),
     );
     const result = getProPanelKeys(enabledDefaults, 'full');
-    assert.ok(result.includes('stock-analysis'));
-    assert.ok(result.includes('chat-analyst'));
-    assert.ok(result.length >= 5, `expected a meaningful premium suite, got ${result.join(', ')}`);
+    assert.ok(result.includes('global-procurement'));
+    assert.ok(result.includes('trade-policy'));
+    assert.ok(result.length >= 2, `expected a premium suite, got ${result.join(', ')}`);
   });
 });
 

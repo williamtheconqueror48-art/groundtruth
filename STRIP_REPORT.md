@@ -68,3 +68,58 @@
 ## Out of scope (untouched per instructions)
 
 Tier 2 variant panels, Tier 3 server domains, AI-brief pipeline.
+
+---
+
+## Phase 2 — Tier 2/3 strip + AI-brief removal (2026-09-23)
+
+**Branch:** `strip/tier2-tier3-aibriefs` (local only — not pushed, no PR)
+**Base:** `a4b298e` (Phase 1 commit)
+
+### Result
+
+Removes variant-only Happy/Tech/Finance/Energy UI, Tier 3 API/server domains,
+AI brief/chat/insights surfaces, LLM services/workers/helpers, AI tokens,
+four agent skills. Collapses mission presets to single-variant semantics.
+
+### Key repairs
+
+1. **Entitlement crosswalk re-baseline**: 38 gate-count drifts (18 pre-existing
+   from Phase 1 + 20 from Phase 2 removals) re-baselined to 0; dead rules for
+   deleted `api/chat-analyst` and `api/widget-agent` routes removed;
+   `convex/config/productCatalog.ts` absence tolerated (commercial strip).
+2. **Panel registry consistency**: 8 deleted energy/finance panel components
+   removed; 90 stale commands and 101 stale category entries cleaned;
+   17 stale `scheduleRefresh` and 21 stale `shouldPrime` blocks removed;
+   `loadOilAnalytics()` deleted; type imports cleaned.
+3. **Guardrails test adaptation**: `VARIANT_FILES` → `['full']`;
+   DeductionPanel assertion rewritten generically; critical panels updated
+   (`insights` → `map`, `energy-crisis` → `etf-flows`).
+4. **Type safety**: empty `Set` annotations added for `WEB_CLERK_PRO_ONLY_PANELS`
+   (was `Set<never>`); `WEB_PREMIUM_PANELS` regex-parse compatibility preserved.
+
+### Deliberate leftovers (do not "fix" these)
+
+- No-op compatibility shims (`country-intel.ts`, `ml-worker.ts`).
+- Ollama model discovery (plain HTTP, no generation).
+- Explicit removed-AI RPC stubs.
+- Relocated corporate headline search.
+- China signals degrade to unavailable.
+- `src/generated/` untouched.
+
+### Checks
+
+- `npm run typecheck` → pass
+- `npm run typecheck:api` → pass
+- `npm run lint:boundaries` → pass
+- `git diff --check` → clean
+- `tests/panel-config-guardrails.test.mjs` → 23/23 pass
+- `tests/entitlement-crosswalk-classifier.test.mjs` → 15/15 pass
+- Entitlement crosswalk `--check` → exit 0
+- `tests/mission-presets.test.mts` → 46/47 (1 pre-existing baseline failure)
+
+### Protections verified
+
+- Root `LICENSE` byte-identical.
+- `src/generated/` untouched.
+- `AUDIT.md` remains untracked and uncommitted.

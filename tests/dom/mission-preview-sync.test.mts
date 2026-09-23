@@ -65,7 +65,7 @@ describe('syncPanelPreview', () => {
     const create = vi.fn((spec: { previewId: string }) => makeHandle(spec.previewId));
 
     syncPanelPreview(previews, 'supply-chain', host, null, create);
-    syncPanelPreview(previews, 'supply-chain', host, 'good-news-explorer', create);
+    syncPanelPreview(previews, 'supply-chain', host, 'country-watcher', create);
     syncPanelPreview(previews, 'cascade', host, 'supply-chain-risk', create);
 
     expect(create).not.toHaveBeenCalled();

@@ -49,9 +49,9 @@ export function gdeltSeenDateToIso(seendate) {
 
 // Same stamp family, full precision: GDELT 14-digit timestamp → epoch ms, NaN
 // if unparseable. Single home for the parser (#5856 review): the bulk-export
-// module delegates here, and server/ (chat-analyst headline ages) imports this
-// pure module directly — Date.parse rejects the raw GDELT format, so every
-// consumer needs this ISO reconstruction.
+// module delegates here, and server/ imports this pure module directly —
+// Date.parse rejects the raw GDELT format, so every consumer needs this ISO
+// reconstruction.
 export function gdeltSeenDateToMs(value) {
   const digits = String(value || '').replace(/[^0-9]/g, '');
   if (digits.length < 14) return Number.NaN;

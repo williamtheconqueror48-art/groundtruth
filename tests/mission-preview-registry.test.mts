@@ -35,23 +35,22 @@ describe('mission preview registry', () => {
     }
   });
 
-  it('covers exactly the four component-preview missions from the plan', () => {
+  it('covers exactly the three component-preview missions from the plan', () => {
     assert.deepEqual(
       Object.keys(registry.MISSION_PREVIEW_REGISTRY).sort(),
-      ['energy-security', 'macro-market-watch', 'osint-newsroom', 'supply-chain-risk'],
+      ['macro-market-watch', 'osint-newsroom', 'supply-chain-risk'],
     );
   });
 
   it('maps each mission to the panel holding its gated depth', () => {
     const r = registry.MISSION_PREVIEW_REGISTRY;
     assert.equal(r['supply-chain-risk']?.panelKey, 'supply-chain');
-    assert.equal(r['energy-security']?.panelKey, 'pipeline-status');
     assert.equal(r['osint-newsroom']?.panelKey, 'gdelt-intel');
-    assert.equal(r['macro-market-watch']?.panelKey, 'macro-signals');
+    assert.equal(r['macro-market-watch']?.panelKey, 'economic');
   });
 
   it('keeps crisis-desk, the untouched comparisons, and country-watcher preview-free', () => {
-    for (const id of ['crisis-desk', 'tech-ai-watch', 'good-news-explorer', 'country-watcher', 'nq-day-trader']) {
+    for (const id of ['crisis-desk', 'tech-ai-watch', 'country-watcher', 'nq-day-trader']) {
       assert.equal(
         (registry.MISSION_PREVIEW_REGISTRY as Record<string, unknown>)[id],
         undefined,

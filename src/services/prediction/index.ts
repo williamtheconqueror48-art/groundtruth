@@ -1,7 +1,6 @@
 
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { createCircuitBreaker } from '@/utils';
-import { SITE_VARIANT } from '@/config';
 import { getHydratedData } from '@/services/bootstrap';
 
 export interface PredictionMarket {
@@ -97,9 +96,8 @@ export async function fetchPredictionCandidates(opts?: { region?: string }): Pro
   const markets = await breaker.execute(async () => {
     const hydrated = getHydratedData('predictions') as BootstrapPredictionData | undefined;
     if (hydrated?.fetchedAt && Date.now() - hydrated.fetchedAt < 40 * 60 * 1000) {
-      const variant = SITE_VARIANT === 'tech' ? hydrated.tech
-        : SITE_VARIANT === 'finance' ? (hydrated.finance ?? hydrated.geopolitical)
-        : hydrated.geopolitical;
+      // GROUNDTRUTH (2026-09-23 strip): single app — geopolitical predictions only.
+      const variant = hydrated.geopolitical;
       if (variant && variant.length > 0) {
         return variant
           .filter(m => !isExpired(m.endDate))
@@ -108,8 +106,8 @@ export async function fetchPredictionCandidates(opts?: { region?: string }): Pro
       }
     }
 
-    const tags = SITE_VARIANT === 'tech' ? TECH_TAGS
-      : SITE_VARIANT === 'finance' ? FINANCE_TAGS
+    const tags = false ? TECH_TAGS
+      : false ? FINANCE_TAGS
       : GEOPOLITICAL_TAGS;
     const rpcResults = await client.listPredictionMarkets({
       category: tags[0] ?? '',

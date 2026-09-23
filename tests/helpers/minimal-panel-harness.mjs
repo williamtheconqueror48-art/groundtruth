@@ -1,10 +1,8 @@
 // Bundles a tiny `extends Panel` subclass with no constructor-only-UI
 // override, so tests can prove the BASE-CLASS unlock-restore behavior
 // without depending on any specific premium panel's implementation.
-//
-// Mirrors the structure of chat-analyst-panel-harness.mjs (same stubs,
-// same browser-environment shim) but the esbuild entry is a virtual
-// in-memory file rather than a real source file.
+// The esbuild entry is a virtual in-memory file rather than a real
+// source file.
 
 import { build } from 'esbuild';
 import { writeFileSync } from 'node:fs';

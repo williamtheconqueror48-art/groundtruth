@@ -122,7 +122,7 @@ test('health monitors the dashboard list the fast tier actually serves', () => {
 
   assert.equal(BOOTSTRAP_KEYS.forecastsBootstrap, 'forecast:predictions-bootstrap:v1');
   assert.equal(SEED_META.forecastsBootstrap.key, 'seed-meta:forecast:predictions-bootstrap');
-  // The canonical key stays monitored: it still feeds the RPC, MCP and chat-analyst.
+  // The canonical key stays monitored: it still feeds the RPC and MCP.
   assert.equal(BOOTSTRAP_KEYS.forecasts, 'forecast:predictions:v2');
 });
 

@@ -11,7 +11,7 @@ import { h } from '@/utils/dom-utils';
  *
  * crisis-desk is deliberately absent: its preview is the ResilienceWidget
  * locked state that already ships inside `cii` (KTD7 — instrumentation only).
- * The untouched comparison missions (tech-ai-watch, good-news-explorer) and
+ * The untouched comparison missions (tech-ai-watch) and
  * Country Watcher (whose conversion moment is the follow cap) must never gain
  * entries in Release 1 — the before/after read depends on it.
  */
@@ -48,17 +48,6 @@ export const MISSION_PREVIEW_REGISTRY: Partial<Record<MissionPresetId, MissionPr
         sampleRow('Bypass option', 'Cape reroute +11 days'),
       ),
   },
-  'energy-security': {
-    panelKey: 'pipeline-status',
-    previewId: 'energy-supply-depth',
-    unlockCopy: 'Pro unlocks supply-chain stress reads behind pipeline and grid status.',
-    renderSample: () =>
-      sample(
-        sampleRow('TurkStream utilization', '81% · 7d trend', 'up'),
-        sampleRow('LNG substitution headroom', 'moderate'),
-        sampleRow('Cascade exposure', '3 dependent corridors'),
-      ),
-  },
   'osint-newsroom': {
     panelKey: 'gdelt-intel',
     previewId: 'intel-memory',
@@ -71,7 +60,9 @@ export const MISSION_PREVIEW_REGISTRY: Partial<Record<MissionPresetId, MissionPr
       ),
   },
   'macro-market-watch': {
-    panelKey: 'macro-signals',
+    // Retargeted from the removed macro-signals panel to the surviving
+    // economic panel (single-variant strip).
+    panelKey: 'economic',
     previewId: 'macro-depth',
     unlockCopy: 'Pro unlocks sovereign debt series and deeper macro cross-signals.',
     renderSample: () =>

@@ -1239,8 +1239,8 @@ export class Panel {
     // Restore the pre-lock content if we have it. The saved nodes are the
     // ORIGINAL DOM nodes the subclass built — reattaching preserves event
     // listeners and any references the subclass holds (this.inputEl etc.),
-    // and fixes constructor-only subclasses (DeductionPanel,
-    // ChatAnalystPanel, …) that would otherwise end up with an empty body.
+    // and fixes constructor-only subclasses that would otherwise end up
+    // with an empty body.
     // Fall back to the legacy empty-content behaviour if nothing was saved.
     const saved = this._savedContent;
     const ownedBySomeoneElse = this.snapshotPrincipal !== null

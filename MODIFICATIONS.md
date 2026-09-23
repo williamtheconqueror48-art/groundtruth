@@ -146,3 +146,88 @@ tier ("GROUNDTRUTH").
   `CONVEX_DEPLOYMENT` in this environment).
 - Browser import direction `types → config → services → components → app →
   App.ts` maintained.
+
+---
+
+## Phase 2 — Tier 2/3 strip + AI-brief removal (2026-09-23)
+
+**Branch:** `strip/tier2-tier3-aibriefs` (based on `a4b298e`)
+
+Removes variant-only Happy/Tech/Finance/Energy UI, Tier 3 API/server domains,
+AI brief/chat/insights surfaces, LLM services/workers/helpers, AI tokens,
+and four agent skills. Collapses mission presets to single-variant semantics.
+
+### Deleted (UI)
+
+- Variant-only Happy/Tech/Finance/Energy panels and themes.
+- AI brief/chat/insights UI: `WidgetChatModal`, chat-analyst panel, AI insights.
+- `api/chat-analyst.ts`, `api/widget-agent.ts`.
+- Deleted panel components: `ConsumerPricesPanel.ts`, `EnergyComplexPanel.ts`,
+  `EnergyCrisisPanel.ts`, `EnergyDisruptionsPanel.ts`, `FuelShortagePanel.ts`,
+  `OilInventoriesPanel.ts`, `PipelineStatusPanel.ts`, `StorageFacilityMapPanel.ts`
+  (energy/finance panels removed from FULL_PANELS registry).
+- 90 stale `panel:<id>` commands from `src/config/commands.ts`.
+- Stale `PANEL_CATEGORY_MAP` entries for deleted panels.
+- Stale `DEFERRED_PANEL_NATURAL_FOOTPRINTS` entries.
+- Stale `scheduleRefresh` and `shouldPrime` blocks for deleted panels.
+
+### Deleted (Server/API)
+
+- Tier 3 API/server domains (finance/commercial).
+- `server/_shared/direct-llm-quota.ts` (direct-LLM quota logic).
+- `server/_shared/llm.ts` reasoning/tool-model env docs.
+- Four agent skills (AI-related).
+- `@xenova/transformers` from `package.json` (lockfile regenerated).
+
+### Deleted (Tests)
+
+- Browser/commercial: `checkout-return-state`, `checkout-success-durable`,
+  `pro-checkout-intent-url`, `checkout-duplicate-dialog-copy`, `checkout-transport`.
+- Server: `summarize-article-llm-health`, `backtest-stock-quota`,
+  `comtrade-raw-keys`, `summarize-article-cache-readonly`,
+  `summarize-article-handler-security`, `world-bank-cache`,
+  `widget-agent-billing-denial`.
+
+### Modified
+
+- `src/config/panels.ts`: FULL_PANELS registry (73 panels); `apiKeyPanels`
+  reduced to `['regional-intelligence', 'trade-policy', 'global-procurement']`;
+  PANEL_CATEGORY_MAP cleaned.
+- `src/config/commands.ts`: 90 stale commands removed.
+- `src/app/panel-layout.ts`: WEB_PREMIUM_PANELS cleaned; dead
+  `revealAnalystPanel()` and `openAiAnalyst` callback removed;
+  DEFERRED_PANEL_NATURAL_FOOTPRINTS cleaned.
+- `src/app/data-loader.ts`: energy-complex panel references removed;
+  `loadOilAnalytics()` deleted.
+- `src/App.ts`: stale primeTask/scheduleRefresh blocks removed.
+- `src/services/open-tier.ts`: `openAiAnalyst` removed from options.
+- `scripts/generate-entitlement-crosswalk.mjs`: re-baselined (38 drifts → 0);
+  dead rules for deleted routes removed; productCatalog absence tolerated.
+- Mission presets: `energy-security` and `good-news-explorer` removed;
+  7 retained (`crisis-desk`, `supply-chain-risk`, `osint-newsroom`,
+  `macro-market-watch`, `tech-ai-watch`, `nq-day-trader`, `country-watcher`);
+  single-variant semantics; `nq-day-trader` finance gate removed.
+
+### Deliberate leftovers (compatibility)
+
+- `src/app/country-intel.ts`: no-op shim.
+- `src/services/ml-worker.ts`: disabled no-op shim.
+- `src/services/ollama-models.ts`: plain HTTP model discovery only.
+- `src/components/country-brief-presentation.ts`: non-generative organization.
+- Commodity/Gulf config and supply-chain scenario templates (live consumers).
+- `server/worldmonitor/intelligence/v1/_removed-ai-stubs.ts`: explicit RPC stubs.
+- `server/worldmonitor/intelligence/v1/_stock-news-search.ts`: relocated corporate
+  headline search.
+- China decision signals degrade to unavailable (stripped macro/activity/corridor).
+- `src/generated/` untouched (proto regeneration deferred).
+
+### Verification (2026-09-23)
+
+- `npm run typecheck`: clean.
+- `npm run typecheck:api`: clean.
+- `npm run lint:boundaries`: clean.
+- `git diff --check`: clean.
+- `tests/panel-config-guardrails.test.mjs`: 23/23 pass.
+- `tests/entitlement-crosswalk-classifier.test.mjs`: 15/15 pass.
+- `node scripts/generate-entitlement-crosswalk.mjs --check`: exit 0.
+- `tests/mission-presets.test.mts`: 46/47 (1 pre-existing baseline failure).

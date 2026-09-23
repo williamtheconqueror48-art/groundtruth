@@ -502,7 +502,6 @@ async function loadEventHandlerManager(): Promise<EventHandlerManagerCtor> {
     ['@/components/PizzIntIndicator', 'export class PizzIntIndicator { getElement(){ return document.createElement("div"); } update(){} }'],
     ['@/components/LlmStatusIndicator', 'export class LlmStatusIndicator { getElement(){ return document.createElement("div"); } update(){} }'],
     ['@/components/CustomWidgetPanel', 'export class CustomWidgetPanel { constructor(spec){ this.spec = spec; } getElement(){ return document.createElement("div"); } }'],
-    ['@/components/WidgetChatModal', 'export function openWidgetChatModal(){}'],
     ['@/components/McpDataPanel', 'export class McpDataPanel { constructor(spec){ this.spec = spec; } getElement(){ return document.createElement("div"); } }'],
     ['@/components/McpConnectModal', 'export function openMcpConnectModal(){}'],
     ['@/components/DownloadBanner', 'export function detectPlatform(){ return "web"; } export const allButtons = []; export function buttonsForPlatform(){ return []; }'],
@@ -649,11 +648,9 @@ describe('mission preset definitions', () => {
       [
         'crisis-desk',
         'supply-chain-risk',
-        'energy-security',
         'osint-newsroom',
         'macro-market-watch',
         'tech-ai-watch',
-        'good-news-explorer',
         'nq-day-trader',
         'country-watcher',
       ],
@@ -667,8 +664,7 @@ describe('mission preset definitions', () => {
     assert.equal(getMissionPreset('macro-market-watch')?.shortLabel, 'Stocks');
     assert.equal(getMissionPreset('tech-ai-watch')?.label, 'Tech / AI Watcher');
     assert.equal(getMissionPreset('tech-ai-watch')?.shortLabel, 'Tech');
-    assert.equal(getMissionPreset('good-news-explorer')?.label, 'Good News Explorer');
-    assert.equal(getMissionPreset('good-news-explorer')?.shortLabel, 'Good');
+    assert.equal(getMissionPreset('nq-day-trader')?.label, 'NQ Day Trader');
   });
 
   it('uses known panel and layer keys without duplicate ids', () => {
@@ -713,54 +709,37 @@ describe('applyMissionPresetToState', () => {
     assert.equal(applied.panelSettings['mcp-risk-feed']?.enabled, false);
     assert.deepEqual(applied.panelOrder.slice(0, 5), [
       'live-news',
-      'insights',
       'strategic-posture',
       'cii',
       'strategic-risk',
+      'gdelt-intel',
     ]);
     assert.equal(applied.mapLayers.conflicts, true);
     assert.equal(applied.mapLayers.ciiChoropleth, true);
   });
 
-  it('lists NQ Day Trader only on finance and rejects it on other variants', () => {
-    const financeIds = getMissionPresetsForVariant('finance').map((preset) => preset.id);
-    assert.equal(financeIds.length, 9);
-    assert.ok(financeIds.includes('nq-day-trader'));
-    for (const variant of VARIANTS.filter((item) => item !== 'finance')) {
-      const ids = getMissionPresetsForVariant(variant).map((preset) => preset.id);
-      assert.equal(ids.length, 8, `${variant} should keep the eight shared missions`);
-      assert.ok(!ids.includes('nq-day-trader'), `${variant} must not offer NQ Day Trader`);
-    }
-
-    const before = makePanelSettings('full');
-    const snapshot = structuredClone(before);
-    assert.throws(
-      () => applyMissionPresetToState('nq-day-trader', before, DEFAULT_MAP_LAYERS, 'full'),
-      /not available on this variant/,
-    );
-    assert.deepEqual(before, snapshot);
+  it('offers NQ Day Trader in the single full variant', () => {
+    // The app ships one variant now; the old finance-only gate would have
+    // stranded this preset, so it is offered to everyone.
+    const ids = getMissionPresetsForVariant('full').map((preset) => preset.id);
+    assert.ok(ids.includes('nq-day-trader'), 'full should offer NQ Day Trader');
+    assert.equal(getMissionPreset('nq-day-trader')?.label, 'NQ Day Trader');
   });
 
   it('applies the NQ Day Trader workspace without touching the market watchlist', () => {
     const originalWatchlist = '["AAPL","MSFT","NVDA"]';
     localStorage.setItem(MARKET_WATCHLIST_STORAGE_KEY, originalWatchlist);
 
-    const current = makePanelSettings('finance');
-    const applied = applyMissionPresetToState('nq-day-trader', current, DEFAULT_MAP_LAYERS, 'finance');
+    const current = makePanelSettings('full');
+    const applied = applyMissionPresetToState('nq-day-trader', current, DEFAULT_MAP_LAYERS, 'full');
 
     assert.equal(applied.preset.id, 'nq-day-trader');
     assert.equal(applied.preset.view, 'america');
     assert.equal(applied.preset.timeRange, '24h');
     assert.deepEqual(applied.panelOrder, [
-      'nq-pulse',
-      'nq-catalysts',
-      'nq-news',
       'live-news',
       'heatmap',
       'economic',
-      'fear-greed',
-      'fsi',
-      'yield-curve',
       'markets',
     ]);
     for (const key of applied.panelOrder) {
@@ -774,161 +753,87 @@ describe('applyMissionPresetToState', () => {
     assert.equal(applied.mapLayers.conflicts, false);
     assert.equal(localStorage.getItem(MARKET_WATCHLIST_STORAGE_KEY), originalWatchlist);
 
-    const reset = resetMissionPresetState(applied.panelSettings, DEFAULT_MAP_LAYERS, 'finance');
-    assert.equal(reset.panelSettings['nq-pulse']?.enabled, false);
-    assert.equal(reset.panelSettings['nq-catalysts']?.enabled, false);
-    assert.equal(reset.panelSettings['nq-news']?.enabled, false);
+    const reset = resetMissionPresetState(applied.panelSettings, DEFAULT_MAP_LAYERS, 'full');
+    assert.equal(reset.panelSettings['live-news']?.enabled, getEffectivePanelConfig('live-news', 'full').enabled);
     assert.equal(localStorage.getItem(MARKET_WATCHLIST_STORAGE_KEY), originalWatchlist);
   });
 
-  it('filters enabled panels to the active variant instead of creating mini-variants', () => {
-    for (const variant of VARIANTS) {
-      const allowedPanels = new Set(VARIANT_DEFAULTS[variant] ?? []);
-      for (const preset of MISSION_PRESETS) {
-        if (!isMissionPresetAvailableForVariant(preset, variant)) continue;
-        const applied = applyMissionPresetToState(
-          preset.id,
-          makePanelSettings(variant),
-          DEFAULT_MAP_LAYERS,
-          variant,
-        );
-        for (const panelId of enabledPanelKeys(applied.panelSettings)) {
-          if (panelId === 'map' || panelId === 'runtime-config' || panelId.startsWith('cw-') || panelId.startsWith('mcp-')) {
-            continue;
-          }
-          assert.ok(
-            allowedPanels.has(panelId),
-            `${preset.id} enabled ${panelId} outside ${variant} variant defaults`,
-          );
+  it('filters enabled panels to the single full variant defaults', () => {
+    const allowedPanels = new Set(VARIANT_DEFAULTS.full ?? []);
+    for (const preset of MISSION_PRESETS) {
+      if (!isMissionPresetAvailableForVariant(preset, 'full')) continue;
+      const applied = applyMissionPresetToState(
+        preset.id,
+        makePanelSettings('full'),
+        DEFAULT_MAP_LAYERS,
+        'full',
+      );
+      for (const panelId of enabledPanelKeys(applied.panelSettings)) {
+        if (panelId === 'map' || panelId === 'runtime-config' || panelId.startsWith('cw-') || panelId.startsWith('mcp-')) {
+          continue;
         }
+        assert.ok(
+          allowedPanels.has(panelId),
+          `${preset.id} enabled ${panelId} outside the full variant defaults`,
+        );
       }
     }
   });
 
-  it('falls back to variant defaults when a preset has too few matching panels', () => {
-    for (const preset of MISSION_PRESETS.filter((preset) => (
-      preset.id !== 'good-news-explorer'
-      && preset.id !== 'country-watcher'
-      && isMissionPresetAvailableForVariant(preset, 'happy')
-    ))) {
-      const applied = applyMissionPresetToState(
-        preset.id,
-        makePanelSettings('happy'),
-        DEFAULT_MAP_LAYERS,
-        'happy',
-      );
-      assert.deepEqual(
-        enabledWorkspacePanelKeys(applied.panelSettings),
-        defaultWorkspacePanelKeys('happy'),
-        `happy/${preset.id} should fall back to happy defaults`,
-      );
-    }
-
-    const happyApplied = applyMissionPresetToState(
-      'good-news-explorer',
-      makePanelSettings('happy'),
-      DEFAULT_MAP_LAYERS,
-      'happy',
-    );
-    assert.deepEqual(happyApplied.panelOrder.slice(0, 4), [
-      'positive-feed',
-      'progress',
-      'counters',
-      'spotlight',
-    ]);
-    assert.equal(happyApplied.mapLayers.positiveEvents, true);
-    assert.equal(happyApplied.mapLayers.speciesRecovery, true);
-
-    const happyCountryWatcher = applyMissionPresetToState(
-      'country-watcher',
-      makePanelSettings('happy'),
-      DEFAULT_MAP_LAYERS,
-      'happy',
-    );
-    assert.deepEqual(happyCountryWatcher.panelOrder, [
-      'positive-feed',
-      'progress',
-      'spotlight',
-      'species',
-      'renewable',
-    ]);
-    assert.notDeepEqual(
-      enabledWorkspacePanelKeys(happyCountryWatcher.panelSettings),
-      defaultWorkspacePanelKeys('happy'),
-    );
-    assert.equal(happyCountryWatcher.mapLayers.happiness, true);
-
+  it('applies tech-ai-watch panels and falls back to full defaults when a preset cannot apply', () => {
     const techApplied = applyMissionPresetToState(
       'tech-ai-watch',
-      makePanelSettings('tech'),
+      makePanelSettings('full'),
       DEFAULT_MAP_LAYERS,
-      'tech',
+      'full',
     );
     assert.deepEqual(techApplied.panelOrder.slice(0, 5), [
       'live-news',
-      'insights',
       'ai',
       'tech',
-      'startups',
+      'tech-readiness',
+      'markets',
     ]);
     assert.equal(techApplied.mapLayers.datacenters, true);
     assert.equal(techApplied.mapLayers.startupHubs, true);
 
-    for (const [variant, presetId] of [
-      ['tech', 'energy-security'],
-      ['commodity', 'osint-newsroom'],
-      ['energy', 'osint-newsroom'],
-    ] as const) {
+    // An unknown preset id is a caller bug, not a fallback case.
+    assert.throws(
+      () => applyMissionPresetToState('missing-preset', makePanelSettings('full'), DEFAULT_MAP_LAYERS, 'full'),
+      /Unknown mission preset/,
+    );
+  });
+
+  it('never applies a preset as an empty or single-panel workspace', () => {
+    for (const preset of MISSION_PRESETS) {
       const applied = applyMissionPresetToState(
-        presetId,
-        makePanelSettings(variant),
+        preset.id,
+        makePanelSettings('full'),
         DEFAULT_MAP_LAYERS,
-        variant,
+        'full',
       );
-      assert.deepEqual(
-        enabledWorkspacePanelKeys(applied.panelSettings),
-        defaultWorkspacePanelKeys(variant),
-        `${variant}/${presetId} should fall back to ${variant} defaults`,
+      assert.ok(
+        enabledWorkspacePanelKeys(applied.panelSettings).length >= 2,
+        `${preset.id} should keep a useful workspace`,
       );
     }
   });
 
-  it('never applies a preset as an empty or single-panel workspace across variants', () => {
-    for (const variant of VARIANTS) {
-      for (const preset of MISSION_PRESETS) {
-        if (!isMissionPresetAvailableForVariant(preset, variant)) continue;
-        const applied = applyMissionPresetToState(
-          preset.id,
-          makePanelSettings(variant),
-          DEFAULT_MAP_LAYERS,
-          variant,
-        );
+  it('sanitizes preset layers through the full variant allowlist', () => {
+    const allowedLayers = getAllowedLayerKeys('full');
+    for (const preset of MISSION_PRESETS) {
+      const applied = applyMissionPresetToState(
+        preset.id,
+        makePanelSettings('full'),
+        DEFAULT_MAP_LAYERS,
+        'full',
+      );
+      for (const [layerId, enabled] of Object.entries(applied.mapLayers)) {
+        if (!enabled) continue;
         assert.ok(
-          enabledWorkspacePanelKeys(applied.panelSettings).length >= 2,
-          `${variant}/${preset.id} should keep a useful workspace`,
+          allowedLayers.has(layerId as keyof typeof LAYER_REGISTRY),
+          `${preset.id} enabled layer ${layerId} outside the full allowlist`,
         );
-      }
-    }
-  });
-
-  it('sanitizes preset layers through each variant allowlist', () => {
-    for (const variant of VARIANTS) {
-      const allowedLayers = getAllowedLayerKeys(variant);
-      for (const preset of MISSION_PRESETS) {
-        if (!isMissionPresetAvailableForVariant(preset, variant)) continue;
-        const applied = applyMissionPresetToState(
-          preset.id,
-          makePanelSettings(variant),
-          DEFAULT_MAP_LAYERS,
-          variant,
-        );
-        for (const [layerId, enabled] of Object.entries(applied.mapLayers)) {
-          if (!enabled) continue;
-          assert.ok(
-            allowedLayers.has(layerId as keyof typeof LAYER_REGISTRY),
-            `${preset.id} enabled layer ${layerId} outside ${variant} allowlist`,
-          );
-        }
       }
     }
   });
@@ -946,7 +851,6 @@ describe('resetMissionPresetState', () => {
     assert.deepEqual(reset.panelOrder, VARIANT_DEFAULTS.full.filter((key) => key !== 'map'));
     assert.equal(reset.panelSettings.map?.enabled, true);
     assert.equal(reset.panelSettings['live-news']?.enabled, getEffectivePanelConfig('live-news', 'full').enabled);
-    assert.equal(reset.panelSettings['energy-risk-overview']?.enabled, false);
     assert.equal(reset.panelSettings['cw-market-note']?.enabled, true);
     assert.deepEqual(reset.mapLayers, DEFAULT_MAP_LAYERS);
   });
@@ -954,18 +858,20 @@ describe('resetMissionPresetState', () => {
 
 describe('mission preset renderer filtering', () => {
   it('removes DeckGL-only energy layers on the mobile/SVG fallback path', () => {
-    const applied = applyMissionPresetToState(
-      'energy-security',
-      makePanelSettings('energy'),
-      DEFAULT_MAP_LAYERS,
-      'energy',
-    );
+    // The old energy-security preset was removed with the energy variant;
+    // exercise the renderer filter directly with the same layer classes.
+    const presetLayers = {
+      ...DEFAULT_MAP_LAYERS,
+      storageFacilities: true,
+      fuelShortages: true,
+      liveTankers: true,
+    };
 
-    assert.equal(applied.mapLayers.storageFacilities, true);
-    assert.equal(applied.mapLayers.fuelShortages, true);
-    assert.equal(applied.mapLayers.liveTankers, true);
+    assert.equal(presetLayers.storageFacilities, true);
+    assert.equal(presetLayers.fuelShortages, true);
+    assert.equal(presetLayers.liveTankers, true);
 
-    const filtered = filterMissionLayersForRenderer(applied.mapLayers, 'svg', DEFAULT_MAP_LAYERS);
+    const filtered = filterMissionLayersForRenderer(presetLayers, 'svg', DEFAULT_MAP_LAYERS);
 
     assert.equal(filtered.storageFacilities, false);
     assert.equal(filtered.fuelShortages, false);
@@ -1030,10 +936,10 @@ describe('mission preset persistence', () => {
     assert.equal(loadStoredMissionPreset(), null);
   });
 
-  it('ignores a stored NQ Day Trader preset on a non-finance variant', () => {
+  it('loads a stored NQ Day Trader preset in the single full variant', () => {
     localStorage.setItem(MISSION_PRESET_STORAGE_KEY, 'nq-day-trader');
-    assert.equal(loadStoredMissionPreset('full'), null);
-    assert.equal(loadStoredMissionPreset('finance')?.id, 'nq-day-trader');
+    assert.equal(loadStoredMissionPreset('full')?.id, 'nq-day-trader');
+    assert.equal(loadStoredMissionPreset()?.id, 'nq-day-trader');
   });
 
   it('does not throw when storage is unavailable', () => {
@@ -1379,7 +1285,7 @@ describe('mission preset shell integration', () => {
     assert.equal(ctx.panelSettings['supply-chain']?.enabled, true);
     assert.equal(ctx.panelSettings.markets?.enabled, true);
     assert.equal(ctx.panelSettings['live-news']?.enabled, false);
-    assert.deepEqual(callbacks.appliedOrders[0]?.slice(0, 3), ['supply-chain', 'hormuz-tracker', 'cascade']);
+    assert.deepEqual(callbacks.appliedOrders[0]?.slice(0, 3), ['supply-chain', 'cascade', 'strategic-risk']);
     assert.equal(localStorage.getItem(MISSION_PRESET_STORAGE_KEY), 'supply-chain-risk');
     assert.deepEqual(readJsonStorage<string[]>('panel-order'), callbacks.appliedOrders[0]);
     assert.equal(readJsonStorage<MapLayers>('worldmonitor-layers').tradeRoutes, true);
@@ -1549,7 +1455,7 @@ describe('mission preset shell integration', () => {
     await waitForMissionTimers();
 
     assert.equal(ctx.panelSettings.markets?.enabled, true);
-    assert.deepEqual(callbacks.appliedOrders[0]?.slice(0, 4), ['markets', 'heatmap', 'market-breadth', 'earnings-calendar']);
+    assert.deepEqual(callbacks.appliedOrders[0]?.slice(0, 4), ['markets', 'heatmap', 'market-breadth', 'economic']);
     assert.equal(localStorage.getItem(MISSION_PRESET_STORAGE_KEY), null);
 
     assert.doesNotThrow(() => manager.resetMissionPreset());

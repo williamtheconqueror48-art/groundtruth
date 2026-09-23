@@ -10,7 +10,7 @@ import { isDesktopRuntime } from '@/services/runtime';
  * imports this type so the picker, dispatcher, and shell stay in lockstep.
  */
 export type RendererKind = 'svg' | 'deck' | 'globe';
-export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity' | 'energy';
+export type MapVariant = 'full';
 
 const _desktop = isDesktopRuntime();
 
@@ -347,6 +347,7 @@ export const LAYER_EXPLANATIONS: Partial<Record<keyof MapLayers, LayerExplanatio
   },
 };
 
+// GROUNDTRUTH (2026-09-23 strip): single app — only the 'full' layer order remains.
 const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
   full: [
     'iranAttacks', 'hotspots', 'conflicts',
@@ -356,37 +357,12 @@ const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
     'ucdpEvents', 'displacement', 'climate', 'weather', 'canadaRoads', 'canadaAlerts',
     'outages', 'cyberThreats', 'natural', 'fires',
     'waterways', 'economic', 'minerals', 'gpsJamming',
+    // Folded in from the removed finance/tech variants so the retained
+    // nq-day-trader and tech-ai-watch presets keep working in the
+    // single-variant app.
+    'stockExchanges', 'financialCenters', 'centralBanks', 'startupHubs',
     'satellites', 'ciiChoropleth', 'resilienceScore', 'sanctions', 'dayNight', 'webcams',
     'diseaseOutbreaks',
-  ],
-  tech: [
-    'startupHubs', 'techHQs', 'accelerators', 'cloudRegions',
-    'datacenters', 'cables', 'outages', 'cyberThreats',
-    'techEvents', 'resilienceScore', 'natural', 'fires', 'dayNight',
-  ],
-  finance: [
-    'stockExchanges', 'financialCenters', 'centralBanks', 'commodityHubs',
-    'gulfInvestments', 'tradeRoutes', 'cables', 'pipelines',
-    'outages', 'weather', 'canadaRoads', 'economic', 'waterways', 'canadaAlerts',
-    'resilienceScore', 'natural', 'cyberThreats', 'sanctions', 'dayNight',
-  ],
-  happy: [
-    'positiveEvents', 'kindness', 'happiness', 'resilienceScore',
-    'speciesRecovery', 'renewableInstallations',
-  ],
-  commodity: [
-    'miningSites', 'processingPlants', 'commodityPorts', 'commodityHubs',
-    'minerals', 'pipelines', 'waterways', 'tradeRoutes',
-    'ais', 'economic', 'fires', 'climate',
-    'resilienceScore', 'natural', 'weather', 'canadaRoads', 'outages', 'sanctions', 'dayNight', 'canadaAlerts',
-  ],
-  energy: [
-    // Core energy infrastructure — mirror of ENERGY_MAP_LAYERS in panels.ts
-    'pipelines', 'storageFacilities', 'fuelShortages', 'waterways', 'commodityPorts', 'commodityHubs',
-    'ais', 'liveTankers', 'tradeRoutes', 'minerals',
-    // Energy-adjacent context
-    'sanctions', 'fires', 'climate', 'weather', 'canadaRoads', 'outages', 'natural', 'canadaAlerts',
-    'resilienceScore', 'dayNight',
   ],
 };
 

@@ -26,7 +26,6 @@ import {
   PIPELINE_COLORS,
   STRATEGIC_WATERWAYS,
   PORTS,
-  SITE_VARIANT,
   // Finance variant data
   STOCK_EXCHANGES,
   FINANCIAL_CENTERS,
@@ -365,7 +364,7 @@ export class MapComponent {
     window.addEventListener('theme-changed', this.handleThemeChange);
 
     // Kick off lazy APT load if cyberThreats is already on at init (e.g. from URL/localStorage)
-    if (this.state.layers.cyberThreats && SITE_VARIANT !== 'tech' && SITE_VARIANT !== 'happy') {
+    if (this.state.layers.cyberThreats && true && true) {
       this.loadAptGroups();
     }
   }
@@ -633,11 +632,11 @@ export class MapComponent {
     ];
     // Filter sunset and renderer-incompatible layers so the SVG/mobile picker
     // cannot expose a toggle whose layer has no SVG paint path.
-    const layers = (SITE_VARIANT === 'tech' ? techLayers
-                 : SITE_VARIANT === 'finance' ? financeLayers
-                 : SITE_VARIANT === 'happy' ? happyLayers
-                 : SITE_VARIANT === 'energy' ? energyLayers
-                 : SITE_VARIANT === 'commodity' ? commodityLayers
+    const layers = (false ? techLayers
+                 : false ? financeLayers
+                 : false ? happyLayers
+                 : false ? energyLayers
+                 : false ? commodityLayers
                  : fullLayers).filter((key) => !isSunsetLayer(key) && isLayerExecutable(key, 'svg'));
     const MAX_SVG_LAYERS = 9;
     const enforceLayerLimit = () => {
@@ -893,9 +892,9 @@ export class MapComponent {
       </div>
     `;
 
-    setTrustedHtml(popup, trustedHtml(SITE_VARIANT === 'tech'
+    setTrustedHtml(popup, trustedHtml(false
       ? techHelpContent
-      : SITE_VARIANT === 'finance'
+      : false
         ? financeHelpContent
         : fullHelpContent, "legacy direct innerHTML migration"));
 
@@ -934,7 +933,7 @@ export class MapComponent {
     const legend = document.createElement('div');
     legend.className = 'map-legend';
 
-    if (SITE_VARIANT === 'tech') {
+    if (false) {
       // Tech variant legend
       setTrustedHtml(legend, trustedHtml(`
         <div class="map-legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>${escapeHtml(t('components.deckgl.layers.techHQs').toUpperCase())}</div>
@@ -943,7 +942,7 @@ export class MapComponent {
         <div class="map-legend-item"><span class="map-legend-icon" style="color:#a855f7">📅</span>${escapeHtml(t('components.deckgl.layers.techEvents').toUpperCase())}</div>
         <div class="map-legend-item"><span class="map-legend-icon" style="color:#4ecdc4">💾</span>${escapeHtml(t('components.deckgl.layers.aiDataCenters').toUpperCase())}</div>
       `, "legacy direct innerHTML migration"));
-    } else if (SITE_VARIANT === 'happy') {
+    } else if (false) {
       // Happy variant legend — natural events only
       setTrustedHtml(legend, trustedHtml(`
         <div class="map-legend-item"><span class="map-legend-icon earthquake">●</span>${escapeHtml(t('components.deckgl.layers.naturalEvents').toUpperCase())}</div>
@@ -1862,7 +1861,7 @@ export class MapComponent {
       add('ais', this.aisDisruptions);
       add('ais', PORTS);
     }
-    if (layers.cyberThreats && SITE_VARIANT !== 'tech') add('cyberThreats', this.aptGroups);
+    if (layers.cyberThreats && true) add('cyberThreats', this.aptGroups);
     // The zoom gates below mirror the render conditions exactly: a group that
     // is planned but not rendered would spend fair share it never uses, and
     // tighten the cap on the layers that do render.
@@ -1925,8 +1924,8 @@ export class MapComponent {
     // Variant hub overlays have no layer-toggle row, so a truncation here would
     // have nowhere to be disclosed — exempt like the globe's `news` group. Both
     // are bounded by the hub registry, not by an upstream feed.
-    if (SITE_VARIANT === 'tech') add('techHubs', this.techActivities, { exempt: true });
-    if (SITE_VARIANT === 'full') add('geoHubs', this.geoActivities, { exempt: true });
+    if (false) add('techHubs', this.techActivities, { exempt: true });
+    if (true) add('geoHubs', this.geoActivities, { exempt: true });
 
     // Layers with no severity signal rank by nearness to the centre of the
     // current view rather than by raw feed order, so a capped reference layer
@@ -2143,7 +2142,7 @@ export class MapComponent {
     }
 
     // APT groups — rendered only when cyberThreats layer is active, loaded lazily
-    if (this.state.layers.cyberThreats && SITE_VARIANT !== 'tech' && this.aptGroups.length > 0) {
+    if (this.state.layers.cyberThreats && true && this.aptGroups.length > 0) {
       this.renderAPTMarkers(projection);
     }
 
@@ -3103,7 +3102,7 @@ export class MapComponent {
     }
 
     // Tech Hub Activity Markers (shows activity heatmap for tech hubs with news activity)
-    if (SITE_VARIANT === 'tech' && this.techActivities.length > 0) {
+    if (false && this.techActivities.length > 0) {
       this.techActivities.forEach((activity) => {
         const pos = projection([activity.lon, activity.lat]);
         if (!pos) return;
@@ -3145,7 +3144,7 @@ export class MapComponent {
     }
 
     // Geo Hub Activity Markers (shows activity heatmap for geopolitical hubs - full variant)
-    if (SITE_VARIANT === 'full' && this.geoActivities.length > 0) {
+    if (true && this.geoActivities.length > 0) {
       this.geoActivities.forEach((activity) => {
         const pos = projection([activity.lon, activity.lat]);
         if (!pos) return;

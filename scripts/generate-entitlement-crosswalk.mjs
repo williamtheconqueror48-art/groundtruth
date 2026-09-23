@@ -27,9 +27,11 @@ const rules = [];
 
 const add = (source, id, detail) => rules.push({ rule: `${source}:${id}`, source, detail });
 
-// 1. productCatalog — every (plan × gating field) pair
+// 1. productCatalog — every (plan × gating field) pair.
+// Removed with the commercial subsystem (open-tier app); absence is expected.
 {
-  const s = R('convex/config/productCatalog.ts');
+  let s = '';
+  try { s = readFileSync('convex/config/productCatalog.ts', 'utf8'); } catch { /* expected: commercial strip */ }
   const FIELDS = ['tier','maxDashboards','apiRateLimit','prioritySupport','mcpAccess','dataExport','apiAccess','embedAccess','apiRequestsPerDay','apiBurstRequestsPerMinute','mcpCallsPerDay','mcpBurstRequestsPerMinute','apiDailyAllowance','exportFormats'];
   for (const m of s.matchAll(/const (FREE|PRO|PRO_BUSINESS|API_STARTER|API_BUSINESS|ENTERPRISE)_FEATURES[^=]*=\s*\{([\s\S]*?)\n\};/g)) {
     const [, plan, body] = m;
@@ -172,7 +174,6 @@ const MAP = [
   [/:\/api\/military\/v1\/get-aircraft-details$/,         { cap: 'military.aircraft' }],
   [/:\/api\/v2\/shipping\//,                              { cap: 'shipping.routes' }],
   [/:\/api\/mcp-proxy$/,                                  { cap: 'mcp.access', note: 'outbound proxy' }],
-  [/:\/api\/chat-analyst$/,                               { cap: 'analyst.chat' }],
 
   // ---- layers
   // Effective enforcement only. isLayerEntitled(): 'locked' blocks free users;
@@ -194,7 +195,6 @@ const MAP = [
   [/^panel:\w+\.market-implications$/,        { cap: 'markets.implications' }],
   [/^panel:\w+\.trade-policy$/,               { cap: 'trade.flows' }],
   [/^panel:\w+\.global-procurement$/,         { cap: 'procurement.tenders' }],
-  [/^panel:\w+\.chat-analyst$/,               { cap: 'analyst.chat' }],
   [/^panel:\w+\.latest-brief$/,               { cap: 'digest.scheduled', note: 'latest brief panel' }],
   [/^panel:\w+\.forecast$/,                   { cap: 'scenario.engine', note: 'AI forecasts panel' }],
   [/^panel:\w+\.(cii|strategic-risk)$/,       { cap: 'risk.scores' }],
@@ -228,7 +228,6 @@ const SITE_MAP = [
   [/convex\/notificationChannels\.ts/,        { cap: 'notifications.channels' , preds: ['tier'] }],
   [/convex\/alertRules\.ts/,                  { cap: 'alerts.rules' , preds: ['tier'] }],
   [/api\/notification-channels\.ts/,          { cap: 'notifications.channels' , preds: ['tier'] }],
-  [/api\/widget-agent\.ts/,                   { cap: 'widgets.custom' , preds: ['tier'] }],
   [/summarize-article\.ts/,                   { cap: 'news.summarization' , preds: ['requiresPremium','resolvePremiumCallerIdentity'] }],
   [/gates\/playback/,                         { cap: 'playback.historical' }], // NOTE: matches no current gate
   [/convex\/apiKeys\.ts/,                     { cap: 'api.keys' , preds: ['apiAccess'] }],
@@ -240,7 +239,6 @@ const SITE_MAP = [
   [/correlation-engine\/engine\.ts/,          { cap: 'correlation.llm' , preds: ['hasPremiumAccess'] }],
   [/followedCountries/,    { cap: 'limits.followed_countries' , preds: ['tier'] }],
   [/search-manager\.ts/,                      { cap: 'aviation.data', note: 'callsign search' }], // NOTE: matches no current gate
-  [/ChatAnalystPanel|chat-analyst/,           { cap: 'analyst.chat', preds: ['resolvePremiumCallerIdentity'] }],
   [/supply-chain\/index\.ts/,   { cap: 'supplychain.routes' , preds: ['hasPremiumAccess'] }],
   [/services\/scenario\//,                    { cap: 'scenario.engine' }], // NOTE: matches no current gate
   [/sanctions-pressure/,                      { cap: 'sanctions.pressure' , preds: ['hasPremiumAccess','isCallerPremium'] }],
@@ -306,63 +304,26 @@ export function diffSiteCounts(actual, baseline = SITE_BASELINE) {
 // watching the sweep stay green. Pinning the expected count closes it: any
 // added or removed gate changes a count and must be re-baselined deliberately.
 const SITE_BASELINE = {
-  "api/chat-analyst.ts::resolvePremiumCallerIdentity": 1,
   "api/mcp-proxy.ts::resolvePremiumCallerIdentity": 1,
   "api/mcp/skill-extension/generated.ts::tier": 1,
   "api/me/entitlement.ts::isCallerPremium": 1,
   "api/notification-channels.ts::tier": 1,
   "api/v2/shipping/webhooks/[subscriberId].ts::resolvePremiumCallerIdentity": 1,
   "api/v2/shipping/webhooks/[subscriberId]/[action].ts::resolvePremiumCallerIdentity": 1,
-  "api/widget-agent.ts::tier": 1,
-  "convex/alertRules.ts::tier": 1,
-  "convex/apiKeys.ts::apiAccess": 1,
-  "convex/apiPlanLimitUsage.ts::apiAccess": 1,
-  "convex/apiPlanLimitUsage.ts::mcpAccess": 1,
-  "convex/apiPlanLimitUsage.ts::tier": 2,
-  "convex/companyMonitoring/_shared.ts::tier": 1,
-  "convex/companyMonitoring/accounts.ts::tier": 1,
-  "convex/embedKeys.ts::embedAccess": 1,
   "convex/followedCountries.ts::tier": 2,
-  "convex/http.ts::apiAccess": 1,
-  "convex/http.ts::mcpAccess": 1,
-  "convex/http.ts::tier": 3,
-  "convex/mcpProTokens.ts::tier": 1,
-  "convex/notificationChannels.ts::tier": 1,
-  "convex/payments/billing.ts::tier": 1,
-  "server/_shared/direct-llm-quota.ts::tier": 1,
   "server/_shared/embed-entitlement.ts::embedAccess": 2,
   "server/_shared/embed-session.ts::embedAccess": 2,
-  "server/_shared/entitlement-check.ts::apiAccess": 1,
-  "server/_shared/entitlement-check.ts::tier": 1,
   "server/_shared/premium-check.ts::apiAccess": 1,
   "server/_shared/premium-check.ts::isCallerPremium": 1,
   "server/_shared/premium-check.ts::resolvePremiumCallerIdentity": 3,
   "server/_shared/premium-check.ts::tier": 2,
   "server/_shared/pro-entitlement.ts::tier": 1,
-  "server/_shared/pro-mcp-gate.ts::mcpAccess": 2,
-  "server/_shared/pro-mcp-gate.ts::tier": 1,
   "server/gateway.ts::apiAccess": 3,
   "server/gateway.ts::embedAccess": 1,
-  "src/services/entitlements.ts::embedAccess": 1,
-  "server/gateway.ts::tier": 5,
-  "server/worldmonitor/economic/v1/get-national-debt.ts::isCallerPremium": 1,
-  "server/worldmonitor/intelligence/v1/deduct-situation.ts::isCallerPremium": 1,
-  "server/worldmonitor/intelligence/v1/get-country-intel-brief.ts::isCallerPremium": 1,
+  "server/gateway.ts::tier": 4,
   "server/worldmonitor/military/v1/list-military-bases.ts::tier": 1,
-  "server/worldmonitor/news/v1/summarize-article.ts::requiresPremium": 2,
-  "server/worldmonitor/news/v1/summarize-article.ts::resolvePremiumCallerIdentity": 1,
   "server/worldmonitor/sanctions/v1/list-sanctions-pressure.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-bypass-options.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-country-chokepoint-index.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-country-cost-shock.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-country-products.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-multi-sector-cost-shock.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-route-explorer-lane.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-route-impact.ts::isCallerPremium": 1,
-  "server/worldmonitor/supply-chain/v1/get-sector-dependency.ts::isCallerPremium": 1,
-  "server/worldmonitor/trade/v1/get-tariff-trends.ts::isCallerPremium": 1,
-  "server/worldmonitor/trade/v1/list-comtrade-flows.ts::isCallerPremium": 1,
-  "src/app/data-loader.ts::hasPremiumAccess": 13,
+  "src/app/data-loader.ts::hasPremiumAccess": 11,
   "src/app/event-handlers.ts::isProUser": 2,
   "src/app/panel-layout.ts::hasPremiumAccess": 1,
   "src/components/RegionalIntelligenceBoard.ts::hasPremiumAccess": 1,
@@ -371,6 +332,7 @@ const SITE_BASELINE = {
   "src/services/analysis-framework-store.ts::hasPremiumAccess": 1,
   "src/services/correlation-engine/engine.ts::hasPremiumAccess": 1,
   "src/services/economic/index.ts::hasPremiumAccess": 1,
+  "src/services/entitlements.ts::embedAccess": 1,
   "src/services/entitlements.ts::tier": 1,
   "src/services/gates/export-resolver.ts::dataExport": 4,
   "src/services/gates/export.ts::dataExport": 1,

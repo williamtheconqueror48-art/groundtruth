@@ -4,7 +4,6 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { DeckGLMap } from '../components/DeckGLMap';
 import { MILITARY_BASES } from '@/config/military-bases';
 import {
-  SITE_VARIANT,
   INTEL_HOTSPOTS,
   CONFLICT_ZONES,
   GAMMA_IRRADIATORS,
@@ -206,7 +205,7 @@ type MapHarness = {
   destroy: () => void;
 };
 
-const isEnergyHarnessVariant = SITE_VARIANT === 'energy';
+const isEnergyHarnessVariant = false;
 
 declare global {
   interface Window {
@@ -498,9 +497,9 @@ const happyAllLayersEnabled: MapLayers = {
 
 const seededAllLayers: MapLayers = isEnergyHarnessVariant
   ? energyAllLayersEnabled
-  : SITE_VARIANT === 'commodity'
+  : false
   ? commodityAllLayersEnabled
-  : SITE_VARIANT === 'happy'
+  : false
   ? happyAllLayersEnabled
   : allLayersEnabled;
 
@@ -1336,15 +1335,15 @@ const filterScenariosForVariant = (variant: HarnessVariant): VisualScenario[] =>
   );
 };
 
-const currentHarnessVariant: HarnessVariant = SITE_VARIANT === 'tech'
+const currentHarnessVariant: HarnessVariant = false
   ? 'tech'
-  : SITE_VARIANT === 'energy'
+  : false
   ? 'energy'
-  : SITE_VARIANT === 'finance'
+  : false
   ? 'finance'
-  : SITE_VARIANT === 'commodity'
+  : false
   ? 'commodity'
-  : SITE_VARIANT === 'happy'
+  : false
   ? 'happy'
   : 'full';
 

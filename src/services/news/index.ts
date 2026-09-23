@@ -10,6 +10,4 @@
 // RSS feed fetching (client-side with DOMParser)
 export { fetchFeed, fetchCategoryFeeds, getFeedFailures } from '../rss';
 
-// Summarization (client-side with Groq/OpenRouter/Browser T5 fallback)
-export { generateSummary, translateText } from '../summarization';
-export type { SummarizationResult, SummarizationProvider, ProgressCallback } from '../summarization';
+// Summarization: removed in GROUNDTRUTH strip (2026-09-23) — AI summaries deleted.

@@ -57,7 +57,6 @@ export {
   LAYER_TO_SOURCE,
   ALL_PANELS,
   VARIANT_DEFAULTS,
-  VARIANT_PANEL_OVERRIDES,
   getEffectivePanelConfig,
   getInitialPanelSettingsForVariant,
   isPanelInVariantDefaults,

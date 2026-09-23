@@ -1,5 +1,27 @@
-import type { ServerInsightStory, ServerInsights } from '@/services/insights-loader';
 import type { ClusteredEvent } from '@/types';
+
+// Local snapshot types (2026-09-23 GROUNDTRUTH strip): the server-side AI
+// insights feed (@/services/insights-loader) was deleted with the AI brief
+// pipeline. These interfaces keep updateFromServerInsights() compilable for
+// any external snapshot producer; the panel itself now renders from live
+// news clusters via updateFromClusters().
+export interface ServerInsightStory {
+  primaryTitle: string;
+  primarySource: string;
+  primaryLink: string;
+  pubDate: string;
+  sourceCount: number;
+  uniqueSourceCount?: number;
+  threatLevel: string;
+  isAlert: boolean;
+  category: string;
+}
+
+export interface ServerInsights {
+  status: 'ok' | 'degraded';
+  topStories: ServerInsightStory[];
+  generatedAt: string;
+}
 
 export const THREAT_LEVELS = ['critical', 'high', 'medium', 'low', 'info'] as const;
 export type TimelineThreatLevel = typeof THREAT_LEVELS[number];

@@ -28,7 +28,9 @@ import {
   getStalenessLabel,
   shouldRenderResilienceBaselineStress,
 } from './resilience-widget-utils';
-import type { CountryEnergyProfileData } from './CountryBriefPanel';
+import type { CountryEnergyProfileData } from './country-deep-dive-types';
+
+
 
 // LOCKED_PREVIEW lives in resilience-widget-utils.ts so tests and
 // other non-Vite consumers can import it without dragging in the

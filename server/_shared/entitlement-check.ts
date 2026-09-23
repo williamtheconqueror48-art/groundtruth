@@ -375,8 +375,9 @@ export function getBillingVerificationDenial(
  *
  * Split out from getBillingVerificationDenial for callers that classified
  * earlier and carry the decision with them — `server/_shared/premium-check.ts`
- * attaches it to the denied identity, and api/chat-analyst.ts renders that.
- * Before this existed, that route hand-built `{ verificationUnavailable: true }`
+ * attaches it to the denied identity, and the (now removed) api/chat-analyst.ts
+ * route rendered that. Before this existed, that route hand-built
+ * `{ verificationUnavailable: true }`
  * to re-enter the classifier, which collapsed all four states into one.
  */
 export function renderBillingVerificationDenial(

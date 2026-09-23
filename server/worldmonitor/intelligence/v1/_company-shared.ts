@@ -10,7 +10,7 @@ import type {
 } from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
 import { cachedFetchJson } from '../../../_shared/redis';
 import { CHROME_UA, finnhubGate } from '../../../_shared/constants';
-import { searchRecentStockHeadlines } from '../../market/v1/stock-news-search';
+import { searchRecentStockHeadlines } from './_stock-news-search';
 
 const PROFILE_TTL = 86_400;
 const EARNINGS_TTL = 43_200;

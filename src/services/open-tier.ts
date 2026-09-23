@@ -413,8 +413,6 @@ export function markProActivationPending(_productId: string | null, _now = Date.
 export interface ProActivationControllerOptions {
   /** Checkout-return boot reloads immediately; evaluate only on the next boot. */
   reloadPending: boolean;
-  /** Panel-owned surface opener that cannot be implemented outside the layout. */
-  openAiAnalyst: () => void;
   /** App-owned global command-search opener. */
   openSearch?: () => void;
 }

@@ -18,7 +18,7 @@ const panelLayoutSrc = readFileSync(resolve(__dirname, '../src/app/panel-layout.
 const panelsSrc = readFileSync(resolve(__dirname, '../src/config/panels.ts'), 'utf-8');
 const commandsSrc = readFileSync(resolve(__dirname, '../src/config/commands.ts'), 'utf-8');
 
-const VARIANT_FILES = ['full', 'tech', 'finance', 'commodity', 'energy', 'happy'];
+const VARIANT_FILES = ['full'];
 const PANEL_WIDE_CLASS_RE = /className:\s*['"][^'"]*\bpanel-wide\b/;
 const COMPONENT_SOURCE_RE = /\.tsx?$/;
 
@@ -660,13 +660,10 @@ describe('panel-config guardrails', () => {
     );
   });
 
-  it('reapplies panel settings after mounting the async deduction panel', () => {
-    assert.match(
-      panelLayoutSrc,
-      /this\.lazyPanel\('deduction',\s*\(\)\s*=>\s*\n?\s*this\.importPanel\([\s\S]*?'@\/components\/DeductionPanel'[\s\S]*?new DeductionPanel\(\(\) => this\.ctx\.allNews\)/,
-      'expected DeductionPanel to be registered through the lazy panel loader',
-    );
-
+  it('reapplies panel settings after mounting async lazy panels', () => {
+    // The DeductionPanel-specific assertion was removed with the AI panel strip.
+    // The underlying invariant remains: any lazy-mounted panel must run
+    // afterPanelMounted so saved settings and hydration replay apply.
     const mountLazyPanel = panelLayoutSrc.match(
       /private mountLazyPanel\([\s\S]*?\n\s*\}/
     );
@@ -881,7 +878,7 @@ describe('panel-config guardrails', () => {
     assert.ok(panels.size > 0, 'registry parse must not be empty');
     assert.ok(commands.size > 0, 'command parse must not be empty');
     assert.ok(categories.size > 0, 'category parse must not be empty');
-    for (const critical of ['insights', 'live-news', 'markets']) {
+    for (const critical of ['map', 'live-news', 'markets']) {
       assert.ok(panels.has(critical), `registry parse must retain critical panel ${critical}`);
       assert.ok(commands.has(critical), `command parse must retain critical panel ${critical}`);
       assert.ok(categories.has(critical), `category parse must retain critical panel ${critical}`);
@@ -1048,8 +1045,8 @@ describe('panel-config guardrails', () => {
     const primed = primedPanelIds();
     assert.ok(scheduled.length > 0, 'self-fetching schedule extraction must not be empty');
     assert.ok(primed.size > 0, 'primeTask extraction must not be empty');
-    assert.ok(scheduled.includes('energy-crisis'), 'the critical energy-crisis refresh must stay in the self-fetching schedule');
-    assert.ok(primed.has('energy-crisis'), 'the critical energy-crisis panel must stay in the prime table');
+    assert.ok(scheduled.includes('etf-flows'), 'the critical etf-flows refresh must stay in the self-fetching schedule');
+    assert.ok(primed.has('etf-flows'), 'the critical etf-flows panel must stay in the prime table');
 
     const unprimed = scheduled.filter((id) => !primed.has(id)).sort();
     assert.deepStrictEqual(

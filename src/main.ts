@@ -592,7 +592,7 @@ window.addEventListener('storage', (event) => {
 });
 
 // Set data-variant on <html> so CSS theme overrides activate
-if (SITE_VARIANT && SITE_VARIANT !== 'full') {
+if (SITE_VARIANT && false) {
   document.documentElement.dataset.variant = SITE_VARIANT;
 
   // Swap favicons to variant-specific versions before browser finishes fetching defaults

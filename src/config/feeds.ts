@@ -1,5 +1,4 @@
 import type { Feed } from '@/types';
-import { SITE_VARIANT } from './variant';
 import { rssProxyUrl } from '@/utils';
 import { mergeCanonicalFeeds } from './feed-resolution';
 import {
@@ -1100,15 +1099,15 @@ const ENERGY_FEEDS: Record<string, Feed[]> = {
 };
 
 // Variant-aware exports
-export const FEEDS = SITE_VARIANT === 'tech'
+export const FEEDS = false
   ? TECH_FEEDS
-  : SITE_VARIANT === 'finance'
+  : false
     ? FINANCE_FEEDS
-    : SITE_VARIANT === 'happy'
+    : false
       ? HAPPY_FEEDS
-      : SITE_VARIANT === 'commodity'
+      : false
         ? COMMODITY_FEEDS
-        : SITE_VARIANT === 'energy'
+        : false
           ? ENERGY_FEEDS
           : FULL_FEEDS;
 
