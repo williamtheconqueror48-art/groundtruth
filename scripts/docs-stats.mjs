@@ -1230,7 +1230,7 @@ export const ACQUISITION_CLAIM_ROOTS = [
   'pro-test/src/locales',
   'pro-test/index.html',
   'pro-test/welcome.html',
-  'blog-site/src/content/blog',
+  // GROUNDTRUTH strip: the blog was removed (Phase 1), so it is no longer an acquisition surface.
   'scripts/build-agent-skills-index.mjs',
 ];
 const ACQUISITION_CLAIM_EXCLUDES = [
@@ -1354,12 +1354,7 @@ export function validateVolatileInventoryClaims() {
     { path: 'public/llms-full.txt', text: /72 indicators across 21 active dimensions, 6 domains/ },
     { path: 'public/llms.txt', text: /live in 190\+ countries/ },
     { path: 'public/llms.txt', text: /structural resilience ranked for/ },
-    { path: 'index.html', text: /live in 190\+ countries/ },
     { path: 'docs/about.mdx', text: /live in 190\+ countries/ },
-    { path: 'blog-site/src/content/blog/country-instability-index-methodology-explained.md', text: /72 indicators, 21 active dimensions, and 6 domains/ },
-    { path: 'blog-site/src/content/blog/country-resilience-index-methodology-explained.md', text: /72 indicators across 21 active dimensions and 6 domains/ },
-    { path: 'blog-site/src/content/blog/country-resilience-index-methodology-explained.md', text: /six domains/i },
-    { path: 'blog-site/src/content/blog/country-risk-monitoring-workflow-for-analysts.md', text: /72 indicators, 21 active dimensions, and 6 domains/ },
     // Fixed resilience schema. tests/resilience-doc-parity.test.mts derives
     // these values from the scorer registry and validates this exact page.
     { path: 'docs/methodology/country-resilience-index.mdx', text: /196 countries using 72 indicators across 21 dimensions and 6 domains/ },
@@ -1394,11 +1389,6 @@ export function validateVolatileInventoryClaims() {
     // Fixed scoring universe: tests/chokepoint-scenario-doc-parity.test.mjs
     // derives the exact registry membership and validates this methodology.
     { path: 'docs/methodology/chokepoints.mdx', text: /13 monitored waterways/ },
-    { path: 'blog-site/src/content/blog/alerts-notification-channels-worldmonitor.md', text: /six channels/i },
-    { path: 'blog-site/src/content/blog/aviation-intelligence-airports-airspace-flight-prices.md', text: /between any two airports/ },
-    { path: 'blog-site/src/content/blog/build-supply-chain-early-warning-system-api.md', text: /Three signals, three endpoints/ },
-    { path: 'blog-site/src/content/blog/free-geopolitical-data-apis-2026.md', text: /ingest ten feeds/ },
-    { path: 'blog-site/src/content/blog/supply-chain-early-warning-dashboard-worldmonitor-api.md', text: /five panels/ },
     { path: 'pro-test/src/locales/ja.json', text: /25ダッシュボード/ },
     { path: 'pro-test/src/locales/ja.json', text: /紛争は1つのマップレイヤー/ },
   ];
@@ -1846,10 +1836,6 @@ export const PLAN_LAYER_COPY_SURFACES = [
   'docs/zh/accounts.mdx',
   'pro-test/src/locales/en.json',
   'pro-test/welcome.html',
-  // The category explainer names the free-tier layer boundary too ("Every
-  // layer except the Resilience layer is available on the free plan"), so it
-  // has to be re-pointed alongside the pricing surfaces when the lock set moves.
-  'blog-site/src/content/blog/what-is-worldmonitor-real-time-global-intelligence.md',
 ];
 
 /** The single web-locked layer the copy above is written around. */
@@ -1882,107 +1868,6 @@ export function validatePlanLayerEntitlementCopy(stats, readFile = read) {
   return failures;
 }
 
-/**
- * The category explainer's answer-first shape (#6217).
- *
- * The explainer is the site's primary "what is this product" page and is
- * written to be quoted verbatim by answer engines, so its shape is a contract:
- * a self-contained definition before any narrative, the variant count matching
- * the generated registry, the methodology/pricing links a citation needs, and
- * none of the stale claims the rewrite retired.
- *
- * This lives here rather than in tests/blog-seo-contract.test.mjs because that
- * file only runs in the `unit` job, which is gated on `changes.code == 'true'`
- * and whose filter drops every `.md` path — so the contract guarding a markdown
- * page did not run on the markdown-only PRs most likely to break it. The
- * docs-stats job is always-on for exactly this reason.
- *
- * Purely numeric facts belong in claims() above, not here; this covers only
- * what a "doc says N, code says N" pin cannot express.
- */
-export const CATEGORY_EXPLAINER_PATH =
-  'blog-site/src/content/blog/what-is-worldmonitor-real-time-global-intelligence.md';
-
-const CATEGORY_EXPLAINER_OPENING =
-  /^World Monitor is a \*\*free, open-source, real-time global intelligence dashboard\*\*/;
-// Wide enough that ordinary copy edits pass; narrow enough that the definition
-// cannot decay into a one-liner or swell back into the old narrative lede.
-const CATEGORY_EXPLAINER_OPENING_WORDS = { min: 35, max: 80 };
-const CATEGORY_EXPLAINER_REQUIRED_LINKS = [
-  'https://www.worldmonitor.app/docs/data-sources',
-  'https://www.worldmonitor.app/pricing.md',
-  '/blog/glossary/',
-];
-// The paid tiers must stay named. The page previously claimed there was no
-// tier above free at all, so silence here is the regression, not just an
-// omission — an answer engine quoting it would tell readers Pro does not exist.
-const CATEGORY_EXPLAINER_REQUIRED_COPY = [
-  [/paid Pro, API, and Enterprise plans/i, 'the paid Pro/API/Enterprise tiers'],
-];
-// Claims the rewrite retired because the code had moved on. A revert or a
-// copy-paste from an older post silently reintroduces them.
-const CATEGORY_EXPLAINER_RETIRED_COPY = [
-  [/Five Dashboards/, 'the retired five-variant count'],
-  [/no "enterprise tier"/, 'the retired "no enterprise tier" claim'],
-  [/React \+ TypeScript/, 'the retired React frontend stack (the web app uses Preact)'],
-  [/baseline risk \(40%\)[\s\S]*?unrest indicators \(20%\)/, 'the retired CII weight breakdown'],
-];
-
-export function validateCategoryExplainerCopy(stats, readFile = read) {
-  const file = CATEGORY_EXPLAINER_PATH;
-  let text;
-  try {
-    text = readFile(file);
-  } catch {
-    return [`${file}: file not found`];
-  }
-
-  const frontmatter = text.match(/^---\n[\s\S]*?\n---\n/);
-  if (!frontmatter) return [`${file}: missing frontmatter`];
-  const body = text.slice(frontmatter[0].length);
-  const failures = [];
-
-  // Locate the opening by its first H2 rather than a line count, and fail
-  // loudly when there is none — an indexOf(-1) slice would silently treat the
-  // whole page as the "opening" and the word-count check would read as noise.
-  const firstHeading = body.indexOf('\n## ');
-  if (firstHeading === -1) {
-    failures.push(`${file}: no H2 section, so the answer-first opening cannot be located`);
-  } else {
-    const opening = body.slice(0, firstHeading).trim();
-    if (!CATEGORY_EXPLAINER_OPENING.test(opening)) {
-      failures.push(`${file}: must open with the self-contained "World Monitor is a **free, open-source, real-time global intelligence dashboard**" definition`);
-    }
-    const words = opening.split(/\s+/).filter(Boolean).length;
-    const { min, max } = CATEGORY_EXPLAINER_OPENING_WORDS;
-    if (words < min || words > max) {
-      failures.push(`${file}: answer-first opening is ${words} words, expected ${min}-${max}`);
-    }
-  }
-
-  for (const link of CATEGORY_EXPLAINER_REQUIRED_LINKS) {
-    if (!body.includes(link)) failures.push(`${file}: citation surface must link ${link}`);
-  }
-  for (const [pattern, what] of CATEGORY_EXPLAINER_REQUIRED_COPY) {
-    if (!pattern.test(body)) failures.push(`${file}: must still name ${what}`);
-  }
-  for (const [pattern, what] of CATEGORY_EXPLAINER_RETIRED_COPY) {
-    if (pattern.test(body)) failures.push(`${file}: reintroduces ${what}`);
-  }
-  const variantLine = body.match(/^- Dashboard variants \(registry keys\):\s*(.+)$/m)?.[1];
-  if (!variantLine) {
-    failures.push(`${file}: missing the enumerated dashboard-variant list`);
-  } else {
-    const documentedVariants = [...variantLine.matchAll(/`([^`]+)`/g)].map((match) => match[1]);
-    const expectedVariants = Object.keys(stats.variantLayers).sort();
-    if (!sameStringSet(documentedVariants, expectedVariants)) {
-      failures.push(
-        `${file}: dashboard variants drift (${describeSetDelta(documentedVariants, expectedVariants)})`,
-      );
-    }
-  }
-  return failures;
-}
 
 // The --check validator set. Exported and iterated rather than called as four
 // separate lines in main() so the wiring is data a test can assert: every
@@ -1996,7 +1881,6 @@ const DOC_VALIDATORS = [
   validateBootstrapCacheDocs,
   validateHealthSummaryDocs,
   validatePlanLayerEntitlementCopy,
-  validateCategoryExplainerCopy,
   validateVolatileInventoryClaims,
 ];
 

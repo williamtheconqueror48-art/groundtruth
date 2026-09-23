@@ -24,7 +24,7 @@ Sourceless records are rejected by design. Correlation is never presented as att
 
 - **Evidence layer v1** (`shared/evidence/`) — dependency-free record types, provenance helpers, and a genuine WebCrypto SHA-256 implementation for source payloads. Safe to import from the browser, edge handlers, and node scripts.
 - **Live USGS seismic evidence** (`src/services/evidence-usgs.ts`) — the keyless, CORS-open USGS M4.5 monthly earthquake feed is mapped into `SENSOR`-tier evidence records. If the feed fails, the panel degrades to an honest empty state instead of inventing data.
-- **Evidence panel** (`src/components/EvidencePanel.ts`) — every record exposes its raw data, source URL / publisher / retrieval timestamp / SHA-256, entities, and claim tier.
+- **Evidence panel** (`src/components/EvidencePanel.ts`) — every record exposes its raw data, source URL, publisher, retrieval timestamp, SHA-256 digest, linked entities, and claim tier.
 - **Sourced timeline** (`src/components/EvidenceTimelinePanel.ts`) — the same sourced records sorted by occurrence time.
 - **Anti-AI brutalist skin** — stark black/white with a signal-red accent, hard borders, monospaced display type, and claim-tier stamps. No gradients, no shadows, no marketing noise.
 
