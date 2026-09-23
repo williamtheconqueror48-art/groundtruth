@@ -1,4 +1,4 @@
-import { AUTH_SETTLE_GRACE_MS } from '@/app/free-tier-gate';
+import { AUTH_SETTLE_GRACE_MS } from '@/services/open-tier';
 import { RETRY_AFTER_MAX_SEC } from '@/utils/cloud-prefs-retry';
 
 /**

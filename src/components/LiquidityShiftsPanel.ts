@@ -3,7 +3,7 @@ import { Panel } from './Panel';
 import { t } from '@/services/i18n';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { formatChange, getChangeClass } from '@/utils';
-import { proFreshRpcFetch } from '@/services/premium-fetch';
+import { proFreshRpcFetch } from '@/services/open-tier';
 
 let _client: MarketServiceClient | null = null;
 

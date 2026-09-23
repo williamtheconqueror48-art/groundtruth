@@ -18,7 +18,7 @@ import { ME_STRIKE_BOUNDS } from '@/services/country-geometry';
 import { toFlagEmoji } from '@/utils/country-flag';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { getAuthState } from '@/services/auth-state';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import {
   evaluateAvailableExportFormats,
   evaluateExportGate,

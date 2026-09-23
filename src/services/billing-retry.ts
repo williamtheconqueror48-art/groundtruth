@@ -52,8 +52,8 @@ const DEFAULT_BILLING_RETRY_AFTER_SECONDS = 5;
  * 1-60s; a user sitting in front of the page will not wait a minute, so a
  * longer hint means "surface the failure now" rather than "retry early".
  *
- * This threshold is not arbitrary — it lands between the delays the three
- * retryable states actually ask for (convex/payments/billing.ts):
+ * This threshold is not arbitrary — it lands between the delays the retryable
+ * verification states ask for (server/_shared/entitlement-check.ts):
  *
  *   entitlement_verification_unavailable  fixed 5s      -> retried
  *   renewal_verification_pending          1-3s, from

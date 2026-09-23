@@ -6,9 +6,6 @@
  * panels, and drives map overlays via `MapContainer` primitives.
  */
 
-import { WEB_APP_ORIGIN } from '@/config/web-origin';
-import { checkoutConsentHtml } from '@/utils/legal-links';
-import { openExternalUrl } from '@/services/external-navigation';
 import { CountryPicker } from './CountryPicker';
 import { Hs2Picker } from './Hs2Picker';
 import { CargoTypeDropdown } from './CargoTypeDropdown';
@@ -19,7 +16,6 @@ import { AlternativesTab } from './tabs/AlternativesTab';
 import { LandTab } from './tabs/LandTab';
 import { CountryImpactTab } from './tabs/CountryImpactTab';
 import { inferCargoFromHs2, type ExplorerCargo } from './RouteExplorer.utils';
-import COUNTRY_PORT_CLUSTERS from '../../../scripts/shared/country-port-clusters.json';
 import {
   parseExplorerUrl,
   serializeExplorerUrl,
@@ -30,25 +26,12 @@ import {
 } from './url-state';
 import type { GetRouteExplorerLaneResponse, GetRouteImpactResponse, BypassCorridorOption } from '@/generated/server/worldmonitor/supply_chain/v1/service_server';
 import { fetchRouteExplorerLane, fetchRouteImpact } from '@/services/supply-chain';
-import { hasPremiumAccess } from '@/services/panel-gating';
-import { getAuthState } from '@/services/auth-state';
 import { trackGateHit, track, type UmamiEvent } from '@/services/analytics';
 
-import { TRADE_ROUTES } from '@/config/trade-routes';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
-
 
 const TAB_LABELS: Record<ExplorerTab, string> = { 1: 'Current', 2: 'Alternatives', 3: 'Land', 4: 'Impact' };
 const FETCH_DEBOUNCE_MS = 250;
-
-const CARGO_TO_ROUTE_CATEGORY: Record<string, string> = {
-  container: 'container',
-  tanker: 'energy',
-  bulk: 'bulk',
-  roro: 'container',
-};
-
-const ROUTE_CATEGORY_MAP = new Map(TRADE_ROUTES.map((r) => [r.id, r.category]));
 
 interface MapRef {
   highlightRoute(routeIds: string[]): void;
@@ -215,14 +198,6 @@ export class RouteExplorer {
 
   private async fetchLane(): Promise<void> {
     if (!this.isQueryComplete()) return;
-    if (!hasPremiumAccess(getAuthState())) {
-      this.generationId++;
-      this.displayMode = 'gate';
-      this.resetLaneState('gate');
-      this.renderFreeGate();
-      this.applyPublicRouteHighlight();
-      return;
-    }
 
     const gen = ++this.generationId;
     this.displayMode = 'loading';
@@ -341,50 +316,6 @@ export class RouteExplorer {
   private showError(): void {
     if (this.contentEl) {
       setTrustedHtml(this.contentEl, trustedHtml('<div class="re-content__error">Failed to load lane data. Try again.</div>', "legacy direct innerHTML migration"));
-    }
-  }
-
-  private renderFreeGate(): void {
-    this.leftRail?.element.classList.add('re-leftrail--blurred');
-    this.leftRail?.element.setAttribute('aria-hidden', 'true');
-    if (this.contentEl) {
-      setTrustedHtml(this.contentEl, trustedHtml('<div class="re-content__gate">' +
-        '<h3>Unlock route intelligence</h3>' +
-        '<ul><li>Current route with chokepoint risk</li><li>Ranked bypass alternatives</li><li>Overland corridor options</li></ul>' +
-        checkoutConsentHtml(WEB_APP_ORIGIN) +
-        '<button class="re-content__upgrade" type="button">Upgrade to PRO</button>' +
-        '</div>', "legacy direct innerHTML migration"));
-      const btn = this.contentEl.querySelector<HTMLButtonElement>('.re-content__upgrade');
-      btn?.addEventListener('click', () => {
-        this.trackEvent('route-explorer:free-cta-click', {
-          from: this.state.fromIso2 ?? '',
-          to: this.state.toIso2 ?? '',
-          hs2: this.state.hs2 ?? '',
-        });
-        void import('@/services/checkout')
-          .then((m) => m.startCheckout('pro_monthly'))
-          .catch(() => openExternalUrl(`${WEB_APP_ORIGIN}/pro`));
-      }, { once: true });
-    }
-  }
-
-  private applyPublicRouteHighlight(): void {
-    if (!this.mapRef || !this.state.fromIso2 || !this.state.toIso2) return;
-    const clusters = COUNTRY_PORT_CLUSTERS as unknown as Record<string, { nearestRouteIds: string[] }>;
-    const fromRoutes = new Set(clusters[this.state.fromIso2]?.nearestRouteIds ?? []);
-    const toRoutes = new Set(clusters[this.state.toIso2]?.nearestRouteIds ?? []);
-    const shared = [...fromRoutes].filter((r) => toRoutes.has(r));
-    if (shared.length === 0) return;
-    const cargoCategory = CARGO_TO_ROUTE_CATEGORY[this.getEffectiveCargo()] ?? 'container';
-    const ranked = [...shared].sort((a, b) => {
-      const catA = ROUTE_CATEGORY_MAP.get(a) ?? '';
-      const catB = ROUTE_CATEGORY_MAP.get(b) ?? '';
-      return (catA === cargoCategory ? 0 : 1) - (catB === cargoCategory ? 0 : 1);
-    });
-    const routeId = ranked[0] ?? '';
-    if (routeId) {
-      this.mapRef.highlightRoute([routeId]);
-      this.mapRef.zoomToRoutes([routeId]);
     }
   }
 
@@ -635,7 +566,6 @@ export class RouteExplorer {
       return;
     }
 
-
     if (this.isFormControlFocused()) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
@@ -659,7 +589,6 @@ export class RouteExplorer {
       default: return;
     }
   };
-
 
   private focusInitial(): void {
     if (!this.state.fromIso2) this.fromPicker.focusInput();
@@ -705,7 +634,8 @@ export class RouteExplorer {
   // ─── Analytics ─────────────────────────────────────────────────────────
 
   private get tier(): 'pro' | 'free' {
-    return hasPremiumAccess(getAuthState()) ? 'pro' : 'free';
+    // GROUNDTRUTH (2026-09-23 strip): single open tier — always pro.
+    return 'pro';
   }
 
   private trackEvent(event: UmamiEvent, props?: Record<string, unknown>): void {

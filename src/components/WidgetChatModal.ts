@@ -8,8 +8,8 @@ import { wrapWidgetHtml, wrapProWidgetHtml } from '@/utils/widget-sanitizer';
 import { track } from '@/services/analytics';
 import { createFocusTrap, type FocusTrap } from '@/utils/focus-trap';
 import { reportEntitlementDesync } from '@/services/entitlement-desync-telemetry';
-import { classifyPremiumDenial, type ClientEntitlementBelief } from '@/services/premium-denial';
-import { readClientEntitlementBelief } from '@/services/panel-gating';
+import { classifyPremiumDenial, type ClientEntitlementBelief } from '@/services/open-tier';
+import { readClientEntitlementBelief } from '@/services/open-tier';
 import { getAuthState } from '@/services/auth-state';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 

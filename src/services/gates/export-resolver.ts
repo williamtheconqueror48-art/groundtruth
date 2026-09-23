@@ -14,15 +14,12 @@
  * is equally wrong in the other direction: it is true for every Pro subscriber,
  * and export is a Pro Business takeaway.
  *
- * MUST stay a leaf that only imports the zero-import `billing-state` module: it
- * is unit-tested under `tsx --test` (no jsdom, no Vite globals), and both
- * services and the app layer import it.
+ * MUST stay a leaf: it is unit-tested under `tsx --test` (no jsdom, no Vite
+ * globals), and both services and the app layer import it. It takes zero
+ * runtime imports — the GROUNDTRUTH single open tier (2026-09-23 strip)
+ * removed the billing-state refinement the lock chain once carried.
  */
 
-import { getBillingGateOverride, type BillingUxState } from '../billing-state';
-
-/** Formats the dashboard can genuinely produce. Keep this list aligned with
- * `src/utils/export.ts`; unknown catalog values must never become UI actions. */
 export const SUPPORTED_EXPORT_FORMATS = ['csv', 'json', 'pdf'] as const;
 export type DataExportFormat = (typeof SUPPORTED_EXPORT_FORMATS)[number];
 
@@ -32,9 +29,8 @@ function allExportFormats(): DataExportFormat[] {
 
 /**
  * Locked-state reasons. Values mirror the `PanelGateReason` string enum in
- * panel-gating.ts (kept as plain strings here so this module stays a leaf —
- * same arrangement as `BillingGateOverride`). `gates/export.ts` owns the
- * exhaustive mapping back to the enum.
+ * panel-gating.ts (kept as plain strings here so this module stays a leaf).
+ * `gates/export.ts` owns the exhaustive mapping back to the enum.
  */
 export type ExportGateLockReason =
   | 'anonymous'
@@ -77,8 +73,6 @@ export interface ExportGateInputs {
   signedIn: boolean;
   /** Loaded entitlement features, or null when no snapshot has arrived. */
   features: ExportGateFeatures | null;
-  /** Billing UX state, used to refine a generic upgrade denial (#4771). */
-  billingState: BillingUxState;
 }
 
 export type ExportGateVerdict =
@@ -108,8 +102,8 @@ export type ExportGateVerdict =
  *   6. dataExport undefined AND tier >= 2 → allow (PERMANENT legacy fail-open,
  *      mirroring the apiDailyAllowance precedent; an explicit `false` is never
  *      a stale row, so it still locks)
- *   7. otherwise        → LOCK, refined by billing state so a customer with
- *      stale paid evidence sees "update payment" instead of an upsell.
+ *   7. otherwise        → LOCK, 'free_tier' (the commercial billing refinement
+ *      was removed with the single-open-tier strip).
  */
 export function resolveExportLock(input: ExportGateInputs): ExportGateLockReason | null {
   if (input.desktopKeyPresent) return null;
@@ -121,7 +115,7 @@ export function resolveExportLock(input: ExportGateInputs): ExportGateLockReason
   if (features.dataExport === true) return null;
   if (features.dataExport === undefined && features.tier >= 2) return null;
 
-  return getBillingGateOverride(input.billingState) ?? 'free_tier';
+  return 'free_tier';
 }
 
 /**
@@ -237,7 +231,7 @@ export function resolveTabCap(input: ExportGateInputs, currentTabCount: number):
     input,
     currentTabCount,
     cap,
-    getBillingGateOverride(input.billingState) ?? 'free_tier',
+    'free_tier',
   );
 }
 

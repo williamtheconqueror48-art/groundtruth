@@ -67,7 +67,7 @@ import type { ChinaCorridorControlTower } from '../../shared/china-corridor-cont
 import { projectChinaCorridorOverlay } from './map/china-corridor-overlay';
 import type { ScenarioVisualState, ScenarioResult } from '@/config/scenario-templates';
 import { getAuthState } from '@/services/auth-state';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { trackGateHit } from '@/services/analytics';
 
 export type { ScenarioVisualState, ScenarioResult };

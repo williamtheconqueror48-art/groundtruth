@@ -19,32 +19,14 @@ import { isValidIso2, validIso2Codes } from "./lib/iso2";
 import { userIdToShard } from "./lib/shards";
 
 /**
- * Layer-2 entitlement gate for the followed-countries watchlist primitive
- * (plan U13). Returns the user's effective tier (0 = free, ≥1 = PRO).
- *
- * Mirrors `convex/alertRules.ts::assertProEntitlement` — kept inline (not
- * imported from a shared helper) for security-review readability.
- *
- *   - no entitlement row → tier 0 (free)
- *   - validUntil < Date.now() → expired, treat as tier 0
- *   - tier ≥ 1 → PRO
- *
- * Unlike alertRules (which throws PRO_REQUIRED), the watchlist gate is
- * NOT all-or-nothing: free users may follow up to FREE_TIER_FOLLOW_LIMIT
- * countries; only over-cap inserts throw FREE_CAP. So we return the tier
- * for the caller to decide.
+ * GROUNDTRUTH (2026-09-23 strip): single open tier — always tier 99, so the
+ * free-tier follow cap never applies.
  */
 async function readEntitlementTier(
-  ctx: MutationCtx,
-  userId: string,
+  _ctx: MutationCtx,
+  _userId: string,
 ): Promise<number> {
-  const entitlement = await ctx.db
-    .query("entitlements")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .first();
-  if (!entitlement) return 0;
-  if (entitlement.validUntil < Date.now()) return 0;
-  return entitlement.features.tier ?? 0;
+  return 99;
 }
 
 /**

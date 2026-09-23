@@ -8,9 +8,9 @@
  * Before the fix, a GET that presented a cookie/key resolved to `slow-browser`
  * (max-age=300) via `isPremium || hasCredentialedNonPublicGet`, consulting the
  * route's declared `RPC_CACHE_TIER` only in the final `??` fallback — so a route
- * declared `no-store` (track-aircraft, company-monitoring, ...) was served
- * cacheable for 300s once credentials were present, and the slow-browser header
- * carried no `private` while Vary is Origin-only.
+ * declared `no-store` (track-aircraft, ...) was served cacheable for 300s once
+ * credentials were present, and the slow-browser header carried no `private`
+ * while Vary is Origin-only.
  *
  * Harness mirrors gateway-status-override.test.ts.
  */
@@ -129,7 +129,7 @@ describe('gateway no-store floor + credentialed privacy (#6771)', () => {
     // no-store route to a browser-cacheable tier.
     process.env.CACHE_TIER_OVERRIDE_GET_COMPANY_COVERAGE = 'slow-browser';
     try {
-      const path = '/api/company-monitoring/v1/get-company-coverage'; // RPC_CACHE_TIER: 'no-store'
+      const path = '/api/aviation/v1/track-aircraft'; // RPC_CACHE_TIER: 'no-store'
       const res = await gatewayFor(path, { coverage: [{ id: 1 }] })(credentialedRequest(path), ctx);
       expect(res.headers.get('Cache-Control')).toBe('no-store');
       expect(res.headers.get('X-Cache-Tier')).toBe('no-store');

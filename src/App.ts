@@ -112,7 +112,7 @@ import type { NewsMarketCorrelationPanel } from '@/components/NewsMarketCorrelat
 import type { PositioningPanel } from '@/components/PositioningPanel';
 import type { GoldIntelligencePanel } from '@/components/GoldIntelligencePanel';
 import { isDesktopRuntime, waitForSidecarReady } from '@/services/runtime';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { BETA_MODE } from '@/config/beta';
 import { track, trackEvent, trackDeeplinkOpened, initAuthAnalytics, trackMapViewChange } from '@/services/analytics';
 import { preloadCountryGeometry, isCountryGeometryLoaded, getCountryNameByCode } from '@/services/country-geometry';
@@ -204,12 +204,11 @@ import {
   panelGateStateChanged,
   shouldRunCloudLegacyRecovery,
   sweepLegacyDisabledCustomWidgets,
-} from '@/app/free-tier-gate';
+} from '@/services/open-tier';
 import { replaceRawI18nKeyPlaceholders } from '@/app/i18n-raw-key-healer';
 import { startAccountAuthHandoff } from '@/app/account-auth-handoff';
 import { TierPreferenceHandoff } from '@/app/tier-preference-handoff';
 import { initialRegionFromCache, resolveUserRegion, resolvePreciseUserCoordinates, type PreciseCoordinates } from '@/utils/user-location';
-import { showProBanner } from '@/components/ProBanner';
 import { getAuthState, initAuthState, subscribeAuthState } from '@/services/auth-state';
 import {
   CLOUD_PREFS_APPLIED_EVENT,
@@ -232,18 +231,9 @@ import {
   migrateCuratedRegionalOptInsV9,
 } from '@/utils/cloud-prefs-migrations';
 import {
-  getConvexClient,
-  getConvexApi,
   invalidateConvexAuthForSignOut,
   rebindConvexAuthForWatchHandoff,
-  waitForConvexAuthForUser,
 } from '@/services/convex-client';
-import {
-  assertAccountStillCurrent,
-  isAccountStillCurrent,
-  settleAccountOperation,
-} from '@/services/account-operation';
-import type { Id } from '../convex/_generated/dataModel';
 import {
   beginEntitlementVerification,
   destroyEntitlementSubscription,
@@ -254,7 +244,6 @@ import {
   resetEntitlementState,
   resetEntitlementVerification,
 } from '@/services/entitlements';
-import { initSubscriptionWatch, destroySubscriptionWatch } from '@/services/billing';
 import {
   FREE_TIER_FOLLOW_LIMIT,
   WM_FOLLOWED_COUNTRIES_CAP_DROP,
@@ -266,16 +255,6 @@ import {
   removeCountry,
   serviceEntitlementState,
 } from '@/services/followed-countries';
-import {
-  capturePendingCheckoutIntentFromUrl,
-  initCheckoutWatchers,
-  resumePendingCheckout,
-} from '@/services/checkout';
-import {
-  clearStoredAnonIdentity,
-  getFreshStoredAnonClaimToken,
-  getStoredAnonId,
-} from '@/services/anonymous-identity-storage';
 import { captureReferralFromUrl } from '@/services/referral-capture';
 import { nextPrimeRetryDelayMs } from '@/utils/prime-retry';
 
@@ -2720,10 +2699,8 @@ export class App {
             beginEntitlementVerification,
             resetEntitlementState,
             markEntitlementVerificationUnavailable,
-            destroySubscriptionWatch,
             rebindConvexAuthForWatchHandoff,
             initEntitlementSubscription,
-            initSubscriptionWatch,
             cloudPrefsSignIn: (nextUserId) => {
               return cloudPrefsSignIn(nextUserId, SITE_VARIANT, {
                 handoffGeneration: preferenceHandoffGeneration,
@@ -2732,98 +2709,6 @@ export class App {
           },
         });
 
-        // Claim any anonymous purchase made before sign-in (anon → real user migration)
-        const anonId = getStoredAnonId();
-        if (anonId) {
-          void (async () => {
-            const [client, api] = await Promise.all([getConvexClient(), getConvexApi()]);
-            if (!client || !api) return;
-            // Wait for ConvexClient WebSocket auth handshake to complete.
-            // Without this, mutations arrive at Convex before the server
-            // has the JWT → "Authentication required" errors.
-            const ready = await waitForConvexAuthForUser(userId, 10_000);
-            if (!ready) {
-              console.warn('[billing] claimSubscription skipped — Convex auth not ready');
-              return;
-            }
-            const claimToken = getFreshStoredAnonClaimToken() ?? undefined;
-            const result = await settleAccountOperation(
-              userId,
-              'claiming the anonymous subscription',
-              () => client.mutation(api.payments.billing.claimSubscription, {
-                anonId,
-                ...(claimToken ? { claimToken } : {}),
-              }),
-            );
-            assertAccountStillCurrent(userId, 'claiming the anonymous subscription');
-            const claimed = result.claimed;
-            const totalClaimed = claimed.subscriptions + claimed.entitlements +
-                                 claimed.customers + claimed.payments;
-            if (totalClaimed > 0) {
-              console.log('[billing] Claimed anon subscription on sign-in:', claimed);
-            }
-            // Always remove after non-throwing completion — mutation is idempotent.
-            // Prevents cold Convex init + mutation on every sign-in for non-purchasers.
-            clearStoredAnonIdentity();
-          })().catch((err: unknown) => {
-            if (!isAccountStillCurrent(userId)) return;
-            console.warn('[billing] claimSubscription failed:', err);
-            // Non-fatal — anon ID preserved for retry on next page load
-          });
-        }
-
-        // Accept a Business Pro seat invite carried in the URL (mirror of the
-        // anon-claim hook). The invite link is /settings?accept-business-invite=<id>&token=<t>.
-        // Runs after sign-in so the invitee's Clerk email is available server-side.
-        const businessInviteGrantId = new URLSearchParams(window.location.search).get('accept-business-invite');
-        const businessInviteToken = new URLSearchParams(window.location.search).get('token');
-        if (businessInviteGrantId && businessInviteToken) {
-          void (async () => {
-            const [client, api] = await Promise.all([getConvexClient(), getConvexApi()]);
-            if (!client || !api) return;
-            const ready = await waitForConvexAuthForUser(userId, 10_000);
-            if (!ready) {
-              console.warn('[business-seats] acceptBusinessInvite skipped — Convex auth not ready');
-              return;
-            }
-            try {
-              await settleAccountOperation(
-                userId,
-                'accepting the Business Pro seat invite',
-                () => client.mutation(api.payments.businessSeats.acceptBusinessInvite, {
-                  grantId: businessInviteGrantId as Id<'businessProGrants'>,
-                  token: businessInviteToken,
-                }),
-              );
-              assertAccountStillCurrent(userId, 'accepting the Business Pro seat invite');
-              showToast('Pro seat activated');
-            } catch (err) {
-              if (!isAccountStillCurrent(userId)) return;
-              const msg = err instanceof Error ? err.message : 'Failed to accept invite';
-              if (msg.includes('INVITE_EMAIL_MISMATCH')) {
-                showToast('This invite is for a different email address');
-              } else if (msg.includes('INVITE_EXPIRED')) {
-                showToast('This invite has expired');
-              } else if (msg.includes('BUSINESS_NOT_ACTIVE')) {
-                showToast('The Business plan that sent this invite is no longer active');
-              } else if (msg.includes('INVITE_ALREADY_USED')) {
-                showToast('This invite has already been used');
-              } else {
-                showToast('Could not accept invite');
-              }
-              console.warn('[business-seats] acceptBusinessInvite failed:', err);
-            } finally {
-              // Clear the invite params from the URL so a refresh does not retry.
-              const url = new URL(window.location.href);
-              url.searchParams.delete('accept-business-invite');
-              url.searchParams.delete('token');
-              window.history.replaceState({}, '', url.toString());
-            }
-          })();
-        }
-        void resumePendingCheckout({
-          openAuth: () => this.state.authModal?.open(),
-        });
       } else if (userId === null && _prevUserId !== null) {
         // Clerk's mounted UserButton signs out through the SDK directly, so
         // this observed transition is the authoritative place to invalidate
@@ -2833,7 +2718,6 @@ export class App {
         // being signed out before it gets a chance to attach user watches.
         _convexWatchHandoffGeneration++;
         destroyEntitlementSubscription();
-        destroySubscriptionWatch();
         cloudPrefsSignOut();
         resetEntitlementState();
         resetEntitlementVerification();
@@ -2845,7 +2729,6 @@ export class App {
       // previous user's entitlement against the new user's panels.
       firePremiumLoaders(accountTransition);
     });
-
 
     const geoCoordsPromise: Promise<PreciseCoordinates | null> =
       this.state.isMobile && this.state.initialUrlState?.lat === undefined && this.state.initialUrlState?.lon === undefined
@@ -2876,7 +2759,6 @@ export class App {
     await this.panelLayout.init();
     markLcpDebug('wm:layout:init-complete');
     this.eventHandlers.setupSearchControls();
-    showProBanner(this.state.container);
     this.updateConnectivityUi();
     window.addEventListener('online', this.handleConnectivityChange);
     window.addEventListener('offline', this.handleConnectivityChange);
@@ -2930,30 +2812,9 @@ export class App {
     this.eventHandlers.setupUnifiedSettings();
     this.eventHandlers.setupAuthWidget();
     // Capture any ?ref= / ?wm_referral= from the URL into localStorage
-    // and strip from the visible URL. Runs BEFORE the pending-checkout
-    // capture so a /dashboard?ref=X&checkoutProduct=Y landing preserves both
-    // signals. Pure read of current URL — no-op when neither param is
-    // present.
+    // and strip from the visible URL. Pure read of current URL — no-op when
+    // neither param is present.
     captureReferralFromUrl();
-    // Wire checkout-attempt lifecycle watchers (sign-out clear) before
-    // any capture/resume path runs, so a stale session from a prior
-    // user can't bleed into the current one.
-    initCheckoutWatchers();
-    // Stale attempt records are ignored by loadCheckoutAttempt() via
-    // the 24h TTL — no separate sweep needed. The attempt record's
-    // only consumer (the failure-retry banner) runs handleCheckoutReturn
-    // synchronously during panel-layout mount, which is after the
-    // captureePendingCheckoutIntentFromUrl repopulates it for any /pro
-    // handoff — so no race exists that would want to sweep pre-capture.
-    const pendingCheckout = capturePendingCheckoutIntentFromUrl();
-    if (pendingCheckout) {
-      // Checkout intent from /pro page redirect. Resume immediately if
-      // already authenticated, otherwise the auth callback handles it.
-      void resumePendingCheckout({
-        openAuth: () => this.state.authModal?.open(),
-      });
-    }
-
     // Phase 4: MapLayerHandlers, CountryIntel. SearchManager is lazy-loaded
     // on first CMD+K/search-button open so its modal catalog stays off startup.
     this.eventHandlers.setupMapLayerHandlers();

@@ -10,7 +10,6 @@ import {
   query,
   type MutationCtx,
 } from "../_generated/server";
-import { applyOwnerDeletedFence } from "../companyMonitoring/accounts";
 import { requireUserId, resolveUserId } from "../lib/auth";
 import { runEraseBatch, scheduleEraseContinuation } from "./batches";
 import {
@@ -180,7 +179,7 @@ async function beginErase(
   }
 
   if (!row.fenceAppliedAt) {
-    await applyOwnerDeletedFence(ctx, confirmedUserId);
+    // GROUNDTRUTH: company-monitoring owner fence removed with the feature.
     await ctx.db.patch(deletionId, { fenceAppliedAt: Date.now(), updatedAt: Date.now() });
   }
 

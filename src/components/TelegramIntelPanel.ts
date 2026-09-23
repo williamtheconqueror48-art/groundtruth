@@ -2,7 +2,7 @@ import { Panel } from './Panel';
 import { validateUrl } from '@/utils/sanitize';
 import { t } from '@/services/i18n';
 import { isDesktopRuntime } from '@/services/runtime';
-import { hasPremiumAccess, PanelGateReason } from '@/services/panel-gating';
+import { hasPremiumAccess, PanelGateReason } from '@/services/open-tier';
 import { h, replaceChildren, safeHtml } from '@/utils/dom-utils';
 import {
   TELEGRAM_TOPICS,

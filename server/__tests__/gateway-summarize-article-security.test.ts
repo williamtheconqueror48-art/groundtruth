@@ -276,7 +276,7 @@ describe("summarize-article gateway spend controls", () => {
     expect(calls.summarize).toBe(1);
   });
 
-  test("expired tier-1 bearer sessions retain the per-IP endpoint bucket", async () => {
+  test("expired tier-1 bearer sessions keep session-principal attribution (open tier: coverage always current)", async () => {
     resolveClerkSession.mockResolvedValue({ userId: "expired_user", orgId: null, role: "pro" });
     getEntitlements.mockResolvedValue({
       planKey: "pro_monthly",
@@ -293,10 +293,14 @@ describe("summarize-article gateway spend controls", () => {
     );
 
     expect(res.status).toBe(429);
+    // Open tier: the expired legacy row still counts as current coverage, so
+    // the #5206 principal-attribution exception applies and the endpoint
+    // bucket is scoped to the session principal, not the shared per-IP bucket.
     expect(checkEndpointRateLimit).toHaveBeenCalledWith(
       expect.any(Request),
       SUMMARIZE_PATH,
       expect.any(Object),
+      { principalUserId: "expired_user", principalScope: "session" },
     );
     expect(checkFailClosedScopedIpRateLimit).toHaveBeenCalledWith(
       expect.any(Request),

@@ -1,8 +1,7 @@
 import { convexTest } from "convex-test";
-import { afterEach, beforeEach, expect, test, describe, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import schema from "../schema";
 import { api, internal } from "../_generated/api";
-import { getFeaturesForPlan } from "../lib/entitlements";
 
 const modules = import.meta.glob("../**/*.ts");
 
@@ -10,13 +9,8 @@ const modules = import.meta.glob("../**/*.ts");
 // Helpers
 // ---------------------------------------------------------------------------
 
-const NOW = Date.now();
-const FUTURE = NOW + 86400000 * 30; // 30 days
-const PAST = NOW - 86400000; // 1 day ago
 
 const API_USER = { subject: "user-api", tokenIdentifier: "clerk|user-api" };
-const PRO_USER = { subject: "user-pro", tokenIdentifier: "clerk|user-pro" };
-const FREE_USER = { subject: "user-free", tokenIdentifier: "clerk|user-free" };
 const OTHER_USER = { subject: "user-other", tokenIdentifier: "clerk|user-other" };
 
 function makeKeyArgs(n: number) {
@@ -27,23 +21,6 @@ function makeKeyArgs(n: number) {
     keyPrefix: `wm_${hex}`,
     keyHash: hash,
   };
-}
-
-/** Seed entitlement with apiAccess=true (API_STARTER plan, tier 2). */
-async function seedApiEntitlement(
-  t: ReturnType<typeof convexTest>,
-  userId: string,
-  opts: { validUntil?: number } = {},
-) {
-  await t.run(async (ctx) => {
-    await ctx.db.insert("entitlements", {
-      userId,
-      planKey: "api_starter",
-      features: getFeaturesForPlan("api_starter"),
-      validUntil: opts.validUntil ?? FUTURE,
-      updatedAt: NOW,
-    });
-  });
 }
 
 async function seedActiveApiKeys(
@@ -66,58 +43,13 @@ async function seedActiveApiKeys(
   });
 }
 
-/** Seed entitlement with apiAccess=false (Pro plan, tier 1). */
-async function seedProEntitlement(
-  t: ReturnType<typeof convexTest>,
-  userId: string,
-  opts: { validUntil?: number } = {},
-) {
-  await t.run(async (ctx) => {
-    await ctx.db.insert("entitlements", {
-      userId,
-      planKey: "pro_monthly",
-      features: getFeaturesForPlan("pro_monthly"),
-      validUntil: opts.validUntil ?? FUTURE,
-      updatedAt: NOW,
-    });
-  });
-}
-
 // ---------------------------------------------------------------------------
 // createApiKey
 // ---------------------------------------------------------------------------
 
 describe("createApiKey", () => {
-  test("rejects free-tier users (API_ACCESS_REQUIRED)", async () => {
+  test("succeeds for any signed-in user (single open tier, no entitlement gate)", async () => {
     const t = convexTest(schema, modules);
-
-    await expect(
-      t.withIdentity(FREE_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1)),
-    ).rejects.toThrow(/API_ACCESS_REQUIRED/);
-  });
-
-  test("rejects pro-tier users without apiAccess", async () => {
-    const t = convexTest(schema, modules);
-    await seedProEntitlement(t, "user-pro");
-
-    // Pro plan has apiAccess=false — should be rejected
-    await expect(
-      t.withIdentity(PRO_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1)),
-    ).rejects.toThrow(/API_ACCESS_REQUIRED/);
-  });
-
-  test("rejects users with expired entitlement", async () => {
-    const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api", { validUntil: PAST });
-
-    await expect(
-      t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1)),
-    ).rejects.toThrow(/API_ACCESS_REQUIRED/);
-  });
-
-  test("succeeds for API-tier user", async () => {
-    const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const result = await t.withIdentity(API_USER).mutation(
       api.apiKeys.createApiKey,
@@ -131,9 +63,26 @@ describe("createApiKey", () => {
     expect(result.id).toBeTruthy();
   });
 
+  test("succeeds for a second signed-in user too (no per-plan gating)", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.withIdentity(OTHER_USER).mutation(
+      api.apiKeys.createApiKey,
+      makeKeyArgs(1),
+    );
+    expect(result.name).toBe("test-key-1");
+  });
+
+  test("rejects unauthenticated callers (AUTH_REQUIRED)", async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.mutation(api.apiKeys.createApiKey, makeKeyArgs(1)),
+    ).rejects.toThrow(/AUTH_REQUIRED/);
+  });
+
   test("enforces per-user limit of 5 active keys", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     for (let i = 1; i <= 5; i++) {
@@ -160,7 +109,6 @@ describe("createApiKey", () => {
     test(`race-leftover overflow from ${overflow.seededActive} active keys converges back to 5 active keys while creating`, async () => {
       // convex-test serializes mutations, so seed the post-race over-cap state directly.
       const t = convexTest(schema, modules);
-      await seedApiEntitlement(t, "user-api");
       await seedActiveApiKeys(t, "user-api", overflow.seededActive);
 
       const asApiUser = t.withIdentity(API_USER);
@@ -182,7 +130,6 @@ describe("createApiKey", () => {
 
   test("revoked keys do not count toward the limit", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const first = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -200,7 +147,6 @@ describe("createApiKey", () => {
 
   test("rejects duplicate key hash", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -215,7 +161,6 @@ describe("createApiKey", () => {
 
   test("rejects invalid keyPrefix format", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     await expect(
       t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, {
@@ -228,7 +173,6 @@ describe("createApiKey", () => {
 
   test("rejects invalid keyHash format", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     await expect(
       t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, {
@@ -241,7 +185,6 @@ describe("createApiKey", () => {
 
   test("rejects empty name", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     await expect(
       t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, {
@@ -260,7 +203,6 @@ describe("createApiKey", () => {
 describe("revokeApiKey", () => {
   test("revokes own key and returns keyHash", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const created = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -272,7 +214,6 @@ describe("revokeApiKey", () => {
 
   test("rejects non-owner revoke attempt", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const created = await t.withIdentity(API_USER).mutation(
       api.apiKeys.createApiKey,
@@ -286,7 +227,6 @@ describe("revokeApiKey", () => {
 
   test("rejects double revocation", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const created = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -312,7 +252,6 @@ describe("listApiKeys", () => {
 
   test("returns both active and revoked keys", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const k1 = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -330,7 +269,6 @@ describe("listApiKeys", () => {
 
   test("does not return other users' keys", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     await t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
 
@@ -344,7 +282,6 @@ describe("listApiKeys", () => {
     // user's key to prove the unauthenticated result is empty rather than a
     // throw or an accidental cross-user read.
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
     await t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
 
     const keys = await t.query(api.apiKeys.listApiKeys, {});
@@ -359,7 +296,6 @@ describe("listApiKeys", () => {
 describe("validateKeyByHash", () => {
   test("returns key info for valid active key", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     await t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
 
@@ -374,7 +310,6 @@ describe("validateKeyByHash", () => {
 
   test("returns null for revoked key", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const created = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -403,7 +338,6 @@ describe("validateKeyByHash", () => {
 describe("getKeyOwner", () => {
   test("returns owner regardless of revoked status", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const created = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -432,7 +366,6 @@ describe("getKeyOwner", () => {
 describe("touchKeyLastUsed", () => {
   test("sets lastUsedAt on first call", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const created = await t.withIdentity(API_USER).mutation(
       api.apiKeys.createApiKey,
@@ -448,7 +381,6 @@ describe("touchKeyLastUsed", () => {
 
   test("skips write for revoked key", async () => {
     const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
 
     const asApiUser = t.withIdentity(API_USER);
     const created = await asApiUser.mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
@@ -456,101 +388,5 @@ describe("touchKeyLastUsed", () => {
 
     // Should not throw
     await t.mutation(internal.apiKeys.touchKeyLastUsed, { keyId: created.id });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// HTTP route /api/internal-validate-api-key — touch scheduling gate
-//
-// Convex Insights (2026-08): apiKeys:touchKeyLastUsed produced 1,036 OCC
-// write conflicts on userApiKeys in 14 days (max retry depth 3), because the
-// route scheduled a touch on EVERY validation and the mutation's internal
-// 5-minute debounce is a read-then-write: at each debounce-boundary every
-// concurrently scheduled touch reads the same stale lastUsedAt and they all
-// patch the same hot document. The gate moves the staleness check to the
-// route, so a fresh key schedules NOTHING — the herd never forms.
-//
-// The observable for "was a touch scheduled": queue a validate inside the
-// debounce window, let the fake clock pass the boundary, THEN drain the
-// scheduler. A queued touch would now see a stale lastUsedAt and write; a
-// gated route queued nothing, so lastUsedAt must not move.
-// ---------------------------------------------------------------------------
-
-describe("HTTP route /api/internal-validate-api-key — touch scheduling gate", () => {
-  const SHARED_SECRET = "test-shared-secret";
-  const T0 = new Date("2026-08-13T00:00:00Z").getTime();
-
-  beforeEach(() => {
-    process.env.CONVEX_SERVER_SHARED_SECRET = SHARED_SECRET;
-  });
-  afterEach(() => {
-    delete process.env.CONVEX_SERVER_SHARED_SECRET;
-    vi.useRealTimers();
-  });
-
-  async function validate(t: ReturnType<typeof convexTest>, keyHash: string) {
-    return t.fetch("/api/internal-validate-api-key", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-convex-shared-secret": SHARED_SECRET,
-      },
-      body: JSON.stringify({ keyHash }),
-    });
-  }
-
-  async function readLastUsedAt(t: ReturnType<typeof convexTest>, keyHash: string) {
-    return t.run(async (ctx) => {
-      const row = await ctx.db
-        .query("userApiKeys")
-        .withIndex("by_keyHash", (q) => q.eq("keyHash", keyHash))
-        .unique();
-      return row?.lastUsedAt;
-    });
-  }
-
-  test("validate inside the debounce window schedules no touch; after expiry it does", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(T0);
-    const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
-    await t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
-    const keyHash = makeKeyArgs(1).keyHash;
-
-    // Phase 1 — first validate: lastUsedAt unset, so the touch must be scheduled.
-    const res1 = await validate(t, keyHash);
-    expect(res1.status).toBe(200);
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(await readLastUsedAt(t, keyHash)).toBe(T0);
-
-    // Phase 2 — validate at T0+2min (inside the 5-min debounce). Leave the
-    // scheduler undrained and move past the boundary before draining: a
-    // queued touch would execute with a stale read and write T0+6min.
-    vi.setSystemTime(T0 + 2 * 60_000);
-    const res2 = await validate(t, keyHash);
-    expect(res2.status).toBe(200);
-    vi.setSystemTime(T0 + 6 * 60_000);
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(await readLastUsedAt(t, keyHash)).toBe(T0);
-
-    // Phase 3 — validate after expiry: the gate must reopen.
-    const res3 = await validate(t, keyHash);
-    expect(res3.status).toBe(200);
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(await readLastUsedAt(t, keyHash)).toBe(T0 + 6 * 60_000);
-  });
-
-  test("response body does not leak lastUsedAt (gateway contract unchanged)", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(T0);
-    const t = convexTest(schema, modules);
-    await seedApiEntitlement(t, "user-api");
-    await t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, makeKeyArgs(1));
-
-    const res = await validate(t, makeKeyArgs(1).keyHash);
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(Object.keys(body).sort()).toEqual(["id", "name", "userId"]);
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
   });
 });

@@ -13,7 +13,7 @@
  */
 
 import { t } from '@/services/i18n';
-import { PanelGateReason } from '@/services/panel-gating';
+import { PanelGateReason } from '@/services/open-tier';
 import { h, replaceChildren, setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { lockSvg, upgradeSvg } from '@/components/gate-icons';
 

@@ -1,8 +1,8 @@
 import { Panel } from './Panel';
 import { createLazyClient, getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { IS_EMBEDDED_PREVIEW } from '@/utils/embedded-preview';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { subscribeAuthState } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
 

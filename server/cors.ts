@@ -6,7 +6,8 @@
  */
 
 // App-serving hosts only; sibling vendor hosts do not inherit browser trust.
-// Keep aligned with convex/payments/returnUrlOrigin.ts and CORS parity tests.
+// (The payments returnUrlOrigin module was removed with the commercial
+// subsystem; keep the pattern set aligned with CORS parity tests.)
 const APP_ORIGIN_PATTERN = /^https:\/\/(?:(?:www|app|api|tech|finance|commodity|happy|energy)\.)?worldmonitor\.app$/;
 
 const PRODUCTION_PATTERNS: RegExp[] = [

@@ -25,9 +25,9 @@
  *   - Legacy `client_credentials` grant is intentionally untouched (see
  *     `storeLegacyToken`).
  *
- * Inner handler is exported as `tokenHandler(req, deps)` for unit tests
- * (mirrors `authorize-pro.ts`'s pattern). The default export wires the
- * production deps (Redis HTTP + Convex `validateProMcpToken`).
+ * Inner handler is exported as `tokenHandler(req, deps)` for unit tests.
+ * The default export wires the production deps (Redis HTTP + Convex
+ * `validateProMcpToken`).
  */
 
 import { Ratelimit } from '@upstash/ratelimit';
@@ -334,8 +334,8 @@ async function storeNewTokens(
 }
 
 /**
- * NEW Pro writer — for tokens issued via the Clerk-grant `/oauth/authorize-pro`
- * flow. Produces the discriminated `kind:'pro'` shape consumed by
+ * NEW Pro writer — for tokens issued via the Clerk-grant OAuth flow.
+ * Produces the discriminated `kind:'pro'` shape consumed by
  * `resolveBearerToContext` (see `api/_oauth-token.js`).
  *
  * Pipeline values:

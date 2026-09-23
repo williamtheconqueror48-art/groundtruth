@@ -1,6 +1,6 @@
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { FrameworkSelector } from './FrameworkSelector';
 import type { DailyMarketBrief } from '@/services/daily-market-brief';
 import { describeFreshness } from '@/services/persistent-cache';

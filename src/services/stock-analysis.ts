@@ -7,7 +7,7 @@ import {
   resolveEffectiveMarketWatchlist,
 } from '@/services/market-watchlist';
 import { runThrottledTargetRequests } from '@/services/throttled-target-requests';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { isProUser } from '@/services/widget-store';
 import {
   selectStockAnalysisTargets,

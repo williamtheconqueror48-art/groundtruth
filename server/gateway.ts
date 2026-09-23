@@ -517,14 +517,6 @@ const RPC_CACHE_TIER: Record<string, CacheTier> = {
   '/api/v2/shipping/webhooks': 'slow-browser',
 
   // Company Monitoring is account-private and remains unrouted until #6003.
-  // Keep every generated read no-store so future activation cannot inherit a
-  // shared CDN tier before its account isolation is proven end to end.
-  '/api/company-monitoring/v1/get-company-coverage': 'no-store',
-  '/api/company-monitoring/v1/get-company-material-event': 'no-store',
-  '/api/company-monitoring/v1/get-company-monitoring-status': 'no-store',
-  '/api/company-monitoring/v1/list-company-event-changes': 'no-store',
-  '/api/company-monitoring/v1/list-company-event-impacts': 'no-store',
-  '/api/company-monitoring/v1/list-monitored-companies': 'no-store',
 };
 
 import { PREMIUM_RPC_PATHS } from '../src/shared/premium-paths';
@@ -1382,8 +1374,8 @@ export function createDomainGateway(
       // self-validates `validUntil >= Date.now()` at line 134, but the
       // Convex fallback at lines 154-156 does not — without this check
       // an entitlement row with stale `validUntil` would pass the gateway
-      // re-check via the fallback path. Mirror the per-handler runProPreChecks
-      // and authorize-pro entitlement guards.
+      // re-check via the fallback path. Mirrors the per-handler
+      // runProPreChecks guards.
       const ent = await getEntitlements(verified.userId);
       // Single-source Pro MCP decision. The gateway keeps its HTTP denial and
       // telemetry contract; the shared gate owns access and billing precedence.
@@ -1832,6 +1824,14 @@ export function createDomainGateway(
           const { validateBearerToken } = await import('./auth-session');
           const session = await validateBearerToken(authHeader.slice(7));
           if (!session.valid) {
+            // Verification outage (JWKS unreachable, etc.) is retryable — a
+            // 401 would tell the client its credentials are bad and poison
+            // caches/clients. Preserve the 503 contract (same as the
+            // tier-gated resolveClerkSession block above).
+            if (session.reason === 'unverifiable') {
+              emitRequest(503, 'validation_unavailable', null);
+              return sessionVerificationUnavailableResponse(corsHeaders);
+            }
             emitRequest(401, 'auth_401', null);
             return createGatewayAuthErrorResponse(401, 'Invalid or expired session', corsHeaders);
           }
@@ -2485,7 +2485,7 @@ export function createDomainGateway(
       // normal tiers). A route declared no-store is a hard freshness/privacy
       // floor: the audience overwrite below must never upgrade it to a
       // browser-cacheable tier for a credentialed caller — and a map-declared
-      // no-store (account-private company-monitoring reads, live feeds) is not
+      // no-store (live feeds and other account-private reads) is not
       // even an env override may downgrade (#6771).
       const declaredTier = (envOverride && envOverride in TIER_HEADERS ? envOverride : null) ?? mapTier;
 

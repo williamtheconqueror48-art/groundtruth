@@ -48,7 +48,7 @@ import type { PositionSample } from '@/services/aviation';
 import { fetchAircraftPositions } from '@/services/aviation';
 import { subscribeWidgetAccess } from '@/services/widget-store';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { onEntitlementChange } from '@/services/entitlements';
 import { subscribeRuntimeConfig } from '@/services/runtime-config';
 import {

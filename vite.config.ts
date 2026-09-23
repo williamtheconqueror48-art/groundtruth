@@ -8,12 +8,7 @@ import { brotliCompress } from 'zlib';
 import { promisify } from 'util';
 import pkg from './package.json';
 import { getSentryBuildMetadata } from './shared/sentry-build-metadata';
-import { VARIANT_META, type VariantMeta } from './src/config/variant-meta';
-import {
-  WEB_DASHBOARD_VARIANTS,
-  renderVariantDashboardHtml,
-  variantDashboardFileName,
-} from './src/config/variant-dashboard-html';
+import { SITE_META, type SiteMeta } from './src/config/site-meta';
 // Single source of truth for the RSS proxy allowlist — the dev-server proxy
 // below reuses the SAME www-tolerant predicate the Edge handler enforces
 // (api/rss-proxy.js) so dev and prod agree on allow/deny. Previously a
@@ -226,7 +221,7 @@ function brotliPrecompressPlugin(): Plugin {
   };
 }
 
-function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDesktopBuild: boolean): Plugin {
+function htmlVariantPlugin(activeMeta: SiteMeta, isDesktopBuild: boolean): Plugin {
   return {
     name: 'html-variant',
     transformIndexHtml(html) {
@@ -252,22 +247,9 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
         .replace(/"description": "Real-time global intelligence dashboard with live news, markets, military tracking, infrastructure monitoring, and geopolitical data."/, `"description": "${activeMeta.description}"`)
         .replace(/"featureList": \[[\s\S]*?\]/, `"featureList": ${JSON.stringify(activeMeta.features, null, 8).replace(/\n/g, '\n      ')}`);
 
-      // Theme-color meta — warm cream for happy variant
-      if (activeVariant === 'happy') {
-        result = result.replace(
-          /<meta name="theme-color" content=".*?" \/>/,
-          '<meta name="theme-color" content="#FAFAF5" />'
-        );
-      }
-
       // Desktop builds: inject build-time variant into the inline script so data-variant is set
       // before CSS loads. Web builds always use 'full' — runtime hostname detection handles variants.
-      if (activeVariant !== 'full') {
-        result = result.replace(
-          /if\(v\)document\.documentElement\.dataset\.variant=v;/,
-          `v='${activeVariant}';document.documentElement.dataset.variant=v;`
-        );
-      }
+      // GROUNDTRUTH: single app, no variant branches.
 
       // Desktop CSP: inject localhost wildcard for dynamic sidecar port.
       // Web builds intentionally exclude localhost to avoid exposing attack surface.
@@ -283,15 +265,7 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
           );
       }
 
-      // Desktop builds: replace favicon paths with variant-specific subdirectory.
-      // Web builds use 'full' favicons in HTML; runtime JS swaps them per hostname.
-      if (activeVariant !== 'full') {
-        result = result
-          .replace(/\/favico\/favicon/g, `/favico/${activeVariant}/favicon`)
-          .replace(/\/favico\/apple-touch-icon/g, `/favico/${activeVariant}/apple-touch-icon`)
-          .replace(/\/favico\/android-chrome/g, `/favico/${activeVariant}/android-chrome`)
-          .replace(/\/favico\/og-image/g, `/favico/${activeVariant}/og-image`);
-      }
+      // GROUNDTRUTH: single app — variant-specific favicon subdirectories removed.
 
       return result;
     },
@@ -341,37 +315,8 @@ function chunkSizeWarningPolicyPlugin(): Plugin {
   };
 }
 
-// Emit dashboard-<variant>.html siblings of dashboard.html for the variant
-// subdomains (#4996). The web deployment serves the 'full' build to every
-// host, so tech/finance/commodity/happy/energy.worldmonitor.app/dashboard
-// shipped full-brand meta and a cross-host canonical pointing at www —
-// crawlers saw five duplicate pages that all declared themselves NOT to be
-// the sitemap URL they were fetched from. vercel.json host-based rewrites
-// map each variant host's /dashboard to its generated file. Runs in
-// generateBundle AFTER dashboardHtmlOutputPlugin (both enforce: 'post',
-// registered later in the plugins array) so it reads the final renamed +
-// stylesheet-deferred dashboard.html; emitted via emitFile so
-// brotliPrecompressPlugin picks the files up like any other asset.
-function variantDashboardHtmlPlugin(): Plugin {
-  return {
-    name: 'wm-variant-dashboard-html',
-    apply: 'build',
-    enforce: 'post',
-    generateBundle(_options, bundle) {
-      const dashboard = bundle['dashboard.html'];
-      if (!dashboard || dashboard.type !== 'asset' || typeof dashboard.source !== 'string') {
-        throw new Error('[vite] wm-variant-dashboard-html expected dashboard.html asset (must run after wm-dashboard-html-output)');
-      }
-      for (const variant of WEB_DASHBOARD_VARIANTS) {
-        this.emitFile({
-          type: 'asset',
-          fileName: variantDashboardFileName(variant),
-          source: renderVariantDashboardHtml(dashboard.source, variant),
-        });
-      }
-    },
-  };
-}
+// GROUNDTRUTH: variant dashboard HTML siblings removed with the multi-variant
+// system (2026-09-23 strip). Single app, single dashboard.html.
 
 function shouldDeferDashboardStylesheet(tag: string, bundle: OutputBundle): boolean {
   const href = tag.match(/\bhref=["']([^"']+\.css)["']/i)?.[1];
@@ -858,8 +803,8 @@ export default defineConfig(({ mode }) => {
 
   const isE2E = process.env.VITE_E2E === '1';
   const isDesktopBuild = process.env.VITE_DESKTOP_RUNTIME === '1';
-  const activeVariant = process.env.VITE_VARIANT || 'full';
-  const activeMeta = VARIANT_META[activeVariant] || VARIANT_META.full;
+  // GROUNDTRUTH: single app — no build variants (2026-09-23 strip).
+  const activeMeta = SITE_META;
   const emitPublicSourceMaps = process.env.WM_EMIT_SOURCEMAPS === '1'
     || process.env.VERCEL_ENV === 'preview';
   // Sentry source-map upload. Gated on the token so a build without it (local,
@@ -929,13 +874,12 @@ export default defineConfig(({ mode }) => {
           });
         },
       },
-      htmlVariantPlugin(activeMeta, activeVariant, isDesktopBuild),
+      htmlVariantPlugin(activeMeta, isDesktopBuild),
       chunkSizeWarningPolicyPlugin(),
       !isDesktopBuild && dashboardHtmlOutputPlugin(),
       // Variant subdomain SEO pages only make sense on the web deployment,
       // which is always the 'full' build (variant selection is runtime by
       // hostname). Desktop and dedicated VITE_VARIANT builds skip it.
-      !isDesktopBuild && activeVariant === 'full' && variantDashboardHtmlPlugin(),
       webMcpDevSecurityHeadersPlugin(),
       polymarketPlugin(),
       rssProxyPlugin(),

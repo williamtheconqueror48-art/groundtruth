@@ -4,7 +4,7 @@ import {
   getActiveFrameworkForPanel,
   setActiveFrameworkForPanel,
 } from '../services/analysis-framework-store';
-import { PanelGateReason } from '../services/panel-gating';
+import { PanelGateReason } from '../services/open-tier';
 import type { Panel } from './Panel';
 import { t } from '../services/i18n';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';

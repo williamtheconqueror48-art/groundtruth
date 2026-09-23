@@ -25,12 +25,10 @@ const ENV = (() => {
 const WS_API_URL = ENV.VITE_WS_API_URL || '';
 const DEFAULT_WEB_API_URL = 'https://api.worldmonitor.app';
 
+// GROUNDTRUTH (2026-09-23 strip): single app — one host set, no variants.
 const DEFAULT_REMOTE_HOSTS: Record<string, string> = {
-  tech: WS_API_URL,
   full: WS_API_URL,
-  finance: WS_API_URL,
   world: WS_API_URL,
-  happy: WS_API_URL,
 };
 
 const DEFAULT_LOCAL_API_PORT = 46123;

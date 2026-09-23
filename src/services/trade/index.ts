@@ -4,9 +4,9 @@
  */
 
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { getCurrentClerkUser } from '@/services/clerk';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { onEntitlementChange } from '@/services/entitlements';
 import { IS_EMBEDDED_PREVIEW } from '@/utils/embedded-preview';
 import type { GetTradeRestrictionsResponse, GetTariffTrendsResponse, GetTradeFlowsResponse, GetTradeBarriersResponse, GetCustomsRevenueResponse, ListComtradeFlowsResponse, ComtradeFlowRecord, TradeRestriction, TariffDataPoint, EffectiveTariffRate, TradeFlowRecord, TradeBarrier, CustomsRevenueMonth } from '@/generated/client/worldmonitor/trade/v1/service_client';

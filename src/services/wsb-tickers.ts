@@ -1,6 +1,6 @@
 import { createLazyClient, getRpcBaseUrl } from '@/services/rpc-client';
 import { IntelligenceServiceClient } from '@/services/generated-rpc-clients';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 export type { WsbTicker } from '@/generated/client/worldmonitor/intelligence/v1/service_client';
 
 const getClient = createLazyClient(() => new IntelligenceServiceClient(getRpcBaseUrl(), { fetch: premiumFetch }));

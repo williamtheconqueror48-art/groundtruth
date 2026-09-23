@@ -1,5 +1,5 @@
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import type { RunScenarioRequest, RunScenarioResponse, GetScenarioStatusResponse, ListScenarioTemplatesResponse, ScenarioResult, ScenarioImpactCountry, ScenarioResultTemplate, ScenarioTemplate, ScenarioCoverage, ScenarioCoverageRecord } from '@/generated/client/worldmonitor/scenario/v1/service_client';
 import { ScenarioServiceClient } from '@/services/generated-rpc-clients';
 

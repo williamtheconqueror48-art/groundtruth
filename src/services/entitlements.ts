@@ -1,20 +1,42 @@
 /**
- * Frontend entitlement service with reactive ConvexClient subscription.
+ * Frontend entitlement service (GROUNDTRUTH single open tier).
  *
- * Uses the shared ConvexClient singleton from convex-client.ts to avoid
- * duplicate WebSocket connections. Subscribes to real-time entitlement
- * updates via Convex WebSocket. Falls back gracefully when VITE_CONVEX_URL
- * is not configured or ConvexClient is unavailable.
+ * The Convex entitlements backend was removed with the commercial subsystem.
+ * This module publishes a local open-tier snapshot instead of subscribing to
+ * a backend; every predicate keeps its signature and answers from it.
  */
 
-import {
-  getConvexClient,
-  getConvexApi,
-  waitForConvexAuth,
-  waitForConvexAuthForUser,
-} from './convex-client';
-import { getCurrentClerkUser } from './clerk';
 import { hasAccountEmbedAccess } from '../../shared/embed-access';
+
+/**
+ * GROUNDTRUTH single open tier (2026-09-23 strip).
+ *
+ * The Convex entitlements backend was removed with the commercial subsystem.
+ * Every signed-in user is on the open tier: this publishes a local open-tier
+ * snapshot (mirroring `openTierEntitlements()` in
+ * server/_shared/entitlement-check.ts) instead of subscribing to the deleted
+ * `api.entitlements.getEntitlementsForUser` query. All predicates keep their
+ * signatures; they now answer from the local snapshot.
+ */
+
+/** The single open tier every caller receives. */
+function openTierState(): EntitlementState {
+  return {
+    planKey: 'open',
+    features: {
+      tier: 99,
+      apiAccess: true,
+      apiRateLimit: -1,
+      maxDashboards: -1,
+      prioritySupport: false,
+      exportFormats: ['csv', 'json'],
+      mcpAccess: true,
+      dataExport: true,
+      embedAccess: true,
+    },
+    validUntil: Number.MAX_SAFE_INTEGER,
+  };
+}
 
 export interface EntitlementState {
   planKey: string;
@@ -38,8 +60,7 @@ export interface EntitlementState {
      * Pro MCP access (plan 2026-05-10-001). Undefined on legacy entitlement
      * snapshots that pre-date the catalog field. `hasFeature('mcpAccess')`
      * coerces undefined → false via Boolean(), so the settings tab
-     * fails-closed for unrefreshed Pro users (they'll see it appear once
-     * Dodo's next webhook repopulates the field).
+     * fails-closed for unrefreshed Pro users. (Open tier: always granted.)
      */
     mcpAccess?: boolean;
     /**
@@ -85,7 +106,6 @@ const listeners = new Set<(state: EntitlementState | null) => void>();
 let verificationStatus: EntitlementVerificationStatus = 'idle';
 const verificationListeners = new Set<(status: EntitlementVerificationStatus) => void>();
 let initialized = false;
-let unsubscribeFn: (() => void) | null = null;
 
 function setEntitlementVerificationStatus(status: EntitlementVerificationStatus): void {
   if (verificationStatus === status) return;
@@ -132,90 +152,28 @@ function notifyListeners(state: EntitlementState | null): void {
 }
 
 /**
- * Initialize the entitlement subscription for the authenticated user.
+ * Publish the local open-tier snapshot for the authenticated user.
  * Idempotent — calling multiple times is a no-op after the first.
- * Failures are logged but never thrown (dashboard must not break).
  */
 export async function initEntitlementSubscription(
   _userId?: string,
   isCurrent: () => boolean = () => true,
 ): Promise<void> {
-  const isExpectedAccount = (): boolean => (
-    isCurrent() && (_userId === undefined || getCurrentClerkUser()?.id === _userId)
-  );
-  if (initialized || !isExpectedAccount()) return;
-  if (currentState === null) beginEntitlementVerification();
-
-  try {
-    const client = await getConvexClient();
-    if (!client) {
-      console.log('[entitlements] No VITE_CONVEX_URL — skipping Convex subscription');
-      if (isExpectedAccount()) markEntitlementVerificationUnavailable();
-      return;
-    }
-
-    const api = await getConvexApi();
-    if (!api) {
-      console.log('[entitlements] Could not load Convex API — skipping subscription');
-      if (isExpectedAccount()) markEntitlementVerificationUnavailable();
-      return;
-    }
-
-    // Wait for Convex to confirm auth before subscribing. Otherwise the first
-    // getEntitlementsForUser snapshot runs unauthenticated and returns
-    // FREE_TIER_DEFAULTS, which can race with the post-payment panel gating
-    // decision (the UI renders as free before the auth-ready pro snapshot
-    // arrives). Unauthenticated visitors time out after 10s and we skip the
-    // subscription entirely — they don't need entitlement updates.
-    const authed = _userId
-      ? await waitForConvexAuthForUser(_userId, 10_000)
-      : await waitForConvexAuth(10_000);
-    if (!authed) {
-      console.log('[entitlements] Convex auth not established — skipping subscription');
-      if (isExpectedAccount()) markEntitlementVerificationUnavailable();
-      return;
-    }
-    if (!isExpectedAccount()) return;
-
-    const watch = client.onUpdate(
-      api.entitlements.getEntitlementsForUser,
-      {},
-      (result: EntitlementState | null) => {
-        if (!isExpectedAccount()) return;
-        currentState = result;
-        setEntitlementVerificationStatus('ready');
-        notifyListeners(result);
-      },
-      (err: Error) => {
-        if (!isExpectedAccount()) return;
-        console.warn('[entitlements] Subscription query error:', err.message);
-        markEntitlementVerificationUnavailable();
-      },
-    );
-
-    unsubscribeFn = watch.unsubscribe;
-    initialized = true;
-  } catch (err) {
-    console.error('[entitlements] Failed to initialize Convex subscription:', err);
-    if (isExpectedAccount()) markEntitlementVerificationUnavailable();
-    // Do not rethrow — entitlement service failure must not break the dashboard
-  }
+  if (initialized || !isCurrent()) return;
+  initialized = true;
+  currentState = openTierState();
+  setEntitlementVerificationStatus('ready');
+  notifyListeners(currentState);
 }
 
 /**
- * Tears down the entitlement subscription and clears all listeners.
- * Resets initialized flag so a new subscription can be started.
- * Does NOT null currentState — preserves the last known state across
- * destroy/reinit cycles (e.g. WebSocket reconnects) so paying users don't
- * see locked panels during backoff. Call resetEntitlementState() on sign-out.
+ * Tears down the entitlement state. Resets initialized flag so a new
+ * subscription can be started. Does NOT null currentState — call
+ * resetEntitlementState() on sign-out.
  */
 export function destroyEntitlementSubscription(): void {
-  if (unsubscribeFn) {
-    unsubscribeFn();
-    unsubscribeFn = null;
-  }
   // Keep listeners intact — PanelLayout registers them once and expects them
-  // to survive auth transitions. Only the Convex transport is torn down.
+  // to survive auth transitions.
   initialized = false;
 }
 

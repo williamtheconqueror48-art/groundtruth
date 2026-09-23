@@ -1,6 +1,6 @@
 import { getAuthState, subscribeAuthState, type AuthSession } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 
 const LOCK_ICON = '\uD83D\uDD12';
 

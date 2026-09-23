@@ -6,27 +6,20 @@ const modules = import.meta.glob('../**/*.ts');
 const credentials = {
   gateway: 'synthetic-gateway',
   delivery: 'synthetic-delivery',
-  suppression: 'synthetic-suppression',
 };
 const envNames = {
   gateway: 'CONVEX_TENANT_RELAY_SECRET',
   delivery: 'CONVEX_NOTIFICATION_RELAY_SECRET',
-  suppression: 'CONVEX_EMAIL_SUPPRESSION_SECRET',
 };
 type Role = keyof typeof credentials;
 const routes: [string, 'POST' | 'GET', Role[]][] = [
   ['notification-channels', 'POST', ['gateway']],
-  ['create-checkout', 'POST', ['gateway']],
-  ['customer-portal', 'POST', ['gateway']],
-  ['register-referral-code', 'POST', ['gateway']],
   ['channels', 'POST', ['delivery']],
   ['deactivate', 'POST', ['delivery']],
   ['digest-rules', 'GET', ['delivery']],
   ['enabled-rules', 'GET', ['delivery']],
   ['user-preferences', 'POST', ['delivery']],
-  ['entitlement', 'POST', ['delivery']],
   ['followed-countries', 'POST', ['gateway', 'delivery']],
-  ['bulk-suppress-emails', 'POST', ['suppression']],
 ];
 
 beforeEach(() => {

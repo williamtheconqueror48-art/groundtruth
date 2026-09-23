@@ -13,46 +13,15 @@ type DigestMode = "realtime" | "daily" | "twice_daily" | "weekly";
 type Sensitivity = "all" | "high" | "critical";
 
 /**
- * Layer-2 entitlement gate: notifications are a PRO feature, but until now
- * the only enforcement was at layer 1 (UI paywall) and layer 3 (relay
- * isUserPro filter). Layer 1 has had at least one hole — a 2026-04-28
- * audit found 7 of 28 enabled `alertRules` rows belonged to free-tier
- * users (`tier=0`, never been PRO). The relay's PRO filter has been
- * masking the bug at delivery time, but it fail-opens on entitlement-
- * service errors and shouldn't be the only line of defense.
- *
- * This helper is the WRITE-PATH gate. Throws ConvexError with structured
- * `{code: "PRO_REQUIRED"}` data so the client can detect it and route to
- * the upgrade flow rather than surface a generic 500.
- *
- * Mirrors the FREE_TIER_DEFAULTS semantics in `convex/entitlements.ts`:
- *   - no entitlement row → tier 0 (free)
- *   - validUntil < Date.now() → expired, treat as tier 0
- *   - tier >= 1 → PRO, allowed
- *
- * Kept inline (not imported from entitlements.ts) for security-review
- * readability: every alertRules mutation that calls this should be
- * trivially auditable in one file.
+ * GROUNDTRUTH (2026-09-23 strip): single open tier. The PRO entitlement gate
+ * is removed — alert rules are open to everyone. Kept as a no-op so the four
+ * call sites below need no rewrite.
  */
 async function assertProEntitlement(
-  ctx: MutationCtx,
-  userId: string,
+  _ctx: MutationCtx,
+  _userId: string,
 ): Promise<void> {
-  const entitlement = await ctx.db
-    .query("entitlements")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .first();
-  const tier =
-    entitlement && entitlement.validUntil >= Date.now()
-      ? entitlement.features.tier
-      : 0;
-  if (tier < 1) {
-    throw new ConvexError({
-      code: "PRO_REQUIRED",
-      message:
-        "Notifications are a PRO feature. Upgrade to enable real-time and digest alerts.",
-    });
-  }
+  return;
 }
 
 // Cross-field invariant enforcement for (digestMode, sensitivity).

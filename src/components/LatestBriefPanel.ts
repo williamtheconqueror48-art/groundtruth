@@ -21,7 +21,7 @@
 
 import { Panel } from './Panel';
 import { getClerkToken, clearClerkTokenCache } from '@/services/clerk';
-import { PanelGateReason, hasPremiumAccess, readClientEntitlementBelief } from '@/services/panel-gating';
+import { PanelGateReason, hasPremiumAccess, readClientEntitlementBelief } from '@/services/open-tier';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { getEntitlementState } from '@/services/entitlements';
 import {
@@ -30,7 +30,7 @@ import {
   routeDenial,
   shouldSkipDoomedFetch,
   type PremiumDenialVerdict,
-} from '@/services/premium-denial';
+} from '@/services/open-tier';
 import { reportEntitlementDesync } from '@/services/entitlement-desync-telemetry';
 import { trackBriefThreadOpen } from '@/services/analytics';
 import { h, rawHtml, replaceChildren, clearChildren, trustedHtml, type TrustedHtml } from '@/utils/dom-utils';

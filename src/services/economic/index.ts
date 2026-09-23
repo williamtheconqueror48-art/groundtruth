@@ -8,7 +8,7 @@
  */
 
 import { getRpcBaseUrl, getRpcErrorStatusCode } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import type { GetFredSeriesResponse, GetFredSeriesBatchResponse, ListWorldBankIndicatorsResponse, WorldBankCountryData as ProtoWorldBankCountryData, GetEnergyPricesResponse, EnergyPrice as ProtoEnergyPrice, GetEnergyCapacityResponse, GetBisPolicyRatesResponse, GetBisExchangeRatesResponse, GetBisCreditResponse, GetChinaMacroSnapshotResponse, BisPolicyRate, BisExchangeRate, BisCreditToGdp, GetNationalDebtResponse, NationalDebtEntry, GetBlsSeriesResponse, GetCrudeInventoriesResponse, CrudeInventoryWeek, GetNatGasStorageResponse, NatGasStorageWeek, GetEcbFxRatesResponse, EcbFxRate, GetEuGasStorageResponse, EuGasStorageHistoryEntry, GetEurostatCountryDataResponse, EurostatCountryEntry, GetOilStocksAnalysisResponse, OilStocksAnalysisMember, OilStocksRegionalSummary, OilStocksRegionalSummaryEurope, OilStocksRegionalSummaryAsiaPacific, OilStocksRegionalSummaryNorthAmerica } from '@/generated/client/worldmonitor/economic/v1/service_client';
 import { createCircuitBreaker } from '@/utils/circuit-breaker';
 import { getCSSColor } from '@/utils';
@@ -18,7 +18,7 @@ import { ensureHydrated, getHydratedData } from '@/services/bootstrap';
 import { mergeCbrPolicyRate } from './cbr-policy-rate';
 import { degradedSources, toEurSpotRows, toFxStressRows, toRubQuoteRows, toUsdSpotRows, type FxPanelRows } from './fx-rates';
 import { toApiUrl } from '@/services/runtime';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { EconomicServiceClient } from '@/services/generated-rpc-clients';
 
 // ---- Client + Circuit Breakers ----

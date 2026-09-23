@@ -4,15 +4,32 @@ import { internal } from "../_generated/api";
 import schema from "../schema";
 
 const modules = import.meta.glob("../**/*.ts");
-const { recompute } = vi.hoisted(() => ({ recompute: vi.fn() }));
-vi.mock("../payments/subscriptionHelpers", async (original) => ({
-  ...await original<typeof import("../payments/subscriptionHelpers")>(),
-  recomputeEntitlementFromAllSubs: recompute,
+
+// GROUNDTRUTH (2026-09-23 strip): the commercial subsystem is gone, so the old
+// mock of `../payments/subscriptionHelpers` (whose recomputeEntitlementFromAllSubs
+// used to fail the grants step) no longer resolves. To still exercise a real
+// batch throw — and the rollback + retry ladder it triggers — fail the batch
+// at the anonymize step by making tombstoneUserId throw. The mock delegates to
+// the real implementation once the test switches it back for the recovery phase.
+const hoisted = vi.hoisted(() => ({
+  tombstoneMock: vi.fn(),
+  originalTombstone: null as null | ((hash: string) => string),
 }));
+vi.mock("../accountDeletion/registry", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../accountDeletion/registry")>();
+  hoisted.originalTombstone = original.tombstoneUserId;
+  return {
+    ...original,
+    tombstoneUserId: (...args: Parameters<typeof original.tombstoneUserId>) =>
+      hoisted.tombstoneMock(...args),
+  };
+});
 
 beforeEach(() => {
   vi.useFakeTimers();
-  recompute.mockReset().mockRejectedValue(new Error("temporary write failure"));
+  hoisted.tombstoneMock.mockReset().mockImplementation(() => {
+    throw new Error("temporary write failure");
+  });
 });
 afterEach(() => {
   vi.clearAllTimers();
@@ -64,7 +81,9 @@ test("a failed batch rolls back its writes and retries before going terminal", a
 
   // Explicit retry restores pending; the same batch can then finish, and
   // committed progress clears the counter so the next failure starts fresh.
-  recompute.mockResolvedValue(undefined);
+  hoisted.tombstoneMock.mockImplementation((hash: string) =>
+    hoisted.originalTombstone!(hash),
+  );
   await t.run((ctx) => ctx.db.patch(deletionId, { status: "pending", lastError: undefined }));
   await t.action(internal.accountDeletion.batches.advanceEraseSafely, { deletionId });
   await t.run(async (ctx) => {

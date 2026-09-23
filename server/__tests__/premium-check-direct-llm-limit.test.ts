@@ -100,27 +100,33 @@ describe("premium identity carries a direct-LLM limit for every arm", () => {
     });
   });
 
-  test("LAPSED Pro Business bearer loses premium access", async () => {
+  test("LAPSED Pro Business bearer keeps premium access (open tier: coverage always current)", async () => {
     validateBearerToken.mockResolvedValue({ valid: true, role: "free", userId: "u1" });
     getEntitlements.mockResolvedValue(entitlement(1, 2_500, LAPSED()));
 
     const identity = await resolvePremiumCallerIdentity(bearerRequest());
 
     expect(identity).toMatchObject({
-      isPremium: false,
+      isPremium: true,
+      kind: "bearer",
+      // Lapsed rows keep premium identity (open tier) but the direct-LLM spend
+      // control still applies its unverified floor: isActivePaidEntitlement
+      // has its own expiry check independent of entitlement coverage.
+      directLlmDailyLimit: DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT,
     });
   });
 
-  test("LAPSED Enterprise bearer loses premium access", async () => {
+  test("LAPSED Enterprise bearer keeps premium access (open tier: coverage always current)", async () => {
     validateBearerToken.mockResolvedValue({ valid: true, role: "free", userId: "u1" });
     getEntitlements.mockResolvedValue(entitlement(3, null, LAPSED()));
 
     const identity = await resolvePremiumCallerIdentity(bearerRequest());
 
     expect(identity).toMatchObject({
-      isPremium: false,
+      isPremium: true,
+      kind: "bearer",
+      directLlmDailyLimit: DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT,
     });
-    expect(identity).not.toHaveProperty("directLlmDailyLimit");
   });
 
   test("active Enterprise bearer IS unlimited", async () => {
@@ -144,7 +150,7 @@ describe("premium identity carries a direct-LLM limit for every arm", () => {
     });
   });
 
-  test("user-api-key caller with a LAPSED row loses premium access", async () => {
+  test("user-api-key caller with a LAPSED row keeps premium access (open tier: coverage always current)", async () => {
     validateUserApiKey.mockResolvedValue({ userId: "u2" });
     getEntitlements.mockResolvedValue(entitlement(2, 10_000, LAPSED()));
 
@@ -156,7 +162,8 @@ describe("premium identity carries a direct-LLM limit for every arm", () => {
     );
 
     expect(identity).toMatchObject({
-      isPremium: false,
+      isPremium: true,
+      kind: "user-api-key",
     });
   });
 

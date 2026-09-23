@@ -10,10 +10,6 @@ const settingsSource = readFileSync(
   resolve(root, 'src/components/UnifiedSettings.ts'),
   'utf8',
 );
-const seatsSource = readFileSync(
-  resolve(root, 'src/components/BusinessSeatsSection.ts'),
-  'utf8',
-);
 
 function extractMethod(source, signature) {
   const start = source.indexOf(signature);
@@ -66,7 +62,6 @@ describe('UnifiedSettings account handoff', () => {
     );
     const instance = new Harness();
     const renders = [];
-    let seatsReset = 0;
     instance.accountUserId = 'A';
     instance.accountDataGeneration = 4;
     instance.accountEntitlementRefreshPending = false;
@@ -74,22 +69,6 @@ describe('UnifiedSettings account handoff', () => {
     instance.apiKeysLoading = false;
     instance.apiKeysError = 'A error';
     instance.newlyCreatedKey = 'wm_a_plaintext';
-    instance.embedKeys = [{ id: 'embed-key-a' }];
-    instance.embedKeysLoading = true;
-    instance.embedKeysError = 'A embed error';
-    instance.newlyCreatedEmbedKey = 'wme_a_plaintext';
-    instance.planLimitNotices = [{ _id: 'notice-a' }];
-    instance.planLimitNoticesLoading = true;
-    instance.mcpClients = [{ id: 'client-a' }];
-    instance.mcpClientsLoading = true;
-    instance.mcpClientsError = 'A error';
-    instance.mcpQuota = { used: 41, limit: 50, resetsAt: 'tomorrow' };
-    instance.stopMcpQuotaPolling = () => {};
-    instance.businessSeatsSection = {
-      resetForAccountChange: () => {
-        seatsReset += 1;
-      },
-    };
     instance.overlay = { classList: { contains: () => true } };
     instance.render = (loadAccountData) => renders.push(loadAccountData);
     let listRenders = 0;
@@ -109,18 +88,7 @@ describe('UnifiedSettings account handoff', () => {
     assert.deepEqual(instance.apiKeys, []);
     assert.equal(instance.apiKeysLoading, false);
     assert.equal(instance.apiKeysError, '');
-    assert.equal(instance.newlyCreatedKey, null);
-    assert.deepEqual(instance.embedKeys, []);
-    assert.equal(instance.embedKeysLoading, false);
-    assert.equal(instance.embedKeysError, '');
-    assert.equal(instance.newlyCreatedEmbedKey, null, 'a wme_ plaintext must never survive an account handoff');
-    assert.deepEqual(instance.planLimitNotices, []);
-    assert.equal(instance.planLimitNoticesLoading, false);
-    assert.deepEqual(instance.mcpClients, []);
-    assert.equal(instance.mcpClientsLoading, false);
-    assert.equal(instance.mcpClientsError, '');
-    assert.equal(instance.mcpQuota, null);
-    assert.equal(seatsReset, 1);
+    assert.equal(instance.newlyCreatedKey, null, 'a wm_ plaintext must never survive an account handoff');
     assert.deepEqual(renders, [false], 'the synchronous rerender must suppress account loads');
     assert.equal(listRenders, 1, 'A settlement must not render after B clears the surface');
     assert.equal(instance.isAccountRequestCurrent(requestA), false);
@@ -128,65 +96,14 @@ describe('UnifiedSettings account handoff', () => {
 
   it('generation-guards every account-scoped async settings path', () => {
     const guardedMethods = [
-      'loadPlanLimitNotices',
-      'handleAcknowledgePlanLimitNotice',
       'loadApiKeys',
       'handleCreateApiKey',
       'handleRevokeApiKey',
-      'loadEmbedKeys',
-      'handleCreateEmbedKey',
-      'handleRevokeEmbedKey',
-      'loadMcpClients',
-      'refreshMcpQuota',
-      'handleRevokeMcpClient',
     ];
     for (const method of guardedMethods) {
       const body = extractMethod(settingsSource, `private async ${method}(`);
       assert.match(body, /captureAccountRequest\(\)/, `${method} must capture the initiating account`);
       assert.match(body, /isAccountRequestCurrent\(request\)/, `${method} must discard stale settlement`);
     }
-  });
-});
-
-describe('BusinessSeatsSection account handoff', () => {
-  it('drops an A seat list that settles after the section resets for B', async () => {
-    let resolveList = () => {};
-    const listResult = new Promise((resolve) => {
-      resolveList = resolve;
-    });
-    const Harness = transpileHarness(
-      [
-        extractMethod(seatsSource, 'resetForAccountChange('),
-        extractMethod(seatsSource, 'async load('),
-      ],
-      ['listBusinessSeats'],
-    )(() => listResult);
-    const instance = new Harness();
-    let renders = 0;
-    instance.accountGeneration = 0;
-    instance.seats = [];
-    instance.loading = false;
-    instance.error = '';
-    instance.ownerDomain = null;
-    instance.ownerIsCorporateDomain = true;
-    instance.removingGrantIds = new Set();
-    instance.renderInPlace = () => {
-      renders += 1;
-    };
-
-    const loadA = instance.load();
-    instance.resetForAccountChange();
-    resolveList({
-      businessSubscriptionId: 'sub-a',
-      ownerDomain: 'a.example',
-      ownerIsCorporateDomain: true,
-      seats: [{ grantId: 'grant-a', inviteeEmail: 'secret@a.example' }],
-    });
-    await loadA;
-
-    assert.deepEqual(instance.seats, []);
-    assert.equal(instance.ownerDomain, null);
-    assert.equal(instance.loading, false);
-    assert.equal(renders, 1, 'only the B reset may render; A settlement stays inert');
   });
 });

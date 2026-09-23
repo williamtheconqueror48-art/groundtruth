@@ -10,7 +10,7 @@
 
 import type { AuthSession } from '../auth-state';
 import { getEntitlementState } from '../entitlements';
-import { hasPremiumAccess } from '../panel-gating';
+import { hasPremiumAccess } from '../open-tier';
 import {
   resolvePlaybackGate,
   type PlaybackGateInputs,

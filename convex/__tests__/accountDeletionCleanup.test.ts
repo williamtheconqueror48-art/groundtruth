@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Doc } from "../_generated/dataModel";
 import { runEraseBatch } from "../accountDeletion/batches";
 import { ERASE_WRITE_BUDGET, tombstoneUserId } from "../accountDeletion/registry";
-import { getFeaturesForPlan } from "../lib/entitlements";
 import schema from "../schema";
 
 const modules = import.meta.glob("../**/*.ts");
@@ -107,7 +106,7 @@ describe("account deletion cleanup", () => {
     expect(new Set(retained.map((row) => row.episodeAt)).size).toBe(total);
   });
 
-  test("revokes surviving invitees immediately while preserving independently paid access", async () => {
+  test("deletes surviving invitee grants when the owner is deleted", async () => {
     const t = convexTest(schema, modules);
     const deletionId = await seedDeletion(t, "grants");
     await t.run(async (ctx) => {
@@ -117,41 +116,10 @@ describe("account deletion cleanup", () => {
           inviteeEmail: `${invitee}@example.com`, domain: "example.com", status: "accepted",
           inviteeUserId: invitee, createdAt: NOW, acceptedAt: NOW, expiresAt: END,
         });
-        if (invitee !== USER) await ctx.db.insert("entitlements", {
-          userId: invitee, planKey: "pro_monthly", features: getFeaturesForPlan("pro_monthly"),
-          validUntil: END, updatedAt: NOW,
-        });
       }
-      await ctx.db.insert("subscriptions", {
-        userId: "user_paid", dodoSubscriptionId: "sub_independent", dodoProductId: "prod_test",
-        planKey: "pro_annual", status: "active", currentPeriodStart: NOW,
-        currentPeriodEnd: END, rawPayload: {}, updatedAt: NOW,
-      });
     });
     await t.run((ctx) => runEraseBatch(ctx, deletionId));
-    const rows = await t.run((ctx) => ctx.db.query("entitlements").collect());
-    expect(rows.find((row) => row.userId === "user_seat_only")?.planKey).toBe("free");
-    expect(rows.find((row) => row.userId === "user_paid")?.planKey).toBe("pro_annual");
-    expect(rows.find((row) => row.userId === USER)).toBeUndefined();
     expect(await t.run((ctx) => ctx.db.query("businessProGrants").collect())).toEqual([]);
-  });
-
-  test("does not recreate the entitlement of an invitee whose own deletion has started", async () => {
-    const t = convexTest(schema, modules);
-    const deletionId = await seedDeletion(t, "grants");
-    await t.run(async (ctx) => {
-      await ctx.db.insert("accountDeletions", {
-        userId: "user_deleting_invitee", userIdHash: "b".repeat(64), source: "self",
-        status: "pending", step: "external", startedAt: NOW, updatedAt: NOW,
-      });
-      await ctx.db.insert("businessProGrants", {
-        businessSubscriptionId: "sub_cleanup", ownerUserId: USER, domain: "example.com",
-        inviteeEmail: "invitee@example.com", inviteeUserId: "user_deleting_invitee",
-        status: "accepted", createdAt: NOW, acceptedAt: NOW, expiresAt: END,
-      });
-    });
-    await t.run((ctx) => runEraseBatch(ctx, deletionId));
-    expect(await t.run((ctx) => ctx.db.query("entitlements").collect())).toEqual([]);
   });
 
   test("anonymizes referee identity across batches without deleting or duplicating earned credits", async () => {

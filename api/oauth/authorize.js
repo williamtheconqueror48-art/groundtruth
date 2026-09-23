@@ -124,21 +124,12 @@ function htmlError(title, detail) {
 
 // Exported for unit tests (tests/oauth-authorize.test.mjs).
 //
-// Default state: API-key form is hidden behind a "Use API key instead"
-// disclosure — Pro users see only the brand-green Pro CTA. The form is
-// auto-revealed in two cases (handled by the inline script):
-//   1. When `errorMsg` is truthy (invalid-key retry path at handler line ~302)
-//      — the `<p class="error">` element renders with no inline display:none
-//      and the script reveals the form whenever `#ke` is non-empty. Hiding
-//      the form after a bad-key submit would be hostile to Starter+ users.
-//   2. When the URL fragment is `#api-key` — Starter+ users can bookmark
-//      `…/oauth/authorize?…#api-key` to skip the disclosure click.
+// GROUNDTRUTH (2026-09-23 strip): single open tier. The "Sign in with
+// WorldMonitor Pro" CTA pointed at the deleted /mcp-grant page, so it is
+// gone. The API-key form is the primary path and renders visible.
 export function consentPage(params, nonce, errorMsg = '') {
   const { client_name, redirect_uri } = params;
   const redirectHost = redirectDisplayHost(redirect_uri);
-  // U3 contract: bridge URL is apex (no www, no return_to). Apex page reads
-  // oauth:nonce:<nonce> itself to recover client metadata + mint a grant.
-  const proCtaHref = `https://worldmonitor.app/mcp-grant?nonce=${encodeURIComponent(nonce)}`;
   return new Response(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Authorize &#x2014; WorldMonitor MCP</title>
@@ -167,8 +158,6 @@ input[type=password]:focus{border-color:#2d8a6e}
 button{width:100%;margin-top:1.25rem;padding:.75rem;background:#2563eb;color:#fff;border:none;font-family:inherit;font-size:.9rem;cursor:pointer;font-weight:500;letter-spacing:.02em;border-radius:0}
 button:hover{background:#1d4ed8}
 button:disabled{opacity:.5;cursor:default}
-.pro-cta{display:block;width:100%;padding:.75rem;background:#2d8a6e;color:#fff;border:none;font-family:inherit;font-size:.9rem;font-weight:500;letter-spacing:.02em;text-align:center;text-decoration:none;cursor:pointer;border-radius:0}
-.pro-cta:hover{background:#246e58}
 .disclosure{margin-top:1rem;text-align:center}
 .disclosure a{font-size:.75rem;color:#555;text-decoration:none;letter-spacing:.02em;cursor:pointer}
 .disclosure a:hover{color:#888;text-decoration:underline}
@@ -193,9 +182,7 @@ button:disabled{opacity:.5;cursor:default}
 <li>Markets: stocks, commodities, crypto &amp; FX</li>
 </ul>
 <hr>
-<a id="pc" class="pro-cta" href="${escapeHtml(proCtaHref)}">Sign in with WorldMonitor Pro</a>
-<div class="disclosure" id="dt"><a id="tk" role="button" tabindex="0">Use API key instead</a></div>
-<form id="cf" method="POST" action="https://api.worldmonitor.app/oauth/authorize" style="display:none;margin-top:1.25rem">
+<form id="cf" method="POST" action="https://api.worldmonitor.app/oauth/authorize" style="margin-top:1.25rem">
 <input type="hidden" name="_nonce" id="nn" value="${escapeHtml(nonce)}">
 <input type="hidden" name="_js" id="jf" value="">
 <label for="api_key">API Key</label>

@@ -1,4 +1,3 @@
-import { hasCurrentEntitlementCoverage } from './entitlement-coverage';
 /**
  * Entitlement enforcement middleware for the Vercel API gateway.
  *
@@ -6,10 +5,9 @@ import { hasCurrentEntitlementCoverage } from './entitlement-coverage';
  * Convex fallback on cache miss. Returns a 403 Response for tier-gated endpoints
  * when the user lacks the required tier.
  *
- * Fail-closed behavior of checkEntitlement():
- *   - No userId header on a gated endpoint -> 403 (authentication required)
- *   - Redis miss + Convex failure -> 403 (unable to verify entitlements)
- *   - Endpoint not in ENDPOINT_ENTITLEMENTS -> allow (unrestricted)
+ * GROUNDTRUTH (2026-09-23 strip): the commercial/pro entitlement system was
+ * removed. Single open tier — every request is allowed, no tier gates, no
+ * Convex lookups. The functions below keep their signatures; they always allow.
  *
  * A lookup that was attempted but produced no answer — Redis/Convex failure,
  * Convex 5xx, or a Convex 4xx that means our own credential is wrong — returns a
@@ -28,7 +26,42 @@ import { hasCurrentEntitlementCoverage } from './entitlement-coverage';
  * a backend outage costs one lookup per user per window, not one per request.
  */
 
-import { getCachedJson, setCachedJson } from './redis';
+// ---------------------------------------------------------------------------
+// GROUNDTRUTH single open tier (2026-09-23 strip)
+//
+// The commercial/pro entitlement system was removed. Every caller is now on
+// the single open tier: no tier gates, no paywalls, no Convex lookups.
+// The functions below keep their signatures so the ~40 gateway call sites
+// behave identically without a rewrite; they simply always allow.
+// Originally forked from koala73/worldmonitor (AGPL-3.0).
+// ---------------------------------------------------------------------------
+
+/** The single open tier every caller receives. */
+export function openTierEntitlements(): CachedEntitlements {
+  return {
+    planKey: 'open',
+    features: {
+      tier: 99,
+      apiAccess: true,
+      apiRateLimit: -1,
+      maxDashboards: -1,
+      prioritySupport: false,
+      exportFormats: ['csv', 'json'],
+      mcpAccess: true,
+      apiDailyAllowance: -1,
+      dataExport: true,
+      embedAccess: true,
+      planLimits: {
+        apiRequestsPerDay: null,
+        apiBurstRequestsPerMinute: null,
+        mcpCallsPerDay: null,
+        mcpBurstRequestsPerMinute: null,
+        dashboardAiCallsPerDay: null,
+      },
+    },
+    validUntil: Number.MAX_SAFE_INTEGER,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -145,300 +178,11 @@ export interface EntitlementCheckOptions {
 // ---------------------------------------------------------------------------
 // Endpoint-to-tier map (replaces PREMIUM_RPC_PATHS)
 // ---------------------------------------------------------------------------
-
-/**
- * Maps API endpoints to the minimum tier required for access.
- * Tier hierarchy: 0=free, 1=pro, 2=api, 3=enterprise.
- *
- * Adding a new gated endpoint = adding one line to this map.
- * Endpoints NOT in this map are unrestricted.
- *
- * Stock-analysis endpoints sit at tier 1 (Pro) — the productCatalog markets
- * "AI stock analysis & backtesting" as a Pro feature, and these paths are
- * also in PREMIUM_RPC_PATHS where the legacy bearer gate accepts tier >= 1.
- * Tier-2 here would have made the new gate stricter than the legacy one and
- * 403'd real Pro subscribers calling via Clerk session (no tester key).
- */
-const ENDPOINT_ENTITLEMENTS: Record<string, number> = {
-  '/api/forecast/v1/trigger-simulation': 1,
-  '/api/intelligence/v1/classify-event': 1,
-  '/api/intelligence/v1/get-country-intel-brief': 1,
-  '/api/intelligence/v1/search-intel-history': 1,
-  '/api/intelligence/v1/get-intel-timeline': 1,
-  '/api/intelligence/v1/get-similar-events': 1,
-  '/api/market/v1/analyze-stock': 1,
-  '/api/market/v1/get-stock-analysis-history': 1,
-  '/api/market/v1/get-insider-transactions': 1,
-  '/api/market/v1/backtest-stock': 1,
-  '/api/market/v1/list-stored-stock-backtests': 1,
-  '/api/economic/v1/list-global-tenders': 1,
-  '/api/sanctions/v1/list-sanctions-pressure': 1,
-  '/api/scenario/v1/run-scenario': 1,
-  '/api/scenario/v1/get-scenario-status': 1,
-  '/api/supply-chain/v1/get-country-chokepoint-index': 1,
-  '/api/supply-chain/v1/get-bypass-options': 1,
-  '/api/supply-chain/v1/get-country-cost-shock': 1,
-  '/api/supply-chain/v1/get-route-explorer-lane': 1,
-  '/api/supply-chain/v1/get-route-impact': 1,
-  '/api/supply-chain/v1/get-country-products': 1,
-  '/api/supply-chain/v1/get-multi-sector-cost-shock': 1,
-  '/api/supply-chain/v1/get-sector-dependency': 1,
-  '/api/trade/v1/list-comtrade-flows': 1,
-  '/api/trade/v1/get-tariff-trends': 1,
-  '/api/resilience/v1/get-food-stocks': 1,
-  '/api/resilience/v1/get-demographics-capability': 1,
-  '/api/resilience/v1/get-resilience-indicators': 1,
-  '/api/scorecard/v1/get-five-factor-scorecard': 1,
-  '/api/scorecard/v1/list-five-factor-scorecards': 1,
-  '/api/scorecard/v1/get-bloc-scorecard': 1,
-  // Physical-vs-paper metals (#6436 series, #6448 index), mineral production
-  // concentration (#6439), arms-supplier dependency (#6438) and commodity
-  // supply vulnerability (#6449). Each shipped ungated because the issues
-  // scoped ingestion + exposure and never named an access tier; the audit that
-  // produced this block found all seven serving full payloads to an anonymous
-  // wms_ session. They belong beside their siblings above: the same seeded
-  // derived-analytics product the resilience and scorecard routes sell.
-  '/api/market/v1/get-physical-premiums': 1,
-  '/api/market/v1/get-physical-divergence-index': 1,
-  '/api/supply-chain/v1/get-mineral-production': 1,
-  '/api/military/v1/get-defense-industrial-base': 1,
-  '/api/supply-chain/v1/get-country-vulnerabilities': 1,
-  '/api/supply-chain/v1/get-chokepoint-dependencies': 1,
-  '/api/supply-chain/v1/list-vulnerability-rankings': 1,
-};
-
-const CONVEX_INTERNAL_ENTITLEMENTS_PATH = '/api/internal-entitlements';
-let _didWarnMissingConvexSharedSecret = false;
-let _didWarnMissingConvexSiteUrl = false;
-
-function getConvexSharedSecret(): string {
-  const secret = process.env.CONVEX_SERVER_SHARED_SECRET ?? '';
-  if (!secret && !_didWarnMissingConvexSharedSecret) {
-    _didWarnMissingConvexSharedSecret = true;
-    console.warn('[entitlement-check] CONVEX_SERVER_SHARED_SECRET not set; Convex fallback disabled');
-  }
-  return secret;
-}
-
-/**
- * Warn once when CONVEX_SITE_URL is missing. Its sibling above covered only the
- * shared secret, so a deploy missing ONLY the site URL disabled the Convex
- * fallback with no signal from this module. The warning keeps that deployment
- * defect visible alongside the gateway's explicit unconfigured-backend log.
- */
-function getConvexSiteUrl(): string {
-  const siteUrl = process.env.CONVEX_SITE_URL ?? '';
-  if (!siteUrl && !_didWarnMissingConvexSiteUrl) {
-    _didWarnMissingConvexSiteUrl = true;
-    console.warn('[entitlement-check] CONVEX_SITE_URL not set; Convex fallback disabled');
-  }
-  return siteUrl;
-}
-
-// ---------------------------------------------------------------------------
-// Request coalescing (P1-6: Cache stampede mitigation)
-// ---------------------------------------------------------------------------
-
-const _inFlight = new Map<string, Promise<CachedEntitlements | null>>();
-
-// ---------------------------------------------------------------------------
-// Transient-failure negative cache (#5622)
-// ---------------------------------------------------------------------------
-
-/**
- * How long a synthesized verificationUnavailable answer is reused for the same
- * user without re-attempting the backend.
- *
- * The problem this bounds: a transient answer was never cached anywhere.
- * `unavailableEntitlements()` is synthesized in-process and deliberately never
- * written to Redis, so during a Convex outage EVERY request re-ran the lookup
- * and paid the full 3s fetch budget before producing the identical denial.
- * Request coalescing (`_inFlight` above) only collapses *concurrent* requests;
- * a client politely retrying in sequence amplified the outage instead. Bounding
- * the tier-0 marker to 60s in #5600 made this path more reachable.
- *
- * The value is load-bearing, not arbitrary: it MUST stay strictly below the
- * `Retry-After` that getBillingVerificationDenial advertises for this state
- * (clampRetryAfterSeconds's 5s default, since the synthesized marker carries no
- * retryAfterSeconds). Otherwise a client that correctly honors `Retry-After`
- * would land back inside the window and be served the cached failure — turning
- * a bounded outage into one that outlives it. The negative-cache test pins that
- * inequality so raising this constant past the advertised delay fails.
- */
-const UNAVAILABLE_NEGATIVE_CACHE_TTL_MS = 3_000;
-
-/**
- * Cap on distinct users held in the negative cache. A fleet-wide Convex outage
- * would otherwise grow this map with one entry per active user for the life of
- * the isolate; entries are ~40 bytes, so the cap is about memory hygiene rather
- * than a real ceiling. Eviction drops expired entries first, then the oldest
- * insertions (Map preserves insertion order), so overflow degrades to the
- * pre-#5622 behavior (an extra lookup) rather than to unbounded growth.
- */
-const UNAVAILABLE_NEGATIVE_CACHE_MAX_ENTRIES = 1_000;
-
-/**
- * userId -> when the cached transient failure expires, plus any upstream-supplied
- * cooldown that produced it.
- *
- * `retryAfterSeconds` rides along because the cache HIT re-synthesizes the
- * marker rather than storing it: without this, a 429's own Retry-After would be
- * honored on the first response and silently downgraded to the generic default
- * for every hit inside the window — sending clients back at the upstream sooner
- * than it asked, which is the amplification the header exists to prevent.
- */
-const _unavailableUntil = new Map<string, { expiresAt: number; retryAfterSeconds?: number }>();
-
-function rememberVerificationUnavailable(userId: string, retryAfterSeconds?: number): void {
-  const now = Date.now();
-  if (_unavailableUntil.size >= UNAVAILABLE_NEGATIVE_CACHE_MAX_ENTRIES) {
-    for (const [key, entry] of _unavailableUntil) {
-      if (entry.expiresAt <= now) _unavailableUntil.delete(key);
-    }
-    while (_unavailableUntil.size >= UNAVAILABLE_NEGATIVE_CACHE_MAX_ENTRIES) {
-      const oldest = _unavailableUntil.keys().next();
-      if (oldest.done) break;
-      _unavailableUntil.delete(oldest.value);
-    }
-  }
-  _unavailableUntil.set(userId, {
-    expiresAt: now + UNAVAILABLE_NEGATIVE_CACHE_TTL_MS,
-    retryAfterSeconds,
-  });
-}
-
-/**
- * Module state is per-isolate and survives between tests in the same file.
- * Exposed so a test can assert the negative cache both hits AND expires without
- * depending on which userIds earlier tests happened to poison.
- */
-export function __resetEntitlementNegativeCacheForTests(): void {
-  _unavailableUntil.clear();
-}
-
-/** Test-only view of the advertised-retry invariant the TTL above depends on. */
-export const __negativeCacheTtlMsForTests = UNAVAILABLE_NEGATIVE_CACHE_TTL_MS;
-
-/**
- * Test-only view of the cap and the live entry count, so the eviction branch can
- * be driven past its threshold and asserted bounded. Without these the cap is
- * unreachable from a test — the branch only fires above 1000 distinct
- * concurrently-failing users, which is exactly the fleet-wide-outage case whose
- * memory behavior the cap exists to bound.
- */
-export const __negativeCacheMaxEntriesForTests = UNAVAILABLE_NEGATIVE_CACHE_MAX_ENTRIES;
-export function __negativeCacheSizeForTests(): number {
-  return _unavailableUntil.size;
-}
+// GROUNDTRUTH: tier-gate map removed — single open tier (2026-09-23 strip).
 
 // ---------------------------------------------------------------------------
 // Environment-aware Redis key prefix (P2-3)
 // ---------------------------------------------------------------------------
-
-const ENV_PREFIX = process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode' ? 'live' : 'test';
-
-// Cache TTL: 15 min — short enough that subscription expiry is reflected promptly (P2-5)
-const ENTITLEMENT_CACHE_TTL_SECONDS = 900;
-// Hard-403 markers are served for their FULL Redis TTL with no Convex
-// fallback, so this TTL is also the worst-case wrongful-denial window when a
-// stale marker write races a renewal webhook. Keep it short: the row-level
-// 5-min lapsed cooldown (billing.ts) already suppresses Dodo calls, so the
-// only cost of a short marker is ~1 cheap Convex round-trip per minute per
-// actively-retrying lapsed user.
-const LAPSED_BILLING_MARKER_TTL_SECONDS = 60;
-// Convex stamps the not-applicable marker ONLY for a user with zero
-// subscription rows (convex/payments/billing.ts
-// claimRecentlyStaleSubscriptionForVerification: no billing history ->
-// not_applicable, any history -> lapsed). "No history" is therefore not the
-// stable state the previous 900s assumed: it is also what a buyer looks like
-// in the seconds between checkout return and the Dodo webhook landing.
-//
-// The "syncEntitlementCache always overwrites this key" invariant does NOT
-// close that window — the read path is not atomic. A request that misses cache
-// at t0 can have its stale free+marker payload land in Redis AFTER the
-// webhook's Pro write at t0+ε, re-poisoning the key for the marker's full TTL
-// (#5600: 15 min of 403s on every tier-gated endpoint for a paying customer,
-// reproduced live 2026-07-25). Bounding the marker bounds that worst case.
-//
-// Be precise about WHICH window this bounds, because it is not the whole one a
-// buyer experiences:
-//
-//   wrongful-403 window = dodo_webhook_latency + min(this TTL, resync residual)
-//
-// Only the second term is bounded here. convex/http.ts re-stamps a fresh
-// not_applicable marker on every fallback for as long as the user has zero
-// subscription rows, so an expiry just mints another window — the buyer waits out
-// the webhook either way, just re-checking every 60s instead of every 900s.
-// And the second term is usually already covered: convex/payments/
-// subscriptionHelpers.ts schedules resyncEntitlementCacheFromDb at
-// ENTITLEMENT_CACHE_RESYNC_DELAY_MS (15s), a quarter of this TTL, which corrects a
-// poisoned key first in the common case. This TTL is the bound for when that
-// re-sync also loses the race or throws (it is fire-and-forget, no retry). Raising
-// that delay past this TTL silently promotes this constant to sole defense.
-//
-// The cost is one extra Convex round-trip per minute per actively-requesting
-// never-subscribed user — still far cheaper than pre-#4770, where a tier-0
-// answer was never served from cache at all (free rows carry validUntil: 0,
-// so the ordinary freshness gate below always fell through).
-const NOT_APPLICABLE_VERIFICATION_TTL_SECONDS = 60;
-
-/**
- * True when the Convex entitlement backend is reachable in principle. Callers
- * that fail closed on a null entitlement use this to distinguish a genuine
- * verification failure (fail closed) from a deploy misconfiguration where no
- * lookup could ever succeed (fail open + page).
- */
-export function isEntitlementBackendConfigured(): boolean {
-  return Boolean(process.env.CONVEX_SITE_URL && getConvexSharedSecret());
-}
-
-function clampRetryAfterSeconds(raw: number | undefined): number {
-  return Number.isFinite(raw)
-    ? Math.max(1, Math.min(60, Math.ceil(raw!)))
-    : 5;
-}
-
-function isBillingVerificationStatus(
-  value: unknown,
-): value is NonNullable<CachedEntitlements['billingStatus']> {
-  return value === 'subscription_lapsed'
-    || value === 'renewal_verification_pending'
-    || value === 'renewal_verification_failed';
-}
-
-function billingMarkerTtlSeconds(entitlements: CachedEntitlements): number | null {
-  if (!isBillingVerificationStatus(entitlements.billingStatus)) return null;
-  if (entitlements.billingStatus === 'subscription_lapsed') {
-    return LAPSED_BILLING_MARKER_TTL_SECONDS;
-  }
-  return clampRetryAfterSeconds(entitlements.retryAfterSeconds);
-}
-
-function notApplicableVerificationTtlSeconds(
-  entitlements: CachedEntitlements,
-): number | null {
-  const marker = entitlements.renewalVerificationFreshness;
-  if (
-    marker?.status !== 'not_applicable'
-    || !Number.isFinite(marker.checkedAt)
-  ) {
-    return null;
-  }
-  const remainingMs = marker.checkedAt
-    + NOT_APPLICABLE_VERIFICATION_TTL_SECONDS * 1_000
-    - Date.now();
-  return remainingMs > 0
-    ? Math.max(1, Math.min(
-      NOT_APPLICABLE_VERIFICATION_TTL_SECONDS,
-      Math.ceil(remainingMs / 1_000),
-    ))
-    : null;
-}
-
-function entitlementMarkerTtlSeconds(entitlements: CachedEntitlements): number | null {
-  return billingMarkerTtlSeconds(entitlements)
-    ?? notApplicableVerificationTtlSeconds(entitlements);
-}
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -446,10 +190,10 @@ function entitlementMarkerTtlSeconds(entitlements: CachedEntitlements): number |
 
 /**
  * Returns the minimum tier required for a given endpoint pathname.
- * Returns null if the endpoint is unrestricted (not in the map).
+ * GROUNDTRUTH: single open tier — always null (unrestricted).
  */
-export function getRequiredTier(pathname: string): number | null {
-  return ENDPOINT_ENTITLEMENTS[pathname] ?? null;
+export function getRequiredTier(_pathname: string): number | null {
+  return null;
 }
 
 /**
@@ -464,7 +208,8 @@ export function getRequiredTier(pathname: string): number | null {
  * 15-minute-blackout loop. The map itself stays private so it keeps its single
  * point of edit.
  */
-export const TIER_GATED_PATHS: ReadonlySet<string> = new Set(Object.keys(ENDPOINT_ENTITLEMENTS));
+export const TIER_GATED_PATHS: ReadonlySet<string> = new Set();
+// GROUNDTRUTH: single open tier — no tier-gated paths.
 
 /**
  * Fetches entitlements for a user. Tries Redis cache first (raw key),
@@ -475,218 +220,9 @@ export const TIER_GATED_PATHS: ReadonlySet<string> = new Set(Object.keys(ENDPOIN
  * Uses request coalescing to prevent cache stampede: concurrent requests for
  * the same userId share a single in-flight promise.
  */
-export async function getEntitlements(userId: string): Promise<CachedEntitlements | null> {
-  // Negative cache first: a transient failure recorded moments ago is reused
-  // rather than re-paying the backend's 3s budget. Only the synthesized
-  // verificationUnavailable answer is cached here — never a confirmed row and
-  // never a fail-closed null, both of which have their own (Redis) cache policy.
-  const unavailable = _unavailableUntil.get(userId);
-  if (unavailable !== undefined) {
-    if (unavailable.expiresAt > Date.now()) {
-      return unavailableEntitlements(unavailable.retryAfterSeconds);
-    }
-    _unavailableUntil.delete(userId);
-  }
-
-  const existing = _inFlight.get(userId);
-  if (existing) return existing;
-
-  const promise = _getEntitlementsImpl(userId);
-  _inFlight.set(userId, promise);
-  try {
-    const result = await promise;
-    if (result?.verificationUnavailable) {
-      rememberVerificationUnavailable(userId, result.retryAfterSeconds);
-    }
-    return result;
-  } finally {
-    _inFlight.delete(userId);
-  }
-}
-
-// Free-shaped deny-side value for transient lookup failures. Grants nothing
-// (tier 0, no apiAccess/mcpAccess, validUntil 0); its only power is steering
-// the gates to the retryable 503 via getBillingVerificationDenial.
-//
-// `retryAfterSeconds` is optional and only supplied when the upstream told us
-// how long to wait (a 429's own Retry-After). Omitted, the denial constructors
-// fall back to the generic clamp default, which is the behavior every other
-// failure mode here wants.
-function unavailableEntitlements(retryAfterSeconds?: number): CachedEntitlements {
-  return {
-    planKey: 'free',
-    features: {
-      tier: 0,
-      apiAccess: false,
-      apiRateLimit: 0,
-      maxDashboards: 3,
-      prioritySupport: false,
-      exportFormats: ['csv'],
-      mcpAccess: false,
-    },
-    validUntil: 0,
-    verificationUnavailable: true,
-    ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
-  };
-}
-
-/**
- * Parse an HTTP `Retry-After` header into seconds.
- *
- * Only the delta-seconds form is honored. The HTTP-date form is legal but
- * Convex does not emit it, and guessing at clock skew to support it would be
- * worse than falling back to the caller's default.
- */
-function parseRetryAfterSeconds(header: string | null): number | undefined {
-  if (!header) return undefined;
-  const seconds = Number(header.trim());
-  return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined;
-}
-
-async function _getEntitlementsImpl(userId: string): Promise<CachedEntitlements | null> {
-  try {
-    // Redis cache check (raw=true: entitlements use user-scoped keys, no deployment prefix)
-    const cached = await getCachedJson(`entitlements:${ENV_PREFIX}:${userId}`, true);
-
-    if (cached && typeof cached === 'object') {
-      const ent = cached as CachedEntitlements;
-      const hasCurrentEmbedAccessShape = typeof ent.features?.embedAccess === 'boolean';
-      // Verification markers have their own short Redis TTL. Serve them even
-      // though validUntil is expired so cooldown requests stop at Redis instead
-      // of repeating the Convex action/claim chain. A marker can carry a paid
-      // fallback whose validUntil lapses during this TTL; consumers must check
-      // expiry before granting access and retain the marker for denial details.
-      // The cache-shape check must
-      // run first: a pre-embedAccess marker is still an authorization row, and
-      // serving it would bypass the canonical Convex merge below.
-      if (hasCurrentEmbedAccessShape && entitlementMarkerTtlSeconds(ent) !== null) return ent;
-      // Only use cached data if it hasn't expired AND has the post-U10 shape.
-      //
-      // Legacy cache entries written before plan 2026-05-10-001 U10 lack the
-      // `features.mcpAccess` field. The Convex read path read-time-merges
-      // catalog defaults (convex/entitlements.ts:50), but bare-cache reads
-      // bypass that merge — paying users with hot pre-deploy cache entries
-      // would see `mcpAccess !== true` at the grant/MCP gates and get
-      // blocked for up to 15 min until the cache expires. Treating
-      // missing-field cache entries as stale falls through to Convex,
-      // which returns the merged shape and rewrites the cache with the
-      // post-U10 layout. Self-healing, bounded to one extra Convex
-      // round-trip per affected user during the migration window.
-      // Reviewer round-2 P2 (cache layer).
-      //
-      // The same trap re-opened for `planLimits.dashboardAiCallsPerDay`: a
-      // cache entry written before that dimension shipped already satisfies the
-      // mcpAccess check, so it would be served as fresh WITHOUT the new member
-      // and every paid tier above Pro would silently resolve to the Pro default
-      // (Pro Business 2,500 -> 500, API Business 10,000 -> 500). Require the
-      // member the same way, so those rows self-heal through Convex instead.
-      // Third instance of the same trap, for `planLimits.mcpCallsPerDay`. An
-      // API-tier entry written before the shared-budget marker carries the old
-      // numeric 1,000/10,000, which satisfies both checks above and resolves
-      // `{allowance: 'mcp'}` — same counter and same ceiling as the correct
-      // `{allowance: 'api', counter: 'mcp'}`, but one unit per call instead of
-      // the per-tool weight, so those callers under-pay until the entry ages
-      // out. No paid plan legitimately pairs `apiAccess` with a NUMERIC
-      // mcpCallsPerDay (the API tiers carry the marker, enterprise carries
-      // `null`), so that pairing identifies a pre-marker entry exactly.
-      const legacySharedBudgetShape = ent.features.apiAccess === true
-        && typeof ent.features.planLimits?.mcpCallsPerDay === 'number';
-      if (
-        ent.validUntil >= Date.now() &&
-        typeof (ent.features as { mcpAccess?: boolean }).mcpAccess === 'boolean' &&
-        hasCurrentEmbedAccessShape &&
-        ent.features.planLimits?.dashboardAiCallsPerDay !== undefined &&
-        !legacySharedBudgetShape
-      ) {
-        return ent;
-      }
-      // Expired OR legacy shape -- fall through to Convex.
-    }
-
-    // Convex fallback on cache miss or expired cache
-    const convexSiteUrl = getConvexSiteUrl();
-    const convexSharedSecret = getConvexSharedSecret();
-    // Missing configuration cannot resolve a cache miss. Both access gates
-    // fail closed; the getters warn once per missing variable.
-    if (!convexSiteUrl || !convexSharedSecret) return null;
-
-    const response = await fetch(`${convexSiteUrl}${CONVEX_INTERNAL_ENTITLEMENTS_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'worldmonitor-gateway/1.0',
-        'x-convex-shared-secret': convexSharedSecret,
-      },
-      body: JSON.stringify({ userId }),
-      signal: AbortSignal.timeout(3_000),
-    });
-    if (!response.ok) {
-      // Neither a 5xx (Convex/platform blip) nor a 4xx (bad shared secret,
-      // contract rejection) produced an answer about this user, so neither may
-      // reach the wire as one.
-      //
-      // #5661 split them — 4xx returned the fail-closed null on the reasoning
-      // that a deploy defect is not transient. True, but "not transient" and
-      // "is a verdict about this account's plan" are different axes, and the
-      // gates only read the second: a null renders as `pro_required` /
-      // INSUFFICIENT_TIER, i.e. an upsell shown to a paying customer because
-      // OUR credential is wrong (#5619, the #5600 failure mode). The marker
-      // denies exactly as hard — tier 0, nothing granted — and only changes the
-      // wording to the retryable contract, which is already what
-      // server/gateway.ts answers for this state on wm_-key traffic. A client
-      // that keeps retrying spends its transient budget and lands on `give_up`:
-      // still terminal, still not an upsell.
-      //
-      // A 429 is the one status that tells us how long to wait. Re-advertising
-      // the generic 5s default would send clients back inside the upstream's
-      // own cooldown and amplify the throttling we were just asked to ease, so
-      // its Retry-After rides along on the marker.
-      return unavailableEntitlements(
-        response.status === 429
-          ? parseRetryAfterSeconds(response.headers.get('Retry-After'))
-          : undefined,
-      );
-    }
-    const result = await response.json() as CachedEntitlements | null;
-
-    if (result) {
-      // Populate Redis cache for subsequent requests (15-min TTL, raw key).
-      //
-      // Cache-write failures must NOT collapse "entitlement confirmed by Convex"
-      // into the null-means-no-entitlement return. Today setCachedJson swallows
-      // its own Upstash errors via an internal try/catch (server/_shared/redis.ts),
-      // but that contract is fragile — the tauri-sidecar dynamic import path at
-      // redis.ts:142-146 is OUTSIDE the inner try/catch, and any future code
-      // motion could let other errors propagate. Wrap explicitly here so the
-      // property "Convex said yes ⇒ caller sees yes" is local and load-bearing.
-      // Without this, an Upstash hiccup would 403 every paying customer on the
-      // very call paths this file gates — the same shape PR #3505 fixed for the
-      // Clerk-only-no-Convex outlier in api/widget-agent.ts.
-      try {
-        await setCachedJson(
-          `entitlements:${ENV_PREFIX}:${userId}`,
-          result,
-          entitlementMarkerTtlSeconds(result) ?? ENTITLEMENT_CACHE_TTL_SECONDS,
-          true,
-        );
-      } catch (cacheErr) {
-        console.warn('[entitlement-check] cache write failed (non-fatal):', cacheErr instanceof Error ? cacheErr.message : String(cacheErr));
-      }
-      return result as CachedEntitlements;
-    }
-
-    return null;
-  } catch (err) {
-    // Still fail-closed — nothing is granted — but a TRANSIENT failure
-    // (timeout/abort, network, a throwing cache read) is distinguishable from
-    // "no entitlement": return the verificationUnavailable marker so every
-    // gate answers with the retryable entitlement_verification_unavailable
-    // 503 (Retry-After) instead of a misleading hard 403/401. Without this,
-    // the on-demand provider re-check (#4770) overrunning the 3s fetch budget
-    // reproduced exactly the hard-denial the rework exists to eliminate.
-    console.warn('[entitlement-check] getEntitlements failed:', err instanceof Error ? err.message : String(err));
-    return unavailableEntitlements();
-  }
+export async function getEntitlements(_userId: string): Promise<CachedEntitlements | null> {
+  // GROUNDTRUTH: single open tier — no Redis/Convex lookup.
+  return openTierEntitlements();
 }
 
 /** Entitlement fields the billing-verification decision reads. */
@@ -699,6 +235,28 @@ export type BillingVerificationInput = Pick<
 export type BillingVerificationCode =
   | BillingVerificationStatus
   | 'entitlement_verification_unavailable';
+
+function clampRetryAfterSeconds(raw: number | undefined): number {
+  return Number.isFinite(raw)
+    ? Math.max(1, Math.min(60, Math.ceil(raw!)))
+    : 5;
+}
+
+function isBillingVerificationStatus(
+  value: unknown,
+): value is BillingVerificationStatus {
+  return value === 'subscription_lapsed'
+    || value === 'renewal_verification_pending'
+    || value === 'renewal_verification_failed';
+}
+
+/**
+ * GROUNDTRUTH (2026-09-23 strip): single open tier — the entitlement backend
+ * is always considered configured; there is nothing to verify against.
+ */
+export function isEntitlementBackendConfigured(): boolean {
+  return true;
+}
 
 export function isBillingVerificationCode(
   value: unknown,
@@ -749,10 +307,9 @@ export function unverifiableEntitlementDenial(
  * row — no Response, no headers, no transport.
  *
  * Extracted from getBillingVerificationDenial (#5622) because three consumers
- * cannot use a `Response`: `api/oauth/authorize-pro.ts` renders HTML,
- * `api/internal/mcp-grant-{mint,context}.ts` own an `INSUFFICIENT_TIER`-style
- * vocabulary inside an OAuth handshake, and `server/_shared/premium-check.ts`
- * answers with a boolean/identity. Before this existed each of them flattened
+ * cannot use a `Response` (the surviving `api/mcp/*` surfaces and
+ * `server/_shared/premium-check.ts` answer with booleans/identities).
+ * Before this existed each consumer flattened
  * an *unverifiable* entitlement into a hard denial, which is exactly the #5600
  * failure mode the shared contract was built to remove.
  *
@@ -854,116 +411,27 @@ export function renderBillingVerificationDenial(
 }
 
 /**
- * Checks whether the current request is allowed based on tier entitlements.
+ * GROUNDTRUTH: single open tier — every request is allowed.
  *
- * Returns:
- *   - null if the request is allowed (unrestricted endpoint or sufficient tier)
- *   - a 403 Response if the user is unauthenticated, entitlements cannot be verified,
- *     or the user's tier is below the required tier (fail-closed)
+ * Returns null (allowed) always; the detailed variant reports the open tier.
  */
 export async function checkEntitlement(
-  userId: string | null,
-  pathname: string,
-  corsHeaders: Record<string, string>,
-  options: EntitlementCheckOptions = {},
+  _userId: string | null,
+  _pathname: string,
+  _corsHeaders: Record<string, string>,
+  _options: EntitlementCheckOptions = {},
 ): Promise<Response | null> {
-  const result = await checkEntitlementDetailed(userId, pathname, corsHeaders, options);
-  return result.response;
+  return null;
 }
 
 /**
- * Same authorization decision as checkEntitlement(), plus the resolved
- * entitlement row when one was available. Gateway telemetry uses this so
- * allow/deny events reflect the exact plan/tier that drove the decision.
+ * GROUNDTRUTH: single open tier — every request is allowed.
  */
 export async function checkEntitlementDetailed(
-  userId: string | null,
-  pathname: string,
-  corsHeaders: Record<string, string>,
-  options: EntitlementCheckOptions = {},
+  _userId: string | null,
+  _pathname: string,
+  _corsHeaders: Record<string, string>,
+  _options: EntitlementCheckOptions = {},
 ): Promise<EntitlementCheckResult> {
-  const requiredTier = getRequiredTier(pathname);
-  if (requiredTier === null) {
-    // Unrestricted endpoint -- no check needed
-    return { response: null, entitlements: null };
-  }
-
-  if (!userId) {
-    return {
-      response: new Response(
-        JSON.stringify({ error: 'Authentication required', requiredTier }),
-        { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-      ),
-      entitlements: null,
-    };
-  }
-
-  // Preserve the legacy Pro bearer contract for tier-1 gates. Complimentary,
-  // tester, and legacy Clerk-role grants can have no Convex entitlement row,
-  // while the frontend still unlocks Pro panels for role='pro'.
-  if (options.clerkRole === 'pro' && requiredTier <= 1) {
-    return { response: null, entitlements: null };
-  }
-
-  const ent = await getEntitlements(userId);
-  if (!ent) {
-    // An absent row is a verdict about the account only when a lookup could
-    // actually run. With the backend unconfigured getEntitlements returns null
-    // BEFORE attempting one — for everyone, paying customers included — so the
-    // hard 403 below would tell every subscriber their entitlement could not be
-    // verified because of our own deploy defect. This gate is reached from
-    // server/gateway.ts on every tier-gated session request, which makes it the
-    // widest surface of the #5619 asymmetry (#5600 is the precedent).
-    if (!isEntitlementBackendConfigured()) {
-      return {
-        response: renderBillingVerificationDenial(
-          unverifiableEntitlementDenial(),
-          corsHeaders,
-          requiredTier,
-        ),
-        entitlements: null,
-      };
-    }
-    // Fail-closed: unable to verify entitlements -> block the request
-    return {
-      response: new Response(
-        JSON.stringify({ error: 'Unable to verify entitlements', requiredTier }),
-        { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-      ),
-      entitlements: null,
-    };
-  }
-
-  // A stronger recently-stale subscription can be under verification while a
-  // lower plan still provides current, known-good coverage. Let that fallback
-  // authorize requests within its tier; the billing marker remains relevant
-  // only to capabilities above the fallback.
-  if (
-    ent.features.tier >= requiredTier &&
-    hasCurrentEntitlementCoverage(ent)
-  ) {
-    return { response: null, entitlements: ent };
-  }
-
-  const billingDenial = getBillingVerificationDenial(ent, corsHeaders, requiredTier);
-  if (billingDenial) {
-    return { response: billingDenial, entitlements: ent };
-  }
-
-  // User lacks required tier -- return 403
-  return {
-    response: new Response(
-      JSON.stringify({
-        error: 'Upgrade required',
-        requiredTier,
-        currentTier: ent.features.tier,
-        planKey: ent.planKey,
-      }),
-      {
-        status: 403,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      },
-    ),
-    entitlements: ent,
-  };
+  return { response: null, entitlements: openTierEntitlements() };
 }

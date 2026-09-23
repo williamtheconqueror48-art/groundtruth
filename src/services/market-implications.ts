@@ -1,5 +1,5 @@
 import { toApiUrl } from '@/services/runtime';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 
 export interface TransmissionNode {
   node: string;

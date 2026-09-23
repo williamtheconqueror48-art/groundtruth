@@ -4,7 +4,7 @@ import { getSignalAggregator } from '@/app/lazy-services';
 import type { CountrySignalCluster } from '@/services/signal-aggregator';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { getCountryDefenseIndustrialBase } from '@/services/defense-industrial';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { IS_EMBEDDED_PREVIEW } from '@/utils/embedded-preview';
 import { CountryTimeline } from '@/components/CountryTimeline';
 import type {
@@ -48,7 +48,7 @@ import { collectStoryData } from '@/services/story-data';
 // remaining StoryModal eager edge. The modal opens on user interaction
 // (post-paint), so the import() latency is hidden.
 
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
 import { showMapContextMenu } from '@/components/MapContextMenu';

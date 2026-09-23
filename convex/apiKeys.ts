@@ -2,30 +2,9 @@ import { assertAccountWritable } from "./accountDeletion/guard";
 import { ConvexError, v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { requireUserId, resolveUserId } from "./lib/auth";
-import { activeAccountForOwner } from "./companyMonitoring/_shared";
-import { ensureActiveAccount } from "./companyMonitoring/accounts";
-import {
-  COMPANY_MONITORING_RPC_SCOPES,
-  type CompanyMonitoringApiScope,
-} from "../shared/company-monitoring-contract";
 
 /** Maximum number of active (non-revoked) API keys per user. */
 const MAX_KEYS_PER_USER = 5;
-const COMPANY_MONITORING_SCOPES = [
-  ...new Set(Object.values(COMPANY_MONITORING_RPC_SCOPES)),
-] as CompanyMonitoringApiScope[];
-
-function normalizeCompanyMonitoringScopes(scopes: string[] | undefined) {
-  if (!scopes || scopes.length === 0) return undefined;
-  if (scopes.length > COMPANY_MONITORING_SCOPES.length || new Set(scopes).size !== scopes.length) {
-    throw new ConvexError("INVALID_API_KEY_SCOPES");
-  }
-  if (scopes.some((scope) => !(COMPANY_MONITORING_SCOPES as readonly string[]).includes(scope))) {
-    throw new ConvexError("INVALID_API_KEY_SCOPES");
-  }
-  return [...scopes].sort() as CompanyMonitoringApiScope[];
-}
-
 // ---------------------------------------------------------------------------
 // Public mutations & queries (require Clerk JWT via ctx.auth)
 // ---------------------------------------------------------------------------
@@ -37,44 +16,19 @@ function normalizeCompanyMonitoringScopes(scopes: string[] | undefined) {
  * and pass the SHA-256 hex hash + the first 8 chars (prefix) here.
  * The plaintext key is NEVER stored in Convex.
  *
- * Requires an active entitlement with apiAccess=true (API_STARTER+ plans).
- * Pro plans (tier 1) have apiAccess=false and cannot create keys.
+ * GROUNDTRUTH (2026-09-23 strip): single open tier — any signed-in user may
+ * create keys. The former API_ACCESS_REQUIRED entitlement gate and the
+ * Company Monitoring scope binding were removed with the commercial subsystem.
  */
 export const createApiKey = mutation({
   args: {
     name: v.string(),
     keyPrefix: v.string(),
     keyHash: v.string(),
-    scopes: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     await assertAccountWritable(ctx, userId);
-
-    // Entitlement gate: only users with apiAccess may create API keys.
-    // This is catalog-driven — Pro (tier 1) has apiAccess=false;
-    // API_STARTER+ (tier 2+) have apiAccess=true.
-    const entitlement = await ctx.db
-      .query("entitlements")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .first();
-    if (
-      !entitlement ||
-      entitlement.validUntil < Date.now() ||
-      !entitlement.features.apiAccess
-    ) {
-      throw new ConvexError("API_ACCESS_REQUIRED");
-    }
-
-    const scopes = normalizeCompanyMonitoringScopes(args.scopes);
-    // Issuing a scoped key is a first-use entry point, so it provisions the
-    // root. Requesting no scopes must stay entirely off Company Monitoring.
-    const companyMonitoringAccount = scopes
-      ? await ensureActiveAccount(ctx, userId, entitlement)
-      : null;
-    if (scopes && !companyMonitoringAccount) {
-      throw new ConvexError("COMPANY_MONITORING_ACCESS_DENIED");
-    }
 
     if (!args.name.trim()) {
       throw new ConvexError("INVALID_NAME");
@@ -125,8 +79,6 @@ export const createApiKey = mutation({
       name: args.name.trim(),
       keyPrefix: args.keyPrefix,
       keyHash: args.keyHash,
-      scopes,
-      companyMonitoringAccountId: companyMonitoringAccount?.logicalAccountId,
       createdAt: Date.now(),
     });
 
@@ -134,8 +86,6 @@ export const createApiKey = mutation({
       id,
       name: args.name.trim(),
       keyPrefix: args.keyPrefix,
-      scopes,
-      companyMonitoringAccountId: companyMonitoringAccount?.logicalAccountId,
     };
   },
 });
@@ -165,8 +115,6 @@ export const listApiKeys = query({
       createdAt: k.createdAt,
       lastUsedAt: k.lastUsedAt,
       revokedAt: k.revokedAt,
-      scopes: k.scopes,
-      companyMonitoringAccountId: k.companyMonitoringAccountId,
     }));
   },
 });
@@ -209,34 +157,10 @@ export const validateKeyByHash = internalQuery({
 
     if (!key || key.revokedAt) return null;
 
-    if (key.scopes && key.scopes.length > 0) {
-      let scopes: string[] | undefined;
-      try {
-        scopes = normalizeCompanyMonitoringScopes(key.scopes);
-      } catch {
-        return null;
-      }
-      const account = await activeAccountForOwner(ctx, key.userId);
-      if (
-        !scopes ||
-        !account ||
-        !key.companyMonitoringAccountId ||
-        account.logicalAccountId !== key.companyMonitoringAccountId
-      ) {
-        return null;
-      }
-    } else if (key.companyMonitoringAccountId) {
-      // A binding without issued scopes is malformed/ownerless credential
-      // state and must never authenticate through a legacy fallback.
-      return null;
-    }
-
     return {
       id: key._id,
       userId: key.userId,
       name: key.name,
-      scopes: key.scopes,
-      companyMonitoringAccountId: key.companyMonitoringAccountId,
       // Consumed ONLY by the /api/internal-validate-api-key route to decide
       // whether scheduling touchKeyLastUsed is worthwhile; the route strips
       // it before responding, so the gateway cache blob is unchanged.

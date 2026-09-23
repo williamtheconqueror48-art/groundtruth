@@ -1,6 +1,6 @@
 import type { GetFiveFactorScorecardResponse } from '@/generated/client/worldmonitor/scorecard/v1/service_client';
 import { ScorecardServiceClient } from '@/services/generated-rpc-clients';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { combineAbortSignals, createTimeoutSignal } from '@/services/timeout-signal';
 

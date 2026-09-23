@@ -1,6 +1,6 @@
 import type { GetDemographicsCapabilityResponse, GetFoodStocksResponse, GetResilienceRankingResponse, GetResilienceScoreResponse, ResilienceDomain, ResilienceDimension, ResilienceRankingItem, ScoreInterval } from '@/generated/client/worldmonitor/resilience/v1/service_client';
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { ResilienceServiceClient } from '@/services/generated-rpc-clients';
 
 export type ResilienceScoreResponse = GetResilienceScoreResponse;

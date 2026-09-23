@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { GLOSSARY_TERMS, GLOSSARY_CATEGORIES } from '../blog-site/src/data/glossary.ts';
+import { GLOSSARY_TERMS, GLOSSARY_CATEGORIES } from '../shared/glossary-data.ts';
 import {
   RESILIENCE_DIMENSION_ORDER,
   RESILIENCE_RETIRED_DIMENSIONS,

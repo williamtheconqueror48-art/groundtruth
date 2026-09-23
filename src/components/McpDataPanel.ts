@@ -3,7 +3,7 @@ import { normalizeMcpRefreshIntervalMs, type McpPanelSpec } from '@/services/mcp
 import { t } from '@/services/i18n';
 import { h } from '@/utils/dom-utils';
 import { proxyUrl, widgetAgentUrl } from '@/utils/proxy';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { isProWidgetEnabled, getBrowserTesterKey, getWidgetAgentKey, getProWidgetKey } from '@/services/widget-store';
 import { wrapProWidgetHtml } from '@/utils/widget-sanitizer';

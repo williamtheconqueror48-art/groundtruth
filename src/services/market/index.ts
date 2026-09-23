@@ -11,7 +11,7 @@ import type { MarketData, CryptoData, TokenData } from '@/types';
 import { createCircuitBreaker } from '@/utils/circuit-breaker';
 import { getHydratedData } from '@/services/bootstrap';
 import { MarketServiceClient } from '@/services/generated-rpc-clients';
-import { proFreshRpcFetch } from '@/services/premium-fetch';
+import { proFreshRpcFetch } from '@/services/open-tier';
 import { combineAbortSignals, createTimeoutSignal } from '@/services/timeout-signal';
 
 // ---- Client + Circuit Breakers ----

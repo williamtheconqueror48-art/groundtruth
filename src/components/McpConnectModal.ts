@@ -10,7 +10,7 @@ import { t } from '@/services/i18n';
 import { createFocusTrap, type FocusTrap } from '@/utils/focus-trap';
 import { escapeHtml } from '@/utils/sanitize';
 import { proxyUrl } from '@/utils/proxy';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { track } from '@/services/analytics';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 

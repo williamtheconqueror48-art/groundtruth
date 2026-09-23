@@ -10,7 +10,7 @@ import {
 } from '@/services/clerk';
 import { getEntitlementState } from '@/services/entitlements';
 import { evaluateExportGate, evaluateTabCap } from '@/services/gates/export';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import {
   buildWebMcpAccessContext,
   resolveWebMcpOpenSignIn,

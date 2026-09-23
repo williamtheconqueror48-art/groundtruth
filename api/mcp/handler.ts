@@ -8,7 +8,6 @@ import {
   PRODUCTION_DEPS,
   resolveAuthContext,
   runContextPreChecks,
-  validateProMcpAuthorization,
   wwwAuthHeader,
 } from './auth';
 import { readBoundedRequestBody, RequestBodyTooLargeError } from './bounded-body';
@@ -1006,24 +1005,10 @@ async function mcpHandlerInner(
       }
       context = auth.context;
       setUsageContext(usage, context);
-      // A bearer-derived Pro context is not authoritative revocation proof.
-      // Validate the durable grant before assigning the larger credentialed
-      // per-user bucket on any public method. Free tools and metadata methods
-      // remain entitlement- and daily-quota-exempt after this identity check.
-      if (context.kind === 'pro') {
-        const validation = await validateProMcpAuthorization(
-          context,
-          deps,
-          resourceMetadataUrl,
-          corsHeaders,
-          ctx,
-          id,
-        );
-        if (!validation.ok) {
-          usage.phase = 'precheck';
-          return validation.response;
-        }
-      }
+      // GROUNDTRUTH: single open tier. The Pro-grant re-validation is gone
+      // (validateProMcpAuthorization removed 2026-09-23) — a bearer-derived
+      // `pro` context is an ordinary authenticated caller now. Free tools and
+      // metadata methods remain entitlement- and daily-quota-exempt.
       // No pre-check runs on the public branch, so there is no entitlement in
       // hand to read a plan burst from. `applyPerMinuteLimit` defaults to the
       // common ceiling rather than fetching one: these are metadata and

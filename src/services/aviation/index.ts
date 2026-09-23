@@ -3,7 +3,7 @@ import type { AirportDelayAlert as ProtoAlert, AirportOpsSummary as ProtoOpsSumm
 import { createCircuitBreaker } from '@/utils/circuit-breaker';
 import { ensureHydrated, getHydratedData } from '@/services/bootstrap';
 import { AviationServiceClient } from '@/services/generated-rpc-clients';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 
 // ---- Consumer-friendly display types ----
 

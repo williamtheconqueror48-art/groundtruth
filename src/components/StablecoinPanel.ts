@@ -6,7 +6,7 @@ import { joinSafeHtml, safeHtml } from '@/utils/sanitize';
 import type { ListStablecoinMarketsResponse } from '@/generated/client/worldmonitor/market/v1/service_client';
 import { getHydratedData } from '@/services/bootstrap';
 import { MarketServiceClient } from '@/services/generated-rpc-clients';
-import { proFreshRpcFetch } from '@/services/premium-fetch';
+import { proFreshRpcFetch } from '@/services/open-tier';
 
 type StablecoinResult = ListStablecoinMarketsResponse;
 

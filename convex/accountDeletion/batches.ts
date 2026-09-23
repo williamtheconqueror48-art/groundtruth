@@ -8,7 +8,6 @@ import {
   type MutationCtx,
 } from "../_generated/server";
 import { userIdToShard } from "../lib/shards";
-import { recomputeEntitlementFromAllSubs } from "../payments/subscriptionHelpers";
 import {
   ERASE_WRITE_BUDGET,
   PENDING_STALE_AFTER_MS,
@@ -36,7 +35,6 @@ export const PERSONAL_DELETE_TABLES = [
   "mcpProTokens",
   "userReferralCodes",
   "userReferralCredits",
-  "entitlements",
   "apiUsageRollups",
   "apiPlanLimitNotices",
   "checkoutAdmissions",
@@ -116,11 +114,6 @@ async function takePersonalRows(
       return ctx.db
         .query("userReferralCredits")
         .withIndex("by_referrer", (q) => q.eq("referrerUserId", userId))
-        .take(limit);
-    case "entitlements":
-      return ctx.db
-        .query("entitlements")
-        .withIndex("by_userId", (q) => q.eq("userId", userId))
         .take(limit);
     case "apiUsageRollups":
       return ctx.db
@@ -366,22 +359,8 @@ async function eraseGrants(
     if (writes >= budget) break;
     const existing = await ctx.db.get(grantId);
     if (existing) {
-      const inviteeUserId = existing.status === "accepted"
-        ? existing.inviteeUserId
-        : undefined;
-      const deletingInvitee = inviteeUserId && inviteeUserId !== deletion.userId
-        ? await ctx.db.query("accountDeletions")
-          .withIndex("by_userId", (q) => q.eq("userId", inviteeUserId))
-          .first()
-        : null;
-      const recomputeInvitee = inviteeUserId && inviteeUserId !== deletion.userId && !deletingInvitee;
-      if (recomputeInvitee && writes + 2 > budget) break;
       await ctx.db.delete(grantId);
       writes += 1;
-      if (recomputeInvitee) {
-        await recomputeEntitlementFromAllSubs(ctx, inviteeUserId, Date.now());
-        writes += 1;
-      }
     }
   }
   const leftover = await collectGrantIds(ctx, deletion);
@@ -891,9 +870,8 @@ const REAP_STALLED_LIMIT = 20;
  *
  * Without this, the `by_status_updatedAt` index had no reader and the only way
  * back from a lost continuation was the deleting user happening to click again,
- * or support running the runbook — while the account sat write-fenced, already
- * anonymized, with its subscription still billing. Mirrors the existing
- * company-monitoring stalled-purge reaper.
+ * or support running the runbook — while the account sat write-fenced and
+ * already anonymized.
  *
  * Safe to re-run: `scheduleEraseContinuation` only acts on `pending` rows, and
  * every stepper re-queries its own leftovers, so a duplicate wake is a no-op

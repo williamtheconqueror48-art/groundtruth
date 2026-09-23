@@ -3,22 +3,20 @@
  *
  * `export-resolver.ts` next door is the pure decision chain, testable under
  * `tsx --test` with no DOM. This module is its reader: it snapshots the live
- * entitlement / billing / secret state and hands the resulting inputs to the
- * resolver, so the resolver never learns where its inputs come from.
+ * entitlement and secret state and hands the resulting inputs to the resolver,
+ * so the resolver never learns where its inputs come from.
  *
  * Split out of `panel-gating.ts` (#5813) once the third `readX`/`evaluateX`
  * pair landed there. Deliberately NOT unified with `playback.ts` behind a gate
  * factory: the input shapes genuinely differ — export carries the Pro Business
- * catalog probe and the billing-state refinement, playback needs neither — and
- * a shared abstraction would force a lowest-common-denominator input type onto
- * gates that are correctly independent.
+ * catalog probe, playback needs none of it — and a shared abstraction would
+ * force a lowest-common-denominator input type onto gates that are correctly
+ * independent.
  */
 
 import type { AuthSession } from '../auth-state';
-import { getSubscription } from '../billing';
-import { deriveBillingUxState } from '../billing-state';
 import { getEntitlementState } from '../entitlements';
-import { PanelGateReason } from '../panel-gating';
+import { PanelGateReason } from '../open-tier';
 import { getSecretState } from '../runtime-config';
 import {
   isExportGateActive,
@@ -70,7 +68,6 @@ function readExportGateInputs(authState: AuthSession): ExportGateInputs {
           maxDashboards: entitlement.features.maxDashboards,
         }
       : null,
-    billingState: deriveBillingUxState(getSubscription(), entitlement, Date.now()),
   };
 }
 

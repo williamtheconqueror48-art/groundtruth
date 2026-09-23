@@ -10,8 +10,8 @@ import type {
 } from './types';
 import { haversineKm } from '@/utils/distance';
 
-import { premiumFetch } from '@/services/premium-fetch';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { premiumFetch } from '@/services/open-tier';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { IntelligenceServiceClient } from '@/services/generated-rpc-clients';
 import type { CorrelationRuntimeMode } from '@/services/correlation-runtime-mode';
 

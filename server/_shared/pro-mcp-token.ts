@@ -171,8 +171,8 @@ async function writeNegCache(tokenId: string): Promise<void> {
 /**
  * Issue a new Pro MCP token row in Convex.
  *
- * Called from `/oauth/authorize-pro` (U5) AFTER the Clerk grant has been
- * verified. Throws a typed `ProMcpIssueFailed`:
+ * Called after the Clerk grant has been verified. Throws a typed
+ * `ProMcpIssueFailed`:
  *   - `pro-required`: caller's userId is not Pro (Convex 403). U5 returns
  *     an HTML error page or redirects to upgrade.
  *   - `invalid-user-id`: empty/missing userId (Convex 400). U5 returns 400.
@@ -342,8 +342,8 @@ export async function validateProMcpTokenOrNull(tokenId: string): Promise<ProMcp
  * Revoke a Pro MCP token via the internal Convex HTTP route (server-to-server,
  * shared-secret + in-mutation tenancy gate).
  *
- * Use this from rollback paths (e.g. `/oauth/authorize-pro` U5: after
- * `issueProMcpToken` succeeds but the `oauth:code` SETEX fails). The
+ * Use this from rollback paths (e.g. after `issueProMcpToken` succeeds but
+ * the `oauth:code` SETEX fails). The
  * settings-UI revoke endpoint (U9) calls the **public** `revokeProMcpToken`
  * Convex mutation directly, NOT this helper.
  *

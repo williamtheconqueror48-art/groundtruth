@@ -47,35 +47,21 @@ const ENQUEUE_WELCOME_SCRIPT = [
 ].join("\n");
 
 /**
- * Notifications are a PRO feature. Enforce the entitlement at the public
- * Convex write boundary so callers cannot bypass the edge API gate.
+ * GROUNDTRUTH (2026-09-23 strip): single open tier — notifications are open
+ * to everyone. Both helpers are no-ops kept for their call sites.
  */
 async function hasProEntitlement(
-  ctx: MutationCtx,
-  userId: string,
+  _ctx: MutationCtx,
+  _userId: string,
 ): Promise<boolean> {
-  const entitlement = await ctx.db
-    .query("entitlements")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .first();
-  const tier =
-    entitlement && entitlement.validUntil >= Date.now()
-      ? entitlement.features.tier
-      : 0;
-  return tier >= 1;
+  return true;
 }
 
 async function assertProEntitlement(
-  ctx: MutationCtx,
-  userId: string,
+  _ctx: MutationCtx,
+  _userId: string,
 ): Promise<void> {
-  if (!(await hasProEntitlement(ctx, userId))) {
-    throw new ConvexError({
-      code: "PRO_REQUIRED",
-      message:
-        "Notifications are a PRO feature. Upgrade to enable real-time and digest alerts.",
-    });
-  }
+  return;
 }
 
 /**

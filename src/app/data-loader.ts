@@ -137,7 +137,7 @@ import { enrichEventsWithExposure } from '@/services/population-exposure';
 import { debounce, getCircuitBreakerCooldownInfo, loadFromStorage, saveToStorage } from '@/utils';
 import { addLocalDays, localYmd } from '@/utils/local-date';
 import { isFeatureAvailable, isFeatureEnabled } from '@/services/runtime-config';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { isDesktopRuntime, toApiUrl } from '@/services/runtime';
 import { filterFeedsByLanguage } from '@/services/feed-language';
 import { getAiFlowSettings } from '@/services/ai-flow-settings';

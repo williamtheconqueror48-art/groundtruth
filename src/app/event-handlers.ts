@@ -9,7 +9,7 @@ import type { UnifiedSettingsConfig } from '@/components/UnifiedSettings';
 import type { AirlineIntelPanel } from '@/components/AirlineIntelPanel';
 import type { CustomWidgetPanel } from '@/components/CustomWidgetPanel';
 import { deleteWidget, getWidget, saveWidget, isProUser, isProTierResolved } from '@/services/widget-store';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import {
   sanitizeLockedLayers,
   shouldSanitizeLockedLayers,
@@ -58,7 +58,7 @@ import {
   INTEL_SOURCES,
 } from '@/config';
 import { resolveNewsCategories, enabledNewsCategoryKeys } from '@/config/feed-resolution';
-import { VARIANT_META } from '@/config/variant-meta';
+import { SITE_META } from '@/config/site-meta';
 import { isDesktopRuntime } from '@/services/runtime';
 import {
   getMissionPresetsForVariant,
@@ -104,12 +104,12 @@ import { AuthHeaderWidget } from '@/components/AuthHeaderWidget';
 import { t } from '@/services/i18n';
 import { TvModeController } from '@/services/tv-mode';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
-import { hasEmbedAccessForAccount, onEntitlementChange } from '@/services/entitlements';
+import { onEntitlementChange } from '@/services/entitlements';
 import { evaluateAvailableExportFormats, evaluateExportGate, exportLockToGateReason } from '@/services/gates/export';
 import { primeExportGateActivation } from '@/services/gates/export-resolver';
 import type { DataExportFormat } from '@/services/gates/export-resolver';
 import { evaluatePlaybackGate } from '@/services/gates/playback';
-import { resolveGateAction, type PanelGateReason } from '@/services/panel-gating';
+import { resolveGateAction, type PanelGateReason } from '@/services/open-tier';
 import { ExportGateControl } from '@/components/ExportGateControl';
 import { h, setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { scheduleAfterFirstPaint } from '@/utils/after-paint';
@@ -121,10 +121,7 @@ import {
 import { escapeHtml } from '@/utils/sanitize';
 import {
   buildEmbedIframeSnippet,
-  buildEmbedLoaderSnippet,
   buildEmbedMapUrl,
-  embedLayerIdsFromMapLayers,
-  EMBED_KEY_PLACEHOLDER,
   type EmbedVariant,
 } from '@/embed/embed-url';
 import { createSettingsButton } from '@/components/settings-button';
@@ -262,7 +259,6 @@ class LazyUnifiedSettings implements UnifiedSettingsController {
     return this.loadPromise;
   }
 }
-
 
 export interface EventHandlerCallbacks {
   openSearch: (options?: { toggle?: boolean; replaceOverlayId?: OverlayId; historyPending?: boolean }) => void;
@@ -1593,29 +1589,6 @@ export class EventHandlerManager implements AppModule {
       snippet,
     }));
 
-    // The keyed tier is offered only to an account that can actually mint a
-    // key. Showing it to everyone else would be an upsell wearing a snippet.
-    if (hasEmbedAccessForAccount(getAuthState().user?.role)) {
-      const state = this.ctx.map?.getState();
-      tiers.appendChild(this.buildEmbedTier({
-        id: 'embedKeyedSnippetTextarea',
-        title: 'With your embed key',
-        detail: 'All fourteen layers at this exact view, refreshed every 10 minutes instead of '
-          + `hourly. Replace ${EMBED_KEY_PLACEHOLDER} with a key from Settings → Embeds; it is `
-          + 'meant to sit in your page HTML, unlike an API key.',
-        snippet: buildEmbedLoaderSnippet({
-          src: `${window.location.origin}/embed.js`,
-          panel: 'map',
-          layerIds: state ? embedLayerIdsFromMapLayers(state.layers) : undefined,
-          center: this.ctx.map?.getCenter(),
-          zoom: state?.zoom,
-          theme: getCurrentTheme(),
-          variant: SITE_VARIANT as EmbedVariant,
-        }),
-        manageKeysLabel: 'Manage embed keys',
-      }));
-    }
-
     dialog.append(header, preview, tiers);
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
@@ -1647,7 +1620,6 @@ export class EventHandlerManager implements AppModule {
     title: string;
     detail: string;
     snippet: string;
-    manageKeysLabel?: string;
   }): HTMLElement {
     const section = document.createElement('section');
     section.className = 'embed-modal-tier';
@@ -1669,20 +1641,6 @@ export class EventHandlerManager implements AppModule {
 
     const actions = document.createElement('div');
     actions.className = 'embed-modal-actions';
-
-    if (options.manageKeysLabel) {
-      const manageButton = document.createElement('button');
-      manageButton.className = 'embed-manage-keys-btn';
-      manageButton.type = 'button';
-      manageButton.textContent = options.manageKeysLabel;
-      manageButton.addEventListener('click', () => {
-        // Closing first keeps two overlays off the screen at once, and the
-        // settings modal owns its own history entry on mobile.
-        this.closeEmbedDialog();
-        void this.ctx.unifiedSettings?.open('embeds');
-      });
-      actions.appendChild(manageButton);
-    }
 
     const copyButton = document.createElement('button');
     copyButton.className = 'embed-copy-btn';
@@ -1898,7 +1856,8 @@ export class EventHandlerManager implements AppModule {
       return 'blocked';
     }
 
-    const target = options.href || VARIANT_META[variant]?.url;
+    // GROUNDTRUTH: single app — variant navigation resolves to the one site URL.
+    const target = options.href || SITE_META.url;
     if (!target) return 'blocked';
     try {
       const parsed = new URL(target, window.location.href);
@@ -2288,12 +2247,10 @@ export class EventHandlerManager implements AppModule {
     this.ctx.authModal = modal;
 
     // The standalone gear remains available to every user. Signed-in users
-    // also get explicit Settings and Plan & billing destinations inside the
-    // avatar menu, keeping account and subscription actions in one place.
+    // also get an explicit Settings destination inside the avatar menu.
     const widget = new AuthHeaderWidget(
       () => modal.open(),
       () => this.ctx.unifiedSettings?.open('settings'),
-      () => this.ctx.unifiedSettings?.open('billing'),
     );
     this.ctx.authHeaderWidget = widget;
     const mount = document.getElementById('authWidgetMount');

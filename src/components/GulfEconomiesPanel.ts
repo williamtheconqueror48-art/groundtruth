@@ -1,6 +1,6 @@
 import { Panel } from './Panel';
 import { createLazyClient, getRpcBaseUrl } from '@/services/rpc-client';
-import { proFreshRpcFetch } from '@/services/premium-fetch';
+import { proFreshRpcFetch } from '@/services/open-tier';
 import { t } from '@/services/i18n';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { formatPrice, formatChange, getChangeClass } from '@/utils';

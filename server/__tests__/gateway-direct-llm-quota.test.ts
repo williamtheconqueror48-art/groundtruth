@@ -25,9 +25,26 @@ vi.mock("../_shared/entitlement-check", async (importOriginal) => {
 });
 
 const resolveClerkSession = vi.fn();
-vi.mock("../_shared/auth-session", () => ({
-  resolveClerkSession: (...a: unknown[]) => resolveClerkSession(...a),
-}));
+vi.mock("../_shared/auth-session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../_shared/auth-session")>();
+  return {
+    ...actual,
+    resolveClerkSession: (...a: unknown[]) => resolveClerkSession(...a),
+  };
+});
+
+// The gateway dynamically imports ../auth-session for the legacy-premium
+// Bearer <redacted> branch (server/gateway.ts). These tests exercise quota behavior
+// for an authenticated session, not real token verification: return the same
+// valid pro session the resolveClerkSession mock provides.
+const validateBearerToken = vi.fn(async () => ({ valid: true, userId: "user_pro", orgId: null, role: "pro" }));
+vi.mock("../auth-session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../auth-session")>();
+  return {
+    ...actual,
+    validateBearerToken: (...a: unknown[]) => validateBearerToken(...a),
+  };
+});
 
 const validateApiKey = vi.fn();
 vi.mock("../../api/_api-key.js", async (importOriginal) => ({
@@ -334,8 +351,11 @@ describe("gateway direct LLM quota", () => {
     });
   });
 
-  test("country brief is declared as a tier-1 Pro endpoint", () => {
-    expect(getRequiredTier(COUNTRY_BRIEF_PATH)).toBe(1);
+  test("country brief has no tier gate in the open tier", () => {
+    // GROUNDTRUTH single open tier: getRequiredTier() returns null for every
+    // path. The country brief remains spend-controlled via the direct-LLM
+    // daily quota, not via a tier gate.
+    expect(getRequiredTier(COUNTRY_BRIEF_PATH)).toBe(null);
   });
 
   test("free bearer country brief is rejected before quota or handler spend", async () => {
@@ -501,18 +521,22 @@ describe("gateway direct LLM quota", () => {
 
     expect(res.status).toBe(200);
     expect(calls.classify).toBe(1);
+    // Open tier: no tier gates, so the tier-gated principal attribution no
+    // longer applies. Authenticated callers share the per-IP endpoint bucket
+    // here; per-user spend isolation is enforced by the direct-LLM daily quota
+    // below. (The summarize-article #5206 exception keeps principal
+    // attribution for that path only.)
     expect(checkEndpointRateLimit).toHaveBeenCalledWith(
       expect.any(Request),
       CLASSIFY_PATH,
       expect.any(Object),
-      { principalUserId: "user_pro", principalScope: "session" },
     );
     expect(reserveDirectLlmQuota).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "user_pro" }),
     );
   });
 
-  test("Pro bearer analyze-stock uses a principal-scoped endpoint bucket", async () => {
+  test("Pro bearer analyze-stock uses the shared per-IP endpoint bucket (open tier: no tier-gated attribution)", async () => {
     const calls = { analyze: 0 };
     resolveClerkSession.mockResolvedValue({ userId: "user_pro", orgId: null, role: "pro" });
     validateApiKey.mockResolvedValue({ valid: false, required: true, error: "API key required" });
@@ -526,11 +550,12 @@ describe("gateway direct LLM quota", () => {
 
     expect(res.status).toBe(200);
     expect(calls.analyze).toBe(1);
+    // Open tier: no tier gates, so the tier-gated principal attribution no
+    // longer applies — same consequence as the classify-event test above.
     expect(checkEndpointRateLimit).toHaveBeenCalledWith(
       expect.any(Request),
       ANALYZE_PATH,
       expect.any(Object),
-      { principalUserId: "user_pro", principalScope: "session" },
     );
     expect(checkRateLimit).not.toHaveBeenCalled();
   });

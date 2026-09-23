@@ -6,10 +6,8 @@ import { safeHtmlToString, type SafeHtml } from '@/utils/sanitize';
 import { trackPanelResized } from '@/services/analytics';
 import { getAiFlowSettings } from '@/services/ai-flow-settings';
 import { getSecretState } from '@/services/runtime-config';
-import { PanelGateReason } from '@/services/panel-gating';
+import { PanelGateReason } from '@/services/open-tier';
 import { lockSvg, upgradeSvg } from '@/components/gate-icons';
-import { createCheckoutConsentElement } from '@/utils/legal-links';
-import { WEB_APP_ORIGIN } from '@/config/web-origin';
 import { dataFreshness, type PanelFreshnessSummary } from '@/services/data-freshness';
 import { formatPanelFreshnessDisplay } from '@/services/panel-freshness-display';
 import {
@@ -1134,20 +1132,9 @@ export class Panel {
       lockedChildren.push(featureList);
     }
 
-    // Assent immediately above the CTA (#6976). This button jumps straight to
-    // Dodo's hosted checkout, where Dodo (merchant of record) shows its terms
-    // and never ours — so ours are presented here, before the jump. The desktop
-    // branch below opens the /pro pricing page in the OS browser instead, and
-    // that page carries its own assent line above every tier CTA.
-    if (!isDesktopRuntime()) lockedChildren.push(createCheckoutConsentElement(WEB_APP_ORIGIN));
-    const ctaBtn = h('button', { type: 'button', className: 'panel-locked-cta' }, 'Upgrade to Pro');
-    ctaBtn.addEventListener('click', () => {
-      import('@/services/upgrade-flow').then((m) => m.openUpgradeCheckout()).catch(() => {
-        window.open('https://worldmonitor.app/pro', '_blank', 'noopener,noreferrer');
-      });
-    });
-    lockedChildren.push(ctaBtn);
-
+    // GROUNDTRUTH (2026-09-23 strip): single open tier — the "Upgrade to Pro"
+    // CTA and Dodo checkout consent were removed with the commercial
+    // subsystem. The locked shell remains for the (now unreachable) gate path.
     this.replaceContent(h('div', { className: 'panel-locked-state' }, ...lockedChildren));
   }
 

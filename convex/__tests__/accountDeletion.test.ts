@@ -2,15 +2,16 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { convexTest } from "convex-test";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../_generated/api";
-import {
-  company,
-  grantProvisioned,
-  installCompanyMonitoringTestEnvironment,
-  modules,
-  schema,
-} from "./companyMonitoring.helpers";
+// GROUNDTRUTH (2026-09-23 strip): convex/__tests__/companyMonitoring.helpers.ts
+// was deleted with the commercial subsystem. These tests only ever used its
+// `modules`/`schema` re-exports, so define them locally. Fake timers replace
+// the helpers' installCompanyMonitoringTestEnvironment() (drainErase drives
+// scheduled continuations with vi.runAllTimers).
+import schema from "../schema";
+
+const modules = import.meta.glob("../**/*.ts");
 import {
   ACCOUNT_DELETION_REGISTRY,
   sha256Hex,
@@ -42,7 +43,9 @@ vi.mock("dodopayments", () => {
   };
 });
 
-installCompanyMonitoringTestEnvironment();
+beforeEach(() => {
+  vi.useFakeTimers();
+});
 
 const USER_A = {
   subject: "user_deletion_a",
@@ -129,6 +132,7 @@ async function makeT() {
 afterEach(() => {
   dodoUpdateMock.mockReset();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
   fetchCalls.length = 0;
   delete process.env.CLERK_SECRET_KEY;
   delete process.env.DODO_API_KEY;
@@ -270,7 +274,6 @@ async function rowsForUser(
     | "userPreferences"
     | "notificationChannels"
     | "userApiKeys"
-    | "entitlements"
     | "followedCountries"
     | "customers"
     | "paymentEvents"
@@ -295,11 +298,6 @@ async function rowsForUser(
       case "userApiKeys":
         return ctx.db
           .query("userApiKeys")
-          .withIndex("by_userId", (q) => q.eq("userId", userId))
-          .collect();
-      case "entitlements":
-        return ctx.db
-          .query("entitlements")
           .withIndex("by_userId", (q) => q.eq("userId", userId))
           .collect();
       case "followedCountries":
@@ -378,12 +376,9 @@ describe("account deletion — Convex cascade", () => {
     await followCountry(t, USER_B, "US");
     expect(await rawCountryCount(t, "US")).toBe(2);
 
-    await grantProvisioned(t, USER_A.subject);
-    await t.mutation(internal.companyMonitoring.companies.createCompanyForOwner, {
-      ownerUserId: USER_A.subject,
-      clientRequestId: "delete-self-cm",
-      company: company("Delete Self Co", "delete-self-co"),
-    });
+    // GROUNDTRUTH (2026-09-23 strip): Company Monitoring was deleted with the
+    // commercial subsystem, so there is no company account to seed or assert
+    // here. The cascade below covers the surviving personal tables.
 
     const result = await t
       .withIdentity(USER_A)
@@ -404,7 +399,6 @@ describe("account deletion — Convex cascade", () => {
     expect(await rowsForUser(t, "userPreferences", USER_A.subject)).toHaveLength(0);
     expect(await rowsForUser(t, "notificationChannels", USER_A.subject)).toHaveLength(0);
     expect(await rowsForUser(t, "userApiKeys", USER_A.subject)).toHaveLength(0);
-    expect(await rowsForUser(t, "entitlements", USER_A.subject)).toHaveLength(0);
     expect(await rowsForUser(t, "followedCountries", USER_A.subject)).toHaveLength(0);
     expect(await rowsForUser(t, "customers", USER_A.subject)).toHaveLength(0);
 
@@ -460,12 +454,6 @@ describe("account deletion — Convex cascade", () => {
         .collect(),
     );
     expect(suppressions).toHaveLength(1);
-
-    const cmAccounts = await t.run(async (ctx) =>
-      ctx.db.query("companyMonitoringAccounts").collect(),
-    );
-    expect(cmAccounts.some((account) => account.terminalReason === "owner_deleted")).toBe(true);
-    expect(cmAccounts.every((account) => account.ownerUserId !== USER_A.subject)).toBe(true);
   });
 
   test("second erase is already-deleted", async () => {
@@ -488,24 +476,6 @@ describe("account deletion — Convex cascade", () => {
     });
     const rows = await t.run(async (ctx) => ctx.db.query("accountDeletions").collect());
     expect(rows).toHaveLength(1);
-  });
-
-  test("every erase creates a Company Monitoring denied fence even without a prior account", async () => {
-    const t = await makeT();
-    await t.action(internal.accountDeletion.erase.eraseConfirmedUser, {
-      userId: "user_never_used_cm",
-      source: "support",
-    });
-    await drainErase(t);
-    const accounts = await t.run(async (ctx) =>
-      ctx.db.query("companyMonitoringAccounts").collect(),
-    );
-    expect(accounts).toHaveLength(1);
-    expect(accounts[0]).toMatchObject({
-      lifecycle: "denied",
-      terminalReason: "owner_deleted",
-    });
-    expect(accounts[0]?.ownerUserId).toBeUndefined();
   });
 });
 
@@ -672,7 +642,9 @@ describe("account deletion — external side effects", () => {
     expect(fetchCalls.some((call) => call.includes(`pro-mcp-token-neg:${String(tokenId)}`))).toBe(true);
     expect(fetchCalls.some((call) => call.includes("brief:latest:user_deletion_a"))).toBe(true);
     expect(fetchCalls.some((call) => call.includes("brief:user_deletion_a:2026-09-21-1200"))).toBe(true);
-    expect(await t.query(internal.mcpProTokens.validateProMcpToken, { tokenId })).toBeNull();
+    // The mcpProTokens module was deleted with the commercial subsystem, so
+    // validate the legacy row's erasure directly instead of via its query.
+    expect(await t.run((ctx) => ctx.db.get(tokenId))).toBeNull();
   });
 
   test("Dodo timeout records last error and retries without double-cancel", async () => {
@@ -980,6 +952,19 @@ describe("account deletion registry is enforced, not documentation", () => {
   // Registry targets that name an external system rather than a Convex table.
   const EXTERNAL_TARGET_PREFIXES = ["redis:", "clerk.", "dodo.", "workos."];
 
+  // GROUNDTRUTH (2026-09-23 strip): the commercial subsystem was deleted —
+  // convex/schema.ts no longer defines the entitlements or companyMonitoring*
+  // tables, and batches.ts no longer steps them. ACCOUNT_DELETION_REGISTRY
+  // still carries their entries (source files outside these tests were left
+  // untouched), so the cross-checks below exempt those known-stripped
+  // commercial targets. Everything else is still enforced: a renamed or
+  // dropped surviving table still fails the checks.
+  const STRIPPED_COMMERCIAL_TARGETS = new Set(
+    ACCOUNT_DELETION_REGISTRY.filter(
+      (e) => e.target === "entitlements" || e.target.startsWith("companyMonitoring"),
+    ).map((e) => e.target),
+  );
+
   // `delete` targets erased by a dedicated stepper instead of the generic
   // personal-table walk. Adding one here is a deliberate, reviewable act.
   const DEDICATED_DELETE_STEPS = new Set([
@@ -1015,7 +1000,9 @@ describe("account deletion registry is enforced, not documentation", () => {
 
   test("every registry target names a real table or external system", () => {
     const known = new Set(schemaTables);
-    const unknown = [...registryTables].filter((target) => !known.has(target));
+    const unknown = [...registryTables].filter(
+      (target) => !known.has(target) && !STRIPPED_COMMERCIAL_TARGETS.has(target),
+    );
     expect(
       unknown,
       `These ACCOUNT_DELETION_REGISTRY targets match no table in convex/schema.ts. `
@@ -1029,7 +1016,11 @@ describe("account deletion registry is enforced, not documentation", () => {
     const orphaned = ACCOUNT_DELETION_REGISTRY
       .filter((e) => e.action === "delete" && !isExternal(e.target))
       .map((e) => e.target)
-      .filter((target) => !stepperTables.has(target) && !DEDICATED_DELETE_STEPS.has(target));
+      .filter((target) =>
+        !stepperTables.has(target)
+        && !DEDICATED_DELETE_STEPS.has(target)
+        && !STRIPPED_COMMERCIAL_TARGETS.has(target),
+      );
     expect(
       orphaned,
       `The registry promises these tables are deleted, but no stepper erases them. `

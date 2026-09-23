@@ -1,8 +1,8 @@
 import { createCircuitBreaker } from '@/utils/circuit-breaker';
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { getHydratedData } from '@/services/bootstrap';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { toApiUrl } from '@/services/runtime';
 import type { SanctionsEntry as ProtoSanctionsEntry, SanctionsEntityType as ProtoSanctionsEntityType, CountrySanctionsPressure as ProtoCountryPressure, ProgramSanctionsPressure as ProtoProgramPressure, ListSanctionsPressureResponse } from '@/generated/client/worldmonitor/sanctions/v1/service_client';
 import { SanctionsServiceClient } from '@/services/generated-rpc-clients';

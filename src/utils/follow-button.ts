@@ -8,9 +8,8 @@
  *    spinner (entitlement loading), hidden (feature flag off).
  *  - Click handler that calls into `addCountry` / `removeCountry`.
  *  - Subscription to watchlist + entitlement changes (re-render on update).
- *  - Branch on `FollowMutationResult.reason` — opens the upgrade modal
- *    on `FREE_CAP` via the same path `notifications-settings.ts` uses
- *    (lazy `@/services/clerk` + `@/services/checkout`).
+ *  - Branch on `FollowMutationResult.reason` — opens sign-in
+ *    on `FREE_CAP` (signed-in users are on the open tier, uncapped).
  *
  * Pattern:
  *  - `{ html, attach } → teardown` matches `src/services/notifications-settings.ts`.
@@ -46,9 +45,7 @@ import {
   FREE_TIER_FOLLOW_LIMIT,
   type FollowMutationResult,
 } from '@/services/followed-countries';
-import { WEB_APP_ORIGIN } from '@/config/web-origin';
 import { onEntitlementChange } from '@/services/entitlements';
-import { openExternalUrl } from '@/services/external-navigation';
 import { escapeHtml } from '@/utils/sanitize';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 
@@ -85,88 +82,45 @@ export interface FollowButtonHandle {
 }
 
 // ---------------------------------------------------------------------------
-// Test-injection seam: upgrade-modal trigger
+// Test-injection seam: sign-in trigger for the anonymous follow cap
 // ---------------------------------------------------------------------------
 //
-// In production, the `FREE_CAP` branch dynamically imports clerk +
-// checkout (the same lazy path `notifications-settings.ts` uses for the
-// "Upgrade to Pro" button). Tests inject a synchronous fake here so
-// they can assert the trigger was called without spinning up the real
-// import graph.
+// The GROUNDTRUTH single open tier (2026-09-23 strip) removed checkout. The
+// only way past the anonymous follow cap is to sign in — every signed-in user
+// is on the open tier with an uncapped watchlist. Tests inject a synchronous
+// fake here so they can assert the trigger was called without spinning up
+// the real import graph.
 
 type UpgradeTrigger = (source: string) => void;
 
-/**
- * Last-resort upgrade destination when the lazy checkout path is
- * unavailable. Absolute, and routed through `openExternalUrl`: the bare
- * relative `/pro#pricing` this replaced resolved against `tauri://localhost`
- * in the desktop WebView, where no such route exists (#5911). Never throws —
- * every call site here is already a fallback.
- */
-function openProPricingPage(): void {
-  void openExternalUrl(`${WEB_APP_ORIGIN}/pro#pricing`).catch(() => {
-    /* swallow — non-browser env, or the OS opener refused */
-  });
-}
-
 let _upgradeTrigger: UpgradeTrigger = (source) => {
-  // Match the notifications-settings.ts pattern: try sign-in first if no
-  // user, otherwise drop into checkout. If anything fails we fall back
-  // to the `/pro` page (consistent w/ ProBanner CTA).
-  try {
-    void import('@/services/clerk').then((clerk) => {
-      const user = clerk.getCurrentClerkUser?.();
-      if (!user) {
-        const opener = clerk.openSignIn;
-        if (typeof opener === 'function') {
-          opener();
-          return;
-        }
-      }
-      // Signed-in OR no openSignIn helper — go straight to checkout.
-      void import('@/services/checkout')
-        .then((checkout) =>
-          import('@/config/products').then((products) => {
-            const product = (products as { DEFAULT_UPGRADE_PRODUCT?: unknown })
-              .DEFAULT_UPGRADE_PRODUCT;
-            if (product && typeof checkout.startCheckout === 'function') {
-              checkout.startCheckout(
-                product as Parameters<typeof checkout.startCheckout>[0],
-              );
-            } else {
-              openProPricingPage();
-            }
-          }),
-        )
-        .catch(() => {
-          openProPricingPage();
-        });
-    });
-  } catch {
-    try {
-      openProPricingPage();
-    } catch {
-      /* swallow — non-browser env */
-    }
-  }
   // `source` is informational; analytics integration is App-level.
   // We deliberately don't pull in `@/services/analytics` here to avoid
   // a heavy import chain on the button factory.
   void source;
+  void import('@/services/clerk')
+    .then((clerk) => {
+      if (typeof clerk.openSignIn === 'function') clerk.openSignIn();
+    })
+    .catch(() => {
+      /* swallow — non-browser env */
+    });
 };
 
 /**
- * Test-only override for the upgrade-modal trigger. Pass `null` to
- * restore the production lazy-import path.
+ * Test-only override for the sign-in trigger. Pass `null` to restore the
+ * production lazy-import path.
  */
 export function _setUpgradeTriggerForTests(fn: UpgradeTrigger | null): void {
   _upgradeTrigger = fn ?? ((source) => {
     void source;
-    try {
-      openProPricingPage();
-    } catch {
-      /* swallow */
-    }
+    void import('@/services/clerk')
+      .then((clerk) => {
+        if (typeof clerk.openSignIn === 'function') clerk.openSignIn();
+      })
+      .catch(() => {
+        /* swallow — non-browser env */
+      });
   });
 }
 

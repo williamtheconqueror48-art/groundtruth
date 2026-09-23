@@ -13,7 +13,7 @@
  *   2. User interaction — `openSignIn`/`openSignUp`/`mountUserButton` force
  *      an immediate load on first call.
  *   3. Anything that needs a JWT — `getClerkToken()` forces an immediate
- *      load via `initClerk()` (the mcp-grant page also uses this directly).
+ *      load via `initClerk()`.
  *
  * `subscribeClerk()` queues callbacks issued before the SDK is loaded so
  * `subscribeAuthState()` keeps working across the deferred-load window —
@@ -260,7 +260,7 @@ function loadClerkUmd(publishableKey: string): Promise<void> {
 
 /**
  * Force Clerk to load now. Call when the SDK is required synchronously
- * (mcp-grant page bootstrap, getClerkToken on first authenticated request).
+ * (getClerkToken on first authenticated request).
  * Idempotent — repeated calls return the same in-flight promise.
  */
 export async function initClerk(): Promise<void> {
@@ -1049,15 +1049,12 @@ export function subscribeClerk(callback: () => void): () => void {
  * Returns an unmount function.
  */
 export interface UserButtonMenuActions {
-  onBillingClick?: () => void;
   onSettingsClick?: () => void;
 }
 
 type UserButtonProps = NonNullable<Parameters<ClerkInstance['mountUserButton']>[1]>;
 type CustomMenuItem = NonNullable<UserButtonProps['customMenuItems']>[number];
-type MenuIconKind = 'billing' | 'settings';
-
-function mountMenuIcon(el: HTMLDivElement, kind: MenuIconKind): void {
+function mountMenuIcon(el: HTMLDivElement): void {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '16');
   svg.setAttribute('height', '16');
@@ -1069,16 +1066,10 @@ function mountMenuIcon(el: HTMLDivElement, kind: MenuIconKind): void {
   svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('aria-hidden', 'true');
 
-  const paths = kind === 'billing'
-    ? [
-        'M3 6h18v12H3z',
-        'M3 10h18',
-        'M7 15h3',
-      ]
-    : [
-        'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
-        'M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z',
-      ];
+  const paths = [
+    'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
+    'M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z',
+  ];
   for (const d of paths) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', d);
@@ -1089,19 +1080,11 @@ function mountMenuIcon(el: HTMLDivElement, kind: MenuIconKind): void {
 
 export function createAccountMenuItems(actions: UserButtonMenuActions): CustomMenuItem[] {
   const items: CustomMenuItem[] = [];
-  if (actions.onBillingClick) {
-    items.push({
-      label: 'Plan & billing',
-      onClick: actions.onBillingClick,
-      mountIcon: (el) => mountMenuIcon(el, 'billing'),
-      unmountIcon: (el) => el?.replaceChildren(),
-    });
-  }
   if (actions.onSettingsClick) {
     items.push({
       label: 'Settings',
       onClick: actions.onSettingsClick,
-      mountIcon: (el) => mountMenuIcon(el, 'settings'),
+      mountIcon: (el) => mountMenuIcon(el),
       unmountIcon: (el) => el?.replaceChildren(),
     });
   }

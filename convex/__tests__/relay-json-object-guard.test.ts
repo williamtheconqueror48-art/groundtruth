@@ -11,11 +11,6 @@ const routes = [
   "/relay/notification-channels",
   "/relay/user-preferences",
   "/relay/followed-countries",
-  "/relay/entitlement",
-  "/relay/register-referral-code",
-  "/relay/create-checkout",
-  "/relay/customer-portal",
-  "/relay/bulk-suppress-emails",
 ];
 
 describe("relay JSON object body guard", () => {

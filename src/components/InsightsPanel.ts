@@ -18,7 +18,7 @@ import { t } from '@/services/i18n';
 import { isDesktopRuntime } from '@/services/runtime';
 import { getAiFlowSettings, isAnyAiProviderEnabled, subscribeAiFlowChange } from '@/services/ai-flow-settings';
 import { getActiveFrameworkForPanel, subscribeFrameworkChange } from '@/services/analysis-framework-store';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { FrameworkSelector } from './FrameworkSelector';
 import { fetchServerInsights, getServerInsights, type ServerInsights, type ServerInsightStory } from '@/services/insights-loader';
 import { computeISQ, type SignalQuality, type SignalQualityInput } from '@/utils/signal-quality';

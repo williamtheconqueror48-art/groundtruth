@@ -24,7 +24,7 @@ import { getCableHealthRecord } from '@/services/cable-health';
 import { nameToCountryCode } from '@/services/country-geometry';
 import { sparkline } from '@/utils/sparkline';
 import { getAuthState } from '@/services/auth-state';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { trackGateHit } from '@/services/analytics';
 import { renderPopupSourceLinks } from './map-popup-source-links';
 import { overlayHistory, type OverlayCloseOrigin, type OverlayOpenHandle } from '@/utils/overlay-history';

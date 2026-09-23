@@ -10,7 +10,6 @@ export {
   buildAuthHeaders,
   PRODUCTION_DEPS,
   resolveAuthContext,
-  runProPreChecks,
   wwwAuthHeader,
 } from './mcp/auth';
 export {

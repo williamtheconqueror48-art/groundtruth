@@ -8,7 +8,7 @@ import { formatChange, formatPrice, getChangeClass } from '@/utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { terminalChart } from '@/utils/terminal-chart';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import {
   tapeClaimForMarketSource,
   tapeClaimLabel,
@@ -16,7 +16,7 @@ import {
   type TapeClaim,
 } from '@/services/market-tape-claim';
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { MarketServiceClient } from '@/services/generated-rpc-clients';
 import {
   createMarketChartFocusController,

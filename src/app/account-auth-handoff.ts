@@ -3,16 +3,11 @@ export interface AccountAuthHandoffEffects {
   beginEntitlementVerification: () => void;
   resetEntitlementState: () => void;
   markEntitlementVerificationUnavailable: () => void;
-  destroySubscriptionWatch: () => void;
   rebindConvexAuthForWatchHandoff: (
     isCurrent: () => boolean,
     attachWatches: () => void,
   ) => Promise<boolean>;
   initEntitlementSubscription: (
-    userId: string,
-    isCurrent: () => boolean,
-  ) => void | Promise<void>;
-  initSubscriptionWatch: (
     userId: string,
     isCurrent: () => boolean,
   ) => void | Promise<void>;
@@ -40,13 +35,11 @@ export function startAccountAuthHandoff(input: {
   // emission as a terminal lookup failure.
   effects.beginEntitlementVerification();
   effects.resetEntitlementState();
-  effects.destroySubscriptionWatch();
 
   const handoff = effects.rebindConvexAuthForWatchHandoff(
     isCurrent,
     () => {
       void effects.initEntitlementSubscription(userId, isCurrent);
-      void effects.initSubscriptionWatch(userId, isCurrent);
     },
   );
   void effects.cloudPrefsSignIn(userId);

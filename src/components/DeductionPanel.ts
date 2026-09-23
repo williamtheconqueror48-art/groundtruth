@@ -1,6 +1,6 @@
 import { Panel } from './Panel';
 import { createLazyClient, getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { h, replaceChildren, setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { yieldToMain } from '@/utils/after-paint';
 import { marked } from 'marked';
@@ -8,7 +8,7 @@ import DOMPurify from 'dompurify';
 import type { NewsItem, DeductContextDetail } from '@/types';
 import { buildNewsContext } from '@/utils/news-context';
 import { getActiveFrameworkForPanel } from '@/services/analysis-framework-store';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { FrameworkSelector } from './FrameworkSelector';
 import { extractDeductionProbability } from './deduction-probability';
 import { IntelligenceServiceClient } from '@/services/generated-rpc-clients';

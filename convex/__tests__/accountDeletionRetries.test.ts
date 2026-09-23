@@ -1,7 +1,12 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { internal } from "../_generated/api";
-import { modules, schema } from "./companyMonitoring.helpers";
+import schema from "../schema";
+
+// GROUNDTRUTH (2026-09-23 strip): convex/__tests__/companyMonitoring.helpers.ts
+// was deleted with the commercial subsystem. These tests only ever used its
+// `modules`/`schema` re-exports, so define them locally.
+const modules = import.meta.glob("../**/*.ts");
 
 const { dodoUpdate } = vi.hoisted(() => ({
   dodoUpdate: vi.fn<(id: string, body: unknown) => Promise<unknown>>(),

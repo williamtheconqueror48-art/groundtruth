@@ -4,20 +4,20 @@
  * #4611 — cancelled / downgraded customers must NOT keep programmatic API
  * access via an un-revoked `wm_` key.
  *
- * The pre-existing `apiAccess` gate only fired on PREMIUM_RPC_PATHS, so an
- * expired key still served the whole keyed RPC surface (the API Starter product
- * leaked past churn). These tests assert the generalized gate added at
- * server/gateway.ts, scoped to `isUserApiKey` (the wm_ key is the authenticating
- * credential), which is the actual paid surface:
- *   - regular non-tier-gated keyed RPC and PREMIUM_RPC_PATHS: a wm_ key whose
- *     owner lacks ACTIVE apiAccess (downgraded or past validUntil) → 403,
- *     BEFORE the #3199 rate-limit block; active keys unaffected.
- *   - transient/unresolvable entitlement (getEntitlements null) → retryable
- *     fail-closed 503, so a verification timeout cannot grant paid access.
+ * GROUNDTRUTH single open tier: the commercial premise of this suite is gone.
+ * Entitlement coverage is always current
+ * (server/_shared/entitlement-coverage.ts) and `getEntitlements` synthesizes
+ * the open-tier snapshot, so expiry / lapse / missing-backend rows no longer
+ * deny. What remains pinned:
+ *   - unknown-key bounding before Convex validation (#4611's amplification guard)
+ *   - transient/unresolvable entitlement → retryable fail-closed 503, so a
+ *     verification timeout cannot grant paid access
  *   - PUBLIC_NO_AUTH_RPC_PATHS serve free data to everyone: the wm_ key is NOT
  *     re-validated there (no unauthenticated Convex-lookup amplification, no
  *     gating the anonymous lead forms) — served as anonymous.
  *   - enterprise operator keys (kind 'enterprise') are exempt.
+ *   - a resolved entitlement WITHOUT apiAccess still 403s (fail-closed on the
+ *     explicit flag).
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
@@ -302,11 +302,15 @@ describe("#4611 — expired wm_ key rejected on all route classes", () => {
     expect(checkRateLimit).not.toHaveBeenCalled();
   });
 
-  // --- apiAccess:true but validUntil in the past (lapsed) → 403 -------------
-  test("expired entitlement (apiAccess:true, validUntil < now) → 403", async () => {
+  // --- apiAccess:true but validUntil in the past (lapsed) → 200 ----------------
+  // GROUNDTRUTH single open tier: entitlement coverage is always current
+  // (server/_shared/entitlement-coverage.ts). A legacy commercial row with a
+  // past validUntil no longer revokes API access — every authenticated caller
+  // holds the open tier.
+  test("expired entitlement (apiAccess:true, validUntil < now) → 200 (open tier: coverage always current)", async () => {
     entitlement = { planKey: "api_starter", features: { tier: 2, apiAccess: true, apiRateLimit: 60 }, validUntil: Date.now() - 1_000 };
     const res = await makeGateway()(keyReq(REGULAR_PATH), ctx);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
   });
 
   test("renewal verification pending on a wm_ key returns retryable 503", async () => {
@@ -421,41 +425,33 @@ describe("#4611 — expired wm_ key rejected on all route classes", () => {
   });
 
   test.each(["CONVEX_SITE_URL", "CONVEX_SERVER_SHARED_SECRET"])(
-    "cached key with missing %s cannot reach the handler; restored access recovers",
+    "open tier: cached key with missing %s is still served; restored config keeps serving",
     async (missingConfig) => {
       process.env.CONVEX_SITE_URL = "https://fixture.invalid";
       process.env.CONVEX_SERVER_SHARED_SECRET = "fixture-only";
       delete process.env[missingConfig];
       const realKeys = await vi.importActual<typeof import("../_shared/user-api-key")>("../_shared/user-api-key");
-      const realEntitlements = await vi.importActual<typeof import("../_shared/entitlement-check")>("../_shared/entitlement-check");
+      const realEntitlements = await vi.importActual<typeof import("../_shared/entitlement-check")>(
+        "../_shared/entitlement-check",
+      );
       cachedUserKey.mockResolvedValue({ userId: "cached-key-config-test" });
       validateUserApiKey.mockImplementation(realKeys.validateUserApiKey as typeof validateUserApiKey);
       getEntitlements.mockImplementation(realEntitlements.getEntitlements as typeof getEntitlements);
       const key = `wm_${"a".repeat(40)}`;
+      // GROUNDTRUTH single open tier: entitlement resolution is local and needs
+      // no backend. A cache-hit key validates without Convex, and the open-tier
+      // snapshot grants access — missing backend config no longer fails closed.
       const res = await makeGateway()(keyReq(REGULAR_PATH, "GET", key), ctx);
       expect(cachedUserKey).toHaveBeenCalledTimes(1);
-      expect(res.status).toBe(503);
-      expect(await res.json()).toMatchObject({ code: "entitlement_verification_unavailable" });
-      expect(res.headers.get("Cache-Control")).toBe("no-store");
-      expect(res.headers.get("Retry-After")).toBe("5");
-      expect(res.headers.get("X-Billing-Verification")).toBe("entitlement_verification_unavailable");
-      expect(routeHandler).not.toHaveBeenCalled();
-      expect(checkRateLimit).not.toHaveBeenCalled();
-      expect(checkBurst).not.toHaveBeenCalled();
-      expect(reserveDailyMeter).not.toHaveBeenCalled();
-
-      // A cache miss still fails at key validation when configuration is absent.
-      cachedUserKey.mockImplementation(async (_key, _ttl, fetcher) => fetcher());
-      const miss = await makeGateway()(keyReq(REGULAR_PATH, "GET", key), ctx);
-      expect(miss.status).toBe(503);
-      expect(routeHandler).not.toHaveBeenCalled();
+      expect(res.status).toBe(200);
+      expect(routeHandler).toHaveBeenCalledTimes(1);
 
       process.env.CONVEX_SITE_URL = "https://fixture.invalid";
       process.env.CONVEX_SERVER_SHARED_SECRET = "fixture-only";
       cachedUserKey.mockResolvedValue({ userId: "cached-key-config-test" });
       getEntitlements.mockResolvedValue(ACTIVE);
       expect((await makeGateway()(keyReq(REGULAR_PATH, "GET", key), ctx)).status).toBe(200);
-      expect(routeHandler).toHaveBeenCalledTimes(1);
+      expect(routeHandler).toHaveBeenCalledTimes(2);
     },
   );
 
@@ -548,9 +544,12 @@ describe("#5379 + #4770 — entitlement resolution outcomes are pinned", () => {
     expect(routeHandler).not.toHaveBeenCalled();
   });
 
-  // ── CLOSED GAP, pinned so it cannot silently reopen ───────────────────────
+  // ── OPEN TIER: expiry shape no longer gates ─────────────────────────────────
+  // The `?? 0` expiry-default gap this suite once pinned is gone with the
+  // commercial tier: coverage is always current, so a row without a usable
+  // validUntil is served like any other authenticated caller.
 
-  test("apiAccess:true with a MISSING validUntil → 403 (expiry cannot be skipped)", async () => {
+  test("apiAccess:true with a MISSING validUntil → 200 (open tier: expiry cannot deny)", async () => {
     // Was a KNOWN GAP when this suite landed: `undefined < Date.now()` is false,
     // so a row claiming apiAccess but carrying no expiry was SERVED indefinitely
     // and re-resolving returns the same shape every time. Closed by defaulting
@@ -563,16 +562,16 @@ describe("#5379 + #4770 — entitlement resolution outcomes are pinned", () => {
     // but the Convex response is cast to CachedEntitlements with NO runtime shape
     // validation, so a malformed upstream payload reached this gate intact.
     //
-    // Deleting the `?? 0` turns this test red. That is the point — keep it.
+    // GROUNDTRUTH: the commercial tier is gone — coverage is always current and
+    // this shape is now served. The comment above is kept as history.
     getEntitlements.mockImplementation(
       async () => ({ planKey: "api_starter", features: { tier: 2, apiAccess: true, apiRateLimit: 60 } }) as never,
     );
     const res = await makeGateway()(keyReq(REGULAR_PATH), ctx);
-    expect(res.status).toBe(403);
-    expect(routeHandler).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
   });
 
-  test("apiAccess:true with a non-numeric validUntil is denied before dispatch", async () => {
+  test("apiAccess:true with a non-numeric validUntil is served (open tier: expiry cannot deny)", async () => {
     getEntitlements.mockImplementation(
       async () => ({
         planKey: "api_starter",
@@ -581,8 +580,7 @@ describe("#5379 + #4770 — entitlement resolution outcomes are pinned", () => {
       }) as never,
     );
     const res = await makeGateway()(keyReq(REGULAR_PATH), ctx);
-    expect(res.status).toBe(403);
-    expect(routeHandler).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
   });
 
   test("a THROWING getEntitlements propagates", async () => {

@@ -5,7 +5,7 @@ import { fetchHormuzTracker } from '@/services/hormuz-tracker';
 import type { HormuzTrackerData, HormuzChart, HormuzSeries } from '@/services/hormuz-tracker';
 import { fetchChokepointDependencies } from '@/services/supply-chain';
 import type { GetChokepointDependenciesResponse } from '@/services/supply-chain';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
 

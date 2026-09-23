@@ -1,7 +1,4 @@
-import { WEB_APP_ORIGIN } from '@/config/web-origin';
-import { openExternalUrl } from '@/services/external-navigation';
 import { escapeHtml } from '@/utils/sanitize';
-import { checkoutConsentHtml } from '@/utils/legal-links';
 import { renderSVG } from 'uqr';
 import {
   getChannelsData,
@@ -22,7 +19,6 @@ import {
   type DigestMode,
 } from '@/services/notification-channels';
 import { getCurrentClerkUser } from '@/services/clerk';
-import { hasTier } from '@/services/entitlements';
 import { t } from '@/services/i18n';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
 import { SITE_VARIANT } from '@/config/variant';
@@ -176,48 +172,22 @@ function getTelegramBotUsername(): string {
 }
 
 export function renderNotificationsSettings(host: NotificationsSettingsHost): NotificationsSettingsResult {
-  const isPro = !!host.isSignedIn && hasTier(1);
   const preselectCountry = normalizePreselectCountry(host.preselectCountry);
 
+  // GROUNDTRUTH single open tier (2026-09-23 strip): notifications are
+  // available to every signed-in user, so the content renders unlocked.
   let html = '';
-  if (isPro) {
-    html += `<div class="wm-pref-group-content wm-notif-tab-content">`;
-    html += `<div class="us-notif-loading" id="usNotifLoading">Loading...</div>`;
-    html += `<div class="us-notif-content" id="usNotifContent" style="display:none"></div>`;
-    html += `</div>`;
-  } else {
-    html += `<div class="wm-pref-group-content wm-notif-tab-content">`;
-    html += `<div class="ai-flow-toggle-desc">Get real-time intelligence alerts delivered to Telegram, Slack, Discord, and Email with configurable sensitivity, quiet hours, and digest scheduling.</div>`;
-    // Assent above the CTA (#6976) — this button starts checkout for a signed-in
-    // free user, so the Terms are presented before the jump to Dodo.
-    html += checkoutConsentHtml(WEB_APP_ORIGIN);
-    html += `<button type="button" class="panel-locked-cta" id="usNotifUpgradeBtn">Upgrade to Pro</button>`;
-    html += `</div>`;
-  }
+  html += `<div class="wm-pref-group-content wm-notif-tab-content">`;
+  html += `<div class="ai-flow-toggle-desc">Get real-time intelligence alerts delivered to Telegram, Slack, Discord, and Email with configurable sensitivity, quiet hours, and digest scheduling.</div>`;
+  html += `<div class="us-notif-loading" id="usNotifLoading">Loading...</div>`;
+  html += `<div class="us-notif-content" id="usNotifContent" style="display:none"></div>`;
+  html += `</div>`;
 
   return {
     html,
     attach(container: HTMLElement): () => void {
       const ac = new AbortController();
       const { signal } = ac;
-
-      if (!isPro) {
-        const upgradeBtn = container.querySelector<HTMLButtonElement>('#usNotifUpgradeBtn');
-        if (upgradeBtn) {
-          upgradeBtn.addEventListener('click', () => {
-            if (!host.isSignedIn) {
-              import('@/services/clerk').then(m => m.openSignIn()).catch(() => {
-                void openExternalUrl(`${WEB_APP_ORIGIN}/pro`);
-              });
-              return;
-            }
-            import('@/services/checkout').then(m => import('@/config/products').then(p => m.startCheckout(p.DEFAULT_UPGRADE_PRODUCT))).catch(() => {
-              void openExternalUrl(`${WEB_APP_ORIGIN}/pro`);
-            });
-          }, { signal });
-        }
-        return () => ac.abort();
-      }
 
       let notifPollInterval: ReturnType<typeof setInterval> | null = null;
 

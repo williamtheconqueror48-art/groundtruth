@@ -131,7 +131,7 @@ import { isProTierResolved } from '@/services/widget-store';
 import { renderLayerExplanationCard } from '@/utils/layer-explanation-card';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { trackGateHit } from '@/services/analytics';
 import { MapPopup, type PopupType } from './MapPopup';
 import { renderMilitaryVesselTooltipHtml } from './deckgl-tooltip-renderers';

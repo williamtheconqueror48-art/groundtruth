@@ -3,7 +3,7 @@ import type { ThreatLevel, EventCategory, ThreatClassification } from '@/types';
 
 import { getCSSColor } from '@/utils';
 import { getRpcBaseUrl, getRpcErrorStatusCode } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 
 /** @deprecated Use getThreatColor() instead for runtime CSS variable reads */
 export const THREAT_COLORS: Record<ThreatLevel, string> = {
@@ -79,7 +79,7 @@ import {
   configureClassifyGate,
   suppressAiClassification,
 } from '@/services/classify-gate';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 
 const classifyClient = new IntelligenceServiceClient(getRpcBaseUrl(), { fetch: premiumFetch });
 

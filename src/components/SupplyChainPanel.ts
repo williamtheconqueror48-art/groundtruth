@@ -16,7 +16,7 @@ import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { isFeatureAvailable } from '@/services/runtime-config';
 import { isDesktopRuntime } from '@/services/runtime';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { trackGateHit } from '@/services/analytics';
 import { runScenario, getScenarioStatus } from '@/services/scenario';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';

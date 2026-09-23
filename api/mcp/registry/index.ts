@@ -48,14 +48,16 @@ export function toolWeight(tool: ToolDef): number {
   return tool._execute === undefined ? 1 : 2;
 }
 
-/** Single access classifier used by tools/list, describe_tool, and resources. */
+/** Single access classifier used by tools/list, describe_tool, and resources.
+ * GROUNDTRUTH (2026-09-23 strip): single open tier — no 'subscription' class.
+ * Every tool is open to any authenticated caller; the 'free' label marks the
+ * anonymously-callable roster. */
 export function toolAccess(tool: ToolDef): McpAccessClass {
-  if (tool._subscriptionOnly) return 'subscription';
   if (tool._freeTier === true) return 'free';
   // Local metadata escape hatch: authenticated free accounts may call it and
   // dispatch exempts it from both the allowance and Pro daily quota.
   if (isQuotaExemptMetadataTool(tool)) return 'free-account';
-  return tool._execute === undefined ? 'free-account' : 'subscription';
+  return 'free';
 }
 
 // Public shape for tools/list — strips internal _-prefixed fields, adds MCP

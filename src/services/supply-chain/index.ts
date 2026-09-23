@@ -1,11 +1,11 @@
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import type { CargoType } from '@/config/bypass-corridors';
 import type { GetShippingRatesResponse, GetChokepointStatusResponse, GetChokepointHistoryResponse, GetCriticalMineralsResponse, GetMineralProductionResponse, GetShippingStressResponse, GetCountryChokepointIndexResponse, GetBypassOptionsResponse, GetCountryCostShockResponse, GetCountryProductsResponse, GetMultiSectorCostShockResponse, GetSectorDependencyResponse, GetRouteExplorerLaneResponse, GetRouteImpactResponse, GetCountryVulnerabilitiesResponse, GetChokepointDependenciesResponse, ListVulnerabilityRankingsResponse, ShippingIndex, ChokepointInfo, CriticalMineral, MineralProducer, ShippingRatePoint, ChokepointExposureEntry, BypassOption, TransitDayCount, CountryProduct, ProductExporter, MultiSectorCostShock, CommodityVulnerability, ChokepointDependency, VulnerabilityInput } from '@/generated/client/worldmonitor/supply_chain/v1/service_client';
 import { createCircuitBreaker } from '@/utils/circuit-breaker';
 import { getHydratedData } from '@/services/bootstrap';
 import { createHydrationHandoff } from '@/services/hydration-handoff';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { combineAbortSignals, createTimeoutSignal } from '@/services/timeout-signal';
 import { SupplyChainServiceClient } from '@/services/generated-rpc-clients';
 import {

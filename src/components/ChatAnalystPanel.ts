@@ -5,15 +5,15 @@ import DOMPurify from 'dompurify';
 import { postProcessAnalystHtml } from '@/utils/analyst-markdown';
 import { yieldToMain } from '@/utils/after-paint';
 import { LatestRequestGuard } from '@/utils/latest-request-guard';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { getAuthState } from '@/services/auth-state';
-import { readClientEntitlementBelief } from '@/services/panel-gating';
+import { readClientEntitlementBelief } from '@/services/open-tier';
 import {
   analystDenialMessage,
   isBillingVerificationDenial,
   PRO_VERIFICATION_RETRY_MESSAGE,
-} from '@/services/analyst-denial';
-import { classifyDenialResponse, type ClientEntitlementBelief } from '@/services/premium-denial';
+} from '@/services/open-tier';
+import { classifyDenialResponse, type ClientEntitlementBelief } from '@/services/open-tier';
 import { reportEntitlementDesync } from '@/services/entitlement-desync-telemetry';
 import { trackAnalystControlAction } from '@/services/analytics';
 import { h, replaceChildren, setTrustedHtml, trustedHtml, type TrustedHtml } from '@/utils/dom-utils';

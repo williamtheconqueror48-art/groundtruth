@@ -4,17 +4,12 @@ import {
   onEntitlementChange,
   onEntitlementVerificationChange,
 } from '@/services/entitlements';
-import { PanelGateReason, getPanelGateReason } from '@/services/panel-gating';
-import { loadStoredMissionPreset, onMissionPresetChange } from '@/services/mission-presets';
-import { trackProPreviewCta, trackProPreviewViewed } from '@/services/analytics';
+import { onMissionPresetChange } from '@/services/mission-presets';
 import { isProTierResolved } from '@/services/widget-store';
 import { getResilienceScore, type ResilienceDomain, type ResilienceScoreResponse } from '@/services/resilience';
 import { h, replaceChildren } from '@/utils/dom-utils';
-import { createCheckoutConsentElement } from '@/utils/legal-links';
-import { WEB_APP_ORIGIN } from '@/config/web-origin';
 import {
   type DimensionConfidence,
-  LOCKED_PREVIEW,
   RESILIENCE_VISUAL_LEVEL_COLORS,
   collectDimensionConfidences,
   formatBaselineStress,
@@ -59,8 +54,6 @@ export class ResilienceWidget {
   private unsubscribeEntitlement: (() => void) | null = null;
   private unsubscribeVerification: (() => void) | null = null;
   private unsubscribeMission: (() => void) | null = null;
-  private crisisPreviewObserver: IntersectionObserver | null = null;
-  private crisisPreviewFallbackTimer: number | null = null;
   private currentCountryCode: string | null = null;
   private currentData: ResilienceScoreResponse | null = null;
   private loading = false;
@@ -78,11 +71,8 @@ export class ResilienceWidget {
 
     // The entitlement snapshot lands on its own channel — production fires no
     // auth event when it arrives. Subscribing to auth alone meant the access
-    // verdict computed during the pre-snapshot window was never revisited, so
-    // a paying user did not merely see the wrong CTA for a moment, they kept
-    // it (WORLDMONITOR-NY). Billing/subscription is not a gate input here;
-    // this widget still uses getPanelGateReason, not the billing-aware
-    // refinement panel-layout.ts applies.
+    // GROUNDTRUTH (2026-09-23 strip): single open tier — no plan gate remains;
+    // the entitlement subscriptions below only trigger re-renders.
     this.unsubscribeEntitlement = onEntitlementChange(() => this.reactToAccessChange());
     // The terminal "no snapshot is coming" outcome arrives ONLY here — see
     // isAccessStillResolving. Without this subscription the widget would still
@@ -122,7 +112,7 @@ export class ResilienceWidget {
       return;
     }
 
-    if (this.authState.isPending || this.getGateReason() !== PanelGateReason.NONE) {
+    if (this.authState.isPending) {
       this.render();
       return;
     }
@@ -163,7 +153,6 @@ export class ResilienceWidget {
     this.unsubscribeVerification = null;
     this.unsubscribeMission?.();
     this.unsubscribeMission = null;
-    this.stopCrisisPreviewTracking();
   }
 
   /**
@@ -173,10 +162,11 @@ export class ResilienceWidget {
    * drift.
    */
   private reactToAccessChange(): void {
-    const gateReason = this.getGateReason();
     const loadedCountryCode = normalizeCountryCode(this.currentData?.countryCode);
     const needsRefresh = !this.currentData || (loadedCountryCode !== null && loadedCountryCode !== this.currentCountryCode);
-    if (gateReason === PanelGateReason.NONE && this.currentCountryCode && !this.loading && needsRefresh) {
+    // GROUNDTRUTH: single open tier — the gate always allows, so this is just
+    // a data-freshness check now.
+    if (this.currentCountryCode && !this.loading && needsRefresh) {
       void this.refresh();
       return;
     }
@@ -208,13 +198,8 @@ export class ResilienceWidget {
     return status === 'idle' || status === 'pending';
   }
 
-  private getGateReason(): PanelGateReason {
-    return getPanelGateReason(this.authState, true);
-  }
-
   private render(): void {
-    const gateReason = this.getGateReason();
-    const body = this.renderBody(gateReason);
+    const body = this.renderBody();
 
     replaceChildren(
       this.element,
@@ -234,33 +219,18 @@ export class ResilienceWidget {
       ),
       body,
     );
-    this.reconcileCrisisPreviewTracking();
   }
 
-  private renderBody(gateReason: PanelGateReason): HTMLElement {
+  private renderBody(): HTMLElement {
     if (!this.currentCountryCode) {
       return h('div', { className: 'cdp-card-body' }, this.makeEmpty('Resilience data loads when a country is selected.'));
     }
 
-    // `authState.isPending` covers only the Clerk half of "do we know this
-    // account's plan yet". For a signed-in user the Convex entitlement snapshot
-    // lands seconds AFTER Clerk resolves, and `getPanelGateReason` reads
-    // FREE_TIER for a paying subscriber for that whole window — so rendering the
-    // gate on auth alone showed "Upgrade to Pro" to Pro customers, who clicked
-    // it into a 409 ACTIVE_SUBSCRIPTION_EXISTS from /api/create-checkout
-    // (WORLDMONITOR-NY: 28 events / 15 accounts since April, breadcrumb
-    // `button.panel-locked-cta.resilience-widget__cta`). `isProTierResolved`
-    // is the repo's existing answer to exactly this ambiguity — it treats any
-    // "Pro" signal as definitive and only a *settled* absence as free.
-    // Same class as the 2026-04-17/18 panel-overlay incident fixed in
-    // panel-gating.ts and the renderPlanCheckingState guard in
-    // UnifiedSettings.ts; this is the third surface.
+    // Wait for auth/entitlement to settle before first render so the widget
+    // never flashes a stale state; the gate itself always allows under the
+    // single open tier.
     if (this.authState.isPending || this.isAccessStillResolving()) {
       return h('div', { className: 'cdp-card-body' }, this.makeLoading('Checking access…'));
-    }
-
-    if (gateReason !== PanelGateReason.NONE) {
-      return this.renderLocked(gateReason);
     }
 
     if (this.loading) {
@@ -276,106 +246,6 @@ export class ResilienceWidget {
     }
 
     return this.renderScoreCard(this.currentData);
-  }
-
-  // KTD7: crisis-desk's Release 1 preview IS this locked surface — it ships
-  // already, so its treated-mission work is instrumentation only. Events are
-  // scoped to the active mission so ordinary locked renders stay unattributed.
-  private crisisDeskPreviewViewedTracked = false;
-
-  private isCrisisDeskMissionActive(): boolean {
-    try {
-      return loadStoredMissionPreset()?.id === 'crisis-desk';
-    } catch {
-      return false;
-    }
-  }
-
-  private renderLocked(gateReason: PanelGateReason): HTMLElement {
-    const description = gateReason === PanelGateReason.ANONYMOUS
-      ? 'Sign in to unlock premium resilience scores.'
-      : 'Upgrade to Pro to unlock resilience scores.';
-    const cta = gateReason === PanelGateReason.ANONYMOUS ? 'Sign In' : 'Upgrade to Pro';
-
-    const preview = this.renderScoreCard(LOCKED_PREVIEW, true);
-    preview.classList.add('resilience-widget__preview');
-
-    const button = h('button', {
-      type: 'button',
-      className: 'panel-locked-cta resilience-widget__cta',
-      onclick: () => {
-        if (gateReason === PanelGateReason.ANONYMOUS) {
-          void import('@/services/clerk')
-            .then((module) => module.openSignIn())
-            .catch(() => this.showAuthUnavailable());
-          return;
-        }
-        const crisisDesk = this.isCrisisDeskMissionActive();
-        if (crisisDesk) trackProPreviewCta('crisis-desk', 'cii');
-        void this.openUpgradeFlow(crisisDesk).catch(() => {
-          window.open('https://worldmonitor.app/pro', '_blank', 'noopener,noreferrer');
-        });
-      },
-    }, cta) as HTMLButtonElement;
-
-    return h(
-      'div',
-      { className: 'cdp-card-body resilience-widget__locked' },
-      preview,
-      h('div', { className: 'panel-locked-desc resilience-widget__gate-desc' }, description),
-      // Assent above the CTA (#6976) — only on the upgrade branch. The
-      // ANONYMOUS branch opens Clerk sign-in, which carries its own Terms and
-      // Privacy links via the appearance layout options.
-      ...(gateReason === PanelGateReason.ANONYMOUS
-        ? []
-        : [createCheckoutConsentElement(WEB_APP_ORIGIN)]),
-      button,
-    );
-  }
-
-  private reconcileCrisisPreviewTracking(): void {
-    this.stopCrisisPreviewTracking();
-    if (this.crisisDeskPreviewViewedTracked || !this.isCrisisDeskMissionActive()) return;
-    if (!this.element.querySelector('.resilience-widget__locked')) return;
-
-    const recordView = (): void => {
-      if (this.crisisDeskPreviewViewedTracked) return;
-      if (!this.element.isConnected || !this.isCrisisDeskMissionActive()) return;
-      if (!this.element.querySelector('.resilience-widget__locked')) return;
-      this.crisisDeskPreviewViewedTracked = true;
-      this.stopCrisisPreviewTracking();
-      trackProPreviewViewed('crisis-desk', 'cii');
-    };
-
-    if (typeof IntersectionObserver === 'undefined') {
-      this.crisisPreviewFallbackTimer = window.setTimeout(recordView, 0);
-      return;
-    }
-
-    this.crisisPreviewObserver = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) recordView();
-    }, { threshold: 0.3 });
-    this.crisisPreviewObserver.observe(this.element);
-  }
-
-  private stopCrisisPreviewTracking(): void {
-    this.crisisPreviewObserver?.disconnect();
-    this.crisisPreviewObserver = null;
-    if (this.crisisPreviewFallbackTimer !== null) {
-      window.clearTimeout(this.crisisPreviewFallbackTimer);
-      this.crisisPreviewFallbackTimer = null;
-    }
-  }
-
-  private async showAuthUnavailable(): Promise<void> {
-    const message = 'Sign-in is temporarily unavailable. Please try again.';
-    try {
-      const { showCheckoutErrorToast } = await import('@/services/checkout-error-toast');
-      showCheckoutErrorToast(message);
-      return;
-    } catch {
-      window.alert(message);
-    }
   }
 
   private renderError(message: string): HTMLElement {
@@ -619,10 +489,4 @@ export class ResilienceWidget {
     return h('div', { className: 'cdp-empty' }, text);
   }
 
-  private async openUpgradeFlow(crisisDeskAttribution = false): Promise<void> {
-    const { openUpgradeCheckout } = await import('@/services/upgrade-flow');
-    await openUpgradeCheckout(
-      crisisDeskAttribution ? { missionId: 'crisis-desk', panelKey: 'cii' } : undefined,
-    );
-  }
 }

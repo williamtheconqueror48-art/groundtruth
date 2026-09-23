@@ -1,7 +1,7 @@
 import { normalizeStockSymbol } from '../../shared/stock-symbol';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import type { AnalyzeStockResponse } from '@/generated/client/worldmonitor/market/v1/service_client';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import { MarketServiceClient } from '@/services/generated-rpc-clients';
 
 export type StockAnalysisSnapshot = AnalyzeStockResponse;

@@ -1,5 +1,5 @@
 import { SITE_VARIANT } from '@/config/variant';
-import { VARIANT_META } from '@/config/variant-meta';
+import { SITE_META } from '@/config/site-meta';
 import { getCanonicalApiOrigin } from '@/services/runtime';
 
 interface StoryMeta {
@@ -11,7 +11,7 @@ interface StoryMeta {
   type: 'ciianalysis' | 'crisisalert' | 'dailybrief' | 'marketfocus';
 }
 
-const variantMeta = VARIANT_META[SITE_VARIANT] ?? VARIANT_META.full;
+const variantMeta = SITE_META;
 const CANONICAL_URL = variantMeta.url;
 const PUBLIC_ORIGIN = new URL(variantMeta.url).origin;
 const API_ORIGIN = getCanonicalApiOrigin();

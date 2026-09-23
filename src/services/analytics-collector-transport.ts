@@ -435,13 +435,13 @@ let collectorDispatchDepth = 0;
 export function configureCollectorTransport(options: {
   endpoint: string;
   isCriticalEvent: (name: string) => boolean;
-  onOutcome: (outcome: CollectorOutcome) => void;
+  onOutcome?: (outcome: CollectorOutcome) => void;
   healthEndpoint?: string;
   reportEnvironmentHealth?: CollectorHealthReporter;
 }): void {
   collectorEndpoint = options.endpoint;
   isCriticalEventName = options.isCriticalEvent;
-  onCollectorOutcome = options.onOutcome;
+  if (options.onOutcome) onCollectorOutcome = options.onOutcome;
   collectorHealthEndpoint = options.healthEndpoint ?? DEFAULT_COLLECTOR_HEALTH_ENDPOINT;
   collectorHealthReporter = options.reportEnvironmentHealth
     ?? ((report) => sendCollectorHealthReport(collectorHealthEndpoint, report));

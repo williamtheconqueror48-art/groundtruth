@@ -4,7 +4,7 @@ import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { describeFreshness } from '@/services/persistent-cache';
 import type { MarketImplicationCard, MarketImplicationsData, TransmissionNode } from '@/services/market-implications';
 import { FrameworkSelector } from './FrameworkSelector';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import { bindActivationKeys } from '@/utils/activation';
 
 function directionClass(dir: string): string {

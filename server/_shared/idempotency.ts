@@ -45,14 +45,11 @@ export const IDEMPOTENT_REPLAYED_HEADER = 'Idempotent-Replayed';
  * omits the Idempotency-Key parameter and the "invalid Idempotency-Key header" clause in
  * the 400 for these paths — cannot drift from what the runtime actually does.
  *
- * `import-monitored-company-batch` returns per-row outcomes (CREATED / REPLAYED /
- * CONFLICT / REJECTED / NO_OP). Replaying the whole response would freeze REJECTED and
- * NO_OP rows instead of recomputing them against current state, which is exactly the
- * tuple-level contract the import promises.
+ * Empty since the 2026-09-23 strip removed company-monitoring (the only exempt
+ * path). Kept as a named export so the runtime and OpenAPI injector keep a
+ * single source of truth if an exempt path is ever added again.
  */
-export const IDEMPOTENCY_EXEMPT_RPC_PATHS = new Set<string>([
-  '/api/company-monitoring/v1/import-monitored-company-batch',
-]);
+export const IDEMPOTENCY_EXEMPT_RPC_PATHS = new Set<string>([]);
 
 // Printable-ASCII, 1..255 chars — matches the `maxLength: 255` we publish in
 // the OpenAPI spec (scripts/openapi-inject-idempotency.mjs). UUIDs, ULIDs, and

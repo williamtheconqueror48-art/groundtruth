@@ -7,7 +7,7 @@ import {
 } from '@/config/webmcp';
 import type { GlobalTender, ListGlobalTendersResponse } from '@/generated/client/worldmonitor/economic/v1/service_client';
 import type { GlobalTenderFilters } from '@/services/global-tenders';
-import { PanelGateReason } from '@/services/panel-gating';
+import { PanelGateReason } from '@/services/open-tier';
 import { isMobileDevice } from '@/utils';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';

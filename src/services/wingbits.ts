@@ -13,7 +13,7 @@ import { dataFreshness } from './data-freshness';
 import { isFeatureAvailable } from './runtime-config';
 import type { AircraftDetails, WingbitsLiveFlight } from '@/generated/client/worldmonitor/military/v1/service_client';
 import { MilitaryServiceClient } from '@/services/generated-rpc-clients';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 
 export type { WingbitsLiveFlight };
 

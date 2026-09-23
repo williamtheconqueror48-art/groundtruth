@@ -1,7 +1,7 @@
 import { IntelligenceServiceClient } from '@/services/generated-rpc-clients';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import commodityRegistry from '../../scripts/shared/supply-vulnerability-commodities.json';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import type { DecisionBriefCapture, DecisionBriefSelection } from '@/types/decision-brief';
 
 const client = new IntelligenceServiceClient(getRpcBaseUrl(), { fetch: premiumFetch });

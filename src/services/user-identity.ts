@@ -1,29 +1,20 @@
 /**
  * Canonical user identity for the browser.
  *
- * Provides a single getUserId() that all payment/entitlement code should use
+ * Provides a single getUserId() that all entitlement code should use
  * instead of reading localStorage keys directly. Resolution order:
  *
  *   1. Clerk auth (via getCurrentClerkUser() — the initialized clerkInstance)
  *   2. Legacy wm-pro-key through the HttpOnly-session migration helper
  *   3. Stable anonymous ID (auto-generated, persisted in localStorage)
  *
- * This module is the "identity bridge" between checkout, billing,
- * entitlement subscriptions, and the auth provider.
+ * This module is the "identity bridge" between the open-tier entitlement
+ * subscription and the auth provider.
  *
  * KNOWN LIMITATION — Anonymous ID persistence:
- * Before Clerk auth is wired, purchases are keyed to a random UUID stored
- * in localStorage (`wm-anon-id`). This ID is lost if the user clears
- * storage, switches browsers/devices, or uses private browsing. Once lost,
- * there is no automatic way to reconnect the purchase to the user.
- *
- * Migration path: After Clerk auth lands, the client should call
- * `claimSubscription(anonId, claimToken)` (convex/payments/billing.ts) on
- * first authenticated session to reassign payment records from the anon ID
- * to the real Clerk user ID. The anon ID and server-issued claim token
- * should be read from localStorage before they are cleared.
- *
- * @see https://github.com/koala73/worldmonitor/issues/2078
+ * The anonymous ID (`wm-anon-id`) is lost if the user clears storage,
+ * switches browsers/devices, or uses private browsing. Once lost, there is
+ * no automatic way to reconnect it to the user.
  */
 
 import { getCurrentClerkUser } from './clerk';

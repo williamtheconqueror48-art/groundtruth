@@ -19,7 +19,6 @@ import {
 } from '../../server/_shared/entitlement-check';
 import { checkProMcpAccess } from '../../server/_shared/pro-mcp-gate';
 import type { BillingVerificationCode } from './billing-denial';
-import { mcpErrorFingerprint } from './error-fingerprint';
 import {
   buildInternalMcpHeaders,
   signInternalMcpRequest,
@@ -497,130 +496,9 @@ export async function resolveAuthContext(
  * the entitlement object in hand, so resolving it here spares the dispatcher a
  * second Convex round-trip.
  */
-export async function runProPreChecks(
-  context: Extract<McpAuthContext, { kind: 'pro' }>,
-  deps: McpHandlerDeps,
-  resourceMetadataUrl: string,
-  corsHeaders: Record<string, string>,
-  ctx?: { waitUntil: (p: Promise<unknown>) => void },
-  id: unknown = null,
-): Promise<McpPreCheckResult> {
-  // F12: Pro path is unusable without MCP_INTERNAL_HMAC_SECRET — every
-  // tool fetch will throw inside buildAuthHeaders. Surface the misconfig
-  // at auth-resolution time so operators see a single clear 503 rather
-  // than a confusing mid-tool-fetch -32603. Belt-and-suspenders with the
-  // U10 deploy gate; matches the runtime check in `buildAuthHeaders`.
-  if (!process.env.MCP_INTERNAL_HMAC_SECRET) {
-    captureSilentError(new Error('MCP_INTERNAL_HMAC_SECRET unset'), {
-      tags: { route: 'api/mcp', step: 'pro-secret-preflight' },
-      fingerprint: ['api/mcp', 'pro-secret-preflight', 'Error'],
-      ctx,
-    });
-    return { ok: false, response: new Response(
-      JSON.stringify({ jsonrpc: '2.0', id: id ?? null, error: { code: -32603, message: 'Service temporarily unavailable, retry in a moment.' } }),
-      { status: 503, headers: withMcpNoStore({ 'Content-Type': 'application/json', 'Retry-After': '5', ...corsHeaders }) },
-    ) };
-  }
-
-  const validation = await validateProMcpAuthorization(context, deps, resourceMetadataUrl, corsHeaders, ctx, id);
-  if (!validation.ok) return validation;
-
-  return checkMcpEntitlementGate(context.userId, deps, resourceMetadataUrl, corsHeaders, 'pro-entitlement-recheck', ctx, id);
-}
-
-/**
- * Re-check the durable Pro grant behind a bearer-derived context.
- *
- * Bearer parsing proves only that the signed token is structurally valid. The
- * authoritative mcpProTokens row can have been revoked since minting, so any
- * path that grants a credentialed per-user bucket must run this check first —
- * including always-free tools, which deliberately skip the entitlement and
- * daily-quota gates after the grant itself is validated.
- */
-export async function validateProMcpAuthorization(
-  context: Extract<McpAuthContext, { kind: 'pro' }>,
-  deps: McpHandlerDeps,
-  resourceMetadataUrl: string,
-  corsHeaders: Record<string, string>,
-  ctx?: { waitUntil: (p: Promise<unknown>) => void },
-  id: unknown = null,
-): Promise<McpPreCheckResult> {
-  // #4860: this await was the only unguarded step on the gated path — the
-  // wired helper never rejects today, but a rejection here previously escaped
-  // mcpHandler (no top-level catch) as a raw 500 with zero Sentry. Fail
-  // closed with the same retryable 503 shape as the bearer-resolve catch.
-  let validation: Awaited<ReturnType<typeof deps.validateProMcpToken>> = null;
-  try {
-    validation = await deps.validateProMcpToken(context.mcpTokenId);
-  } catch (err) {
-    // Explicit fingerprint: this capture shares the minified edge bundle's
-    // anonymous frames with every other `api/mcp` capture, so Sentry's default
-    // stack grouping merges it into the WORLDMONITOR-T8 catch-all. `threw`
-    // keeps the defect arm in its own group, separable from the fail-soft
-    // `transient` arm below — see api/mcp/error-fingerprint.ts.
-    captureSilentError(err, {
-      tags: { route: 'api/mcp', step: 'pro-token-validate' },
-      fingerprint: mcpErrorFingerprint('pro-token-validate', 'threw', err),
-      ctx,
-    });
-    return { ok: false, response: new Response(
-      JSON.stringify({ jsonrpc: '2.0', id: id ?? null, error: { code: -32603, message: 'Service temporarily unavailable, retry in a moment.' } }),
-      { status: 503, headers: withMcpNoStore({ 'Content-Type': 'application/json', 'Retry-After': '5', ...corsHeaders }) },
-    ) };
-  }
-  if (validation && 'ok' in validation && validation.ok === 'transient') {
-    // `transient` is the validator's own fail-soft verdict — a Convex 5xx,
-    // network error, timeout, or malformed body (see `ProMcpValidateUnion`).
-    // The caller already gets a retryable 503 + `Retry-After`, so the request
-    // is degraded, not defective, and the same union's other consumer
-    // (api/oauth/token.ts) treats it as routine enough to capture nothing at
-    // all. Capture at `warning` so a sustained Convex outage still escalates by
-    // volume without routine blips paging on-call at `error` (WORLDMONITOR-ZR:
-    // 6 events / 5 releases / 17 days, all isolated). Mirrors the
-    // SERVICE_UNAVAILABLE precedent in api/user-prefs.ts and the identical call
-    // in api/_rate-limit.js.
-    //
-    // A missing CONVEX_SITE_URL / CONVEX_SERVER_SHARED_SECRET also lands here
-    // (getConvexEnv() → null). That is deliberately NOT split out: the same
-    // misconfiguration breaks every other Convex-backed surface — checkout, the
-    // gateway, entitlements, briefs — which alarm far louder than this gate.
-    //
-    // The `catch` above stays at `error`: a THROWN validator is an unexpected
-    // defect, not this fail-soft path.
-    //
-    // The explicit fingerprint is what makes "escalates by volume" true. These
-    // frames are the minified edge bundle's anonymous `(vc/edge/function`, so
-    // default stack grouping merged this capture into the T8 catch-all
-    // alongside unrelated tool-execution 4xx — WORLDMONITOR-ZR and T8 held the
-    // SAME message concurrently, and ZR read as drained while the condition was
-    // still firing into T8.
-    const transientError = new Error('Pro MCP token validation temporarily unavailable');
-    captureSilentError(transientError, {
-      tags: { route: 'api/mcp', step: 'pro-token-validate' },
-      fingerprint: mcpErrorFingerprint('pro-token-validate', 'transient', transientError),
-      level: 'warning',
-      ctx,
-    });
-    return { ok: false, response: new Response(
-      JSON.stringify({ jsonrpc: '2.0', id: id ?? null, error: { code: -32603, message: 'Service temporarily unavailable, retry in a moment.' } }),
-      { status: 503, headers: withMcpNoStore({ 'Content-Type': 'application/json', 'Retry-After': '5', ...corsHeaders }) },
-    ) };
-  }
-  const validationUserId = validation && 'ok' in validation
-    ? (validation.ok === 'valid' ? validation.userId : null)
-    : validation?.userId ?? null;
-  if (!validationUserId || validationUserId !== context.userId) {
-    return {
-      ok: false,
-      response: mcpStructuredDenialResponse('no-account', resourceMetadataUrl, corsHeaders, id, {
-        wwwAuthError: 'invalid_token',
-        message: 'MCP authorization revoked. Re-authorize at https://worldmonitor.app/mcp-grant.',
-      }),
-    };
-  }
-  return { ok: true };
-}
-
+// GROUNDTRUTH (2026-09-23 strip): runProPreChecks / validateProMcpAuthorization
+// removed — the Pro grant flow is gone. The single open tier needs no per-grant
+// re-validation; a structurally valid bearer is accepted as-is.
 /**
  * Shared mcpAccess entitlement gate for identity-resolved contexts (pro AND
  * user_key). Fail-closed per memory `entitlement-signal-server-outlier-sweep`.
@@ -790,8 +668,10 @@ export async function runContextPreChecks(
   ctx?: { waitUntil: (p: Promise<unknown>) => void },
   id: unknown = null,
 ): Promise<McpPreCheckResult> {
+  // GROUNDTRUTH: single open tier. `pro` contexts are ordinary authenticated
+  // callers now — no grant re-validation, no entitlement gate.
   if (context.kind === 'pro') {
-    return runProPreChecks(context, deps, resourceMetadataUrl, corsHeaders, ctx, id);
+    return { ok: true };
   }
   if (context.kind === 'user_key') {
     return runUserKeyPreChecks(context, deps, resourceMetadataUrl, corsHeaders, ctx, id);

@@ -1,5 +1,5 @@
 import { loadFromStorage, saveToStorage } from '@/utils';
-import { hasPremiumAccess } from './panel-gating';
+import { hasPremiumAccess } from './open-tier';
 
 const LIBRARY_KEY = 'wm-analysis-frameworks';
 const PANEL_KEY = 'wm-panel-frameworks';

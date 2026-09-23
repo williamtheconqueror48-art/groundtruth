@@ -9,7 +9,7 @@ import {
   type CorrelationSnapshotState,
 } from '@/services/correlation-snapshots';
 import { describeFreshness } from '@/services/persistent-cache';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 
 // Score-badge BACKGROUND colors. Badge text color is chosen per-background via
 // readableTextColor() so it clears WCAG AA on each: white on the dark `low`

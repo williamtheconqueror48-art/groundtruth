@@ -1,8 +1,8 @@
 /**
- * Every variant a user can switch to. One desktop binary ships and switches
- * between all of these in-app (#5908), so this list is also the set
- * `/api/download` accepts — `tests/desktop-one-binary-model.test.mjs` fails if
- * the two drift apart.
+ * GROUNDTRUTH (2026-09-23 strip): single app. The variant system was removed —
+ * SITE_VARIANT is always 'full'. The list/type below are kept only because
+ * Tier-2 variant panel catalogs still iterate them; they will be collapsed
+ * in the Tier 2 strip.
  */
 export const SITE_VARIANTS = ['full', 'tech', 'finance', 'happy', 'commodity', 'energy'] as const;
 
@@ -12,47 +12,5 @@ export function isSiteVariant(value: string | null | undefined): value is SiteVa
   return typeof value === 'string' && (SITE_VARIANTS as readonly string[]).includes(value);
 }
 
-const buildVariant = (() => {
-  try {
-    return import.meta.env.VITE_VARIANT || 'full';
-  } catch {
-    return 'full';
-  }
-})();
-
-function loadStoredVariant(): string | null {
-  try {
-    return localStorage.getItem('worldmonitor-variant');
-  } catch {
-    return null;
-  }
-}
-
-export const SITE_VARIANT: string = (() => {
-  if (typeof window === 'undefined') return buildVariant;
-
-  const isTauri = '__TAURI_INTERNALS__' in window || '__TAURI__' in window;
-  if (isTauri) {
-    const stored = loadStoredVariant();
-    if (isSiteVariant(stored)) return stored;
-    return buildVariant;
-  }
-
-  // window.location, not bare `location`: node-based tests stub `window`
-  // without a global `location`, and this module must stay importable there.
-  const h = window.location?.hostname;
-  if (!h) return buildVariant;
-  if (h.startsWith('tech.')) return 'tech';
-  if (h.startsWith('finance.')) return 'finance';
-  if (h.startsWith('happy.')) return 'happy';
-  if (h.startsWith('commodity.')) return 'commodity';
-  if (h.startsWith('energy.')) return 'energy';
-
-  if (h === 'localhost' || h === '127.0.0.1') {
-    const stored = loadStoredVariant();
-    if (isSiteVariant(stored)) return stored;
-    return buildVariant;
-  }
-
-  return 'full';
-})();
+/** @deprecated Single-app build: always 'full'. */
+export const SITE_VARIANT: string = 'full';

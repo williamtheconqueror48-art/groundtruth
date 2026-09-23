@@ -18,7 +18,7 @@ import type { SummarizeArticleResponse } from '@/generated/client/worldmonitor/n
 import { createCircuitBreaker } from '@/utils';
 import { buildSummaryCacheKey } from '@/utils/summary-cache-key';
 import { NewsServiceClient } from '@/services/generated-rpc-clients';
-import { premiumFetch } from '@/services/premium-fetch';
+import { premiumFetch } from '@/services/open-tier';
 import {
   canAttemptServerSummarization,
   configureSummarizeGate,
@@ -27,7 +27,7 @@ import {
   suppressServerSummarization,
   suppressServerSummarizationFor,
 } from '@/services/summarize-gate';
-import { hasPremiumAccess } from '@/services/panel-gating';
+import { hasPremiumAccess } from '@/services/open-tier';
 import {
   createSummarizationAttemptState,
   logChainOutcome,

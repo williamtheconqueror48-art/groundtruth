@@ -104,26 +104,8 @@ export const STATIC_ROUTE_MANIFEST = Object.freeze([
   route(`${SITE_ORIGIN}/llms.txt`, 'machine-readable-developer', ['public/llms.txt']),
   route(`${SITE_ORIGIN}/llms-full.txt`, 'machine-readable-developer', ['public/llms-full.txt']),
   route(`${SITE_ORIGIN}/api/llms.txt`, 'machine-readable-developer', ['public/api/llms.txt']),
-  route('https://tech.worldmonitor.app/dashboard', 'dashboard-variant', [
-    ...DASHBOARD_MATERIAL_SOURCES,
-    'src/config/variants/tech.ts',
-  ]),
-  route('https://finance.worldmonitor.app/dashboard', 'dashboard-variant', [
-    ...DASHBOARD_MATERIAL_SOURCES,
-    'src/config/variants/finance.ts',
-  ]),
-  route('https://commodity.worldmonitor.app/dashboard', 'dashboard-variant', [
-    ...DASHBOARD_MATERIAL_SOURCES,
-    'src/config/variants/commodity.ts',
-  ]),
-  route('https://happy.worldmonitor.app/dashboard', 'dashboard-variant', [
-    ...DASHBOARD_MATERIAL_SOURCES,
-    'src/config/variants/happy.ts',
-  ]),
-  route('https://energy.worldmonitor.app/dashboard', 'dashboard-variant', [
-    ...DASHBOARD_MATERIAL_SOURCES,
-    'src/config/variants/energy.ts',
-  ]),
+  // GROUNDTRUTH: variant-subdomain sitemap routes removed with the multi-variant
+  // system (2026-09-23 strip). The main /dashboard route above is the only one.
 ]);
 
 const STATIC_LOCATIONS = new Set(STATIC_ROUTE_MANIFEST.map((entry) => entry.loc));
