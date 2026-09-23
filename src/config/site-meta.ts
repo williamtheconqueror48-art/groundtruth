@@ -20,16 +20,16 @@ export interface SiteMeta {
 }
 
 export const SITE_META: SiteMeta = {
-  title: 'World Monitor - Real-Time Global Intelligence Dashboard',
+  title: 'GROUNDTRUTH — Evidence-First Global Incident Tracker',
   description:
-    'Real-time global intelligence: conflicts, markets, military, OSINT signals — live in 190+ countries; structural resilience ranked for 170, in one view.',
+    'Evidence-first global incident tracking: seismic, aviation, maritime, conflict and infrastructure signals — every record sourced, every claim tiered, nothing AI-synthesized.',
   keywords:
-    'AI intelligence, AI-powered dashboard, global intelligence, geopolitical dashboard, world news, market data, military bases, nuclear facilities, undersea cables, conflict zones, real-time monitoring, situation awareness, OSINT, flight tracking, AIS ships, earthquake monitor, protest tracker, power outages, oil prices, government spending, polymarket predictions',
+    'evidence-based OSINT, global incident tracker, earthquake monitor, flight tracking, AIS ships, conflict monitoring, provenance, claim verification, open source intelligence',
   url: 'https://www.worldmonitor.app/dashboard',
-  siteName: 'World Monitor',
-  shortName: 'World Monitor',
-  subject: 'AI-Powered Global Intelligence and Situation Awareness',
-  classification: 'AI Intelligence Dashboard, OSINT Tool, News Aggregator',
+  siteName: 'GROUNDTRUTH',
+  shortName: 'GROUNDTRUTH',
+  subject: 'Evidence-First Global Incident Tracking',
+  classification: 'Evidence-First Incident Tracker, OSINT Tool',
   categories: ['news', 'productivity'],
   features: [
     'Real-time news aggregation',

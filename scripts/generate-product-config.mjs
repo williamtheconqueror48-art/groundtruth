@@ -19,8 +19,21 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-// Dynamic import so tsx handles the TS transpilation
-const { PRODUCT_CATALOG, SHARED_API_BUDGET } = await import('../convex/config/productCatalog.ts');
+// Dynamic import so tsx handles the TS transpilation.
+// GROUNDTRUTH (2026-09-24): commercial tier stripped — convex/config/productCatalog.ts
+// no longer exists. Without a catalog there is nothing to generate; exit cleanly
+// instead of failing the build.
+let PRODUCT_CATALOG;
+let SHARED_API_BUDGET;
+try {
+  ({ PRODUCT_CATALOG, SHARED_API_BUDGET } = await import('../convex/config/productCatalog.ts'));
+} catch (err) {
+  if (err && (err.code === 'ERR_MODULE_NOT_FOUND' || /productCatalog/.test(String(err.message)))) {
+    console.log('  · product catalog absent (GROUNDTRUTH commercial strip) — skipping product config generation');
+    process.exit(0);
+  }
+  throw err;
+}
 
 /**
  * Public projection of a plan's limits.

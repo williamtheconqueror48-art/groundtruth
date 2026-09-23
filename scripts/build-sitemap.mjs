@@ -71,7 +71,6 @@ export const STATIC_ROUTE_MANIFEST = Object.freeze([
     'pro-test/src/welcome',
     'pro-test/src/index.css',
     'pro-test/src/generated',
-    'src/config/products.ts',
   ]),
   route(`${SITE_ORIGIN}/dashboard`, 'dashboard', [
     ...DASHBOARD_MATERIAL_SOURCES,
@@ -85,7 +84,6 @@ export const STATIC_ROUTE_MANIFEST = Object.freeze([
     'pro-test/src/i18n.ts',
     'pro-test/src/index.css',
     'pro-test/src/locales',
-    'src/config/products.ts',
   ]),
   route('https://worldmonitor.app/mcp', 'mcp', [
     'api/mcp.ts',

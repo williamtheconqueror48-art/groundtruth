@@ -1,9 +1,9 @@
 {
   "shell": {
-    "documentTitle": "World Monitor — Real-Time Global Intelligence Dashboard",
-    "metaDescription": "Real-time global intelligence platform. Featured in WIRED. Used by 2M+ people across 190 countries. Conflicts, markets, military, OSINT in one view.",
+    "documentTitle": "GROUNDTRUTH — Evidence-First Global Incident Tracker",
+    "metaDescription": "GROUNDTRUTH — evidence-first global incident tracking. Every claim tiered, every record sourced and hash-stamped; correlation is never presented as proof.",
     "offlineTitle": "You're Offline",
-    "offlineMessage": "World Monitor requires an internet connection for real-time intelligence data.",
+    "offlineMessage": "GROUNDTRUTH requires an internet connection for live sensor data.",
     "offlineRetry": "Retry"
   },
   "widgets": {
@@ -780,7 +780,7 @@
         "some": "Some features need API keys"
       },
       "reserveEarlyAccess": "Reserve Your Early Access",
-      "skipSetup": "Skip the setup — a single World Monitor license unlocks everything. Join the waitlist for early access.",
+      "skipSetup": "Skip the setup — GROUNDTRUTH is free and open source. No license needed.",
       "summary": {
         "desktop": "Desktop mode",
         "web": "Web mode (read-only, server-managed credentials)",
@@ -811,7 +811,7 @@
       }
     },
     "settingsWindow": {
-      "shellTitle": "World Monitor Settings",
+      "shellTitle": "GROUNDTRUTH Settings",
       "shellSearchPlaceholder": "Search settings...",
       "shellCancel": "Cancel",
       "shellSaveClose": "Save & Close",
@@ -3624,11 +3624,11 @@
   },
   "premium": {
     "pro": "PRO",
-    "lockedDesc": "Requires a World Monitor license key",
+    "lockedDesc": "This panel is locked in the open-source build.",
     "signInToUnlock": "Sign in to unlock premium features",
     "signIn": "Sign In to Unlock",
-    "upgradeDesc": "Upgrade to Pro for full access to premium analytics",
-    "upgradeToPro": "Upgrade to Pro",
+    "upgradeDesc": "Not available in the open-source build.",
+    "upgradeToPro": "Open-source build",
     "features": {
       "orefSirens1": "Real-time Israel missile & rocket alerts",
       "orefSirens2": "Siren zone mapping with threat classification",

@@ -123,3 +123,37 @@ four agent skills. Collapses mission presets to single-variant semantics.
 - Root `LICENSE` byte-identical.
 - `src/generated/` untouched.
 - `AUDIT.md` remains untracked and uncommitted.
+
+## Phase 3 — rebrand + evidence v1 + build repair (2026-09-24)
+
+Branch: `feature/rebrand-evidence-v1`.
+
+- Rebranded visible surfaces World Monitor → GROUNDTRUTH (package name, HTML
+  title, site meta, panel chrome, locales, not-found copy, new brutalist skin
+  and GT favicon). Upstream attribution and original author credit preserved;
+  root AGPL license byte-identical; CLI/SDK MIT licenses untouched.
+- Added the dependency-free evidence layer (`shared/evidence/`): tiered claims,
+  SHA-256 source stamping via WebCrypto, record integrity hashes, a USGS
+  earthquake adapter, and two registered panels (`evidence`,
+  `evidence-timeline`).
+- Repaired `npm run build` against Phase 1/2 deletions: regenerated the
+  source-attribution manifest (62 retired hosts), catalog-domain overrides for
+  4 orphaned providers, blog-deletion tolerance in the corpus/internal-links
+  scripts, dead related-reading links removed, sitemap material sources fixed,
+  and 8 stripped services + the deleted `mcp-grant.html` entry removed from
+  `vite.config.ts`. Build now exits 0.
+
+### Checks
+
+- `npm run build` → pass (exit 0)
+- `npm run typecheck` → pass
+- `npm run lint:boundaries` → pass
+- `git diff --check` → clean
+- `tests/panel-config-guardrails.test.mjs` → 23/23 pass
+- `tests/groundtruth-evidence-layer.test.mts` → 11/11 pass
+
+### Protections verified
+
+- Root `LICENSE` byte-identical.
+- `cli/` + `sdk/*/` MIT licenses untouched.
+- `AUDIT.md` remains untracked and uncommitted.

@@ -295,9 +295,6 @@
       "references": [
         {
           "path": "scripts/seed-gas-storage-countries.mjs"
-        },
-        {
-          "path": "scripts/seed-gie-gas-storage.mjs"
         }
       ]
     },
@@ -486,15 +483,10 @@
       "host": "api.alternative.me",
       "provider": "Alternative.me Fear & Greed Index",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Alternative.me API terms; attribution and redistribution require review",
       "attribution": "Alternative.me Crypto Fear & Greed Index; link to the API response and methodology.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-economy.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.aviationstack.com",
@@ -624,9 +616,6 @@
         },
         {
           "path": "scripts/ais-relay.cjs"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/_shared.ts"
         }
       ]
     },
@@ -655,9 +644,6 @@
       "references": [
         {
           "path": "scripts/backfill-fuel-prices-prev.mjs"
-        },
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
         }
       ]
     },
@@ -679,15 +665,10 @@
       "host": "api.e-stat.go.jp",
       "provider": "api.e-stat.go.jp",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.e-stat.go.jp and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-world-cpi-estat.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.eia.gov",
@@ -702,16 +683,10 @@
           "path": "scripts/backfill-fuel-prices-prev.mjs"
         },
         {
-          "path": "scripts/seed-economy.mjs"
-        },
-        {
           "path": "scripts/seed-eia-petroleum.mjs"
         },
         {
           "path": "scripts/seed-electricity-prices.mjs"
-        },
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
         }
       ]
     },
@@ -726,9 +701,6 @@
       "references": [
         {
           "path": "scripts/_forecast-market-settlements.mjs"
-        },
-        {
-          "path": "scripts/seed-prediction-markets.mjs"
         }
       ]
     },
@@ -748,13 +720,7 @@
           "path": "scripts/lib/company-monitoring-exa.mjs"
         },
         {
-          "path": "scripts/seed-bigmac.mjs"
-        },
-        {
-          "path": "scripts/seed-grocery-basket.mjs"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/stock-news-search.ts"
+          "path": "server/worldmonitor/intelligence/v1/_stock-news-search.ts"
         }
       ]
     },
@@ -776,32 +742,19 @@
       "host": "api.firecrawl.dev",
       "provider": "Firecrawl",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Firecrawl API terms",
       "attribution": "Firecrawl; link to the retrieved source page.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-grocery-basket.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.fiscaldata.treasury.gov",
       "provider": "api.fiscaldata.treasury.gov",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.fiscaldata.treasury.gov and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-national-debt.mjs"
-        },
-        {
-          "path": "scripts/seed-supply-chain-trade.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.gdeltproject.org",
@@ -850,29 +803,19 @@
       "host": "api.groq.com",
       "provider": "api.groq.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Excluded: first-party, control-plane, UI, or rendering transport",
       "attribution": "Excluded from the external-provider count: not an ingested upstream dataset.",
-      "status": "excluded",
-      "references": [
-        {
-          "path": "shared/llm-health-providers.js"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.hyperliquid.xyz",
       "provider": "Hyperliquid",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Hyperliquid API terms",
       "attribution": "Hyperliquid; link to the relevant market/API response.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-hyperliquid-flow.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.iea.org",
@@ -916,12 +859,6 @@
       "references": [
         {
           "path": "scripts/_seed-utils.mjs"
-        },
-        {
-          "path": "scripts/seed-gold-cb-reserves.mjs"
-        },
-        {
-          "path": "scripts/seed-world-cpi-imf.mjs"
         }
       ]
     },
@@ -1072,15 +1009,10 @@
       "host": "api.riksbank.se",
       "provider": "api.riksbank.se",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.riksbank.se and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-se.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.safecast.org",
@@ -1100,15 +1032,10 @@
       "host": "api.sam.gov",
       "provider": "api.sam.gov",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.sam.gov and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.scrapecreators.com",
@@ -1137,7 +1064,7 @@
           "path": "scripts/ais-relay.cjs"
         },
         {
-          "path": "server/worldmonitor/market/v1/stock-news-search.ts"
+          "path": "server/worldmonitor/intelligence/v1/_stock-news-search.ts"
         }
       ]
     },
@@ -1145,63 +1072,37 @@
       "host": "api.spdrgoldshares.com",
       "provider": "api.spdrgoldshares.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.spdrgoldshares.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-gold-etf-flows.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.statistiken.bundesbank.de",
       "provider": "api.statistiken.bundesbank.de",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.statistiken.bundesbank.de and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-de.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.stlouisfed.org",
       "provider": "api.stlouisfed.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.stlouisfed.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-economic-calendar.mjs"
-        },
-        {
-          "path": "scripts/seed-us-cpi.mjs"
-        },
-        {
-          "path": "scripts/seed-us-interest-rates.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.ted.europa.eu",
       "provider": "api.ted.europa.eu",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.ted.europa.eu and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.telegram.org",
@@ -1287,9 +1188,6 @@
       "references": [
         {
           "path": "scripts/ais-relay.cjs"
-        },
-        {
-          "path": "scripts/seed-usa-spending.mjs"
         }
       ]
     },
@@ -1385,9 +1283,6 @@
           "path": "scripts/ais-relay.cjs"
         },
         {
-          "path": "scripts/seed-bis-lbs.mjs"
-        },
-        {
           "path": "scripts/seed-education-attainment.mjs"
         },
         {
@@ -1409,15 +1304,6 @@
           "path": "scripts/seed-sovereign-wealth.mjs"
         },
         {
-          "path": "scripts/seed-wb-external-debt.mjs"
-        },
-        {
-          "path": "scripts/seed-wb-indicators.mjs"
-        },
-        {
-          "path": "server/worldmonitor/economic/v1/list-world-bank-indicators.ts"
-        },
-        {
           "path": "server/worldmonitor/resilience/v1/_dimension-scorers.ts"
         },
         {
@@ -1436,9 +1322,6 @@
       "references": [
         {
           "path": "api/a2a.ts"
-        },
-        {
-          "path": "api/internal/mcp-grant-mint.ts"
         },
         {
           "path": "api/mcp/downstream.ts"
@@ -1498,9 +1381,6 @@
           "path": "src/app/desktop-updater.ts"
         },
         {
-          "path": "src/mcp-grant-main.ts"
-        },
-        {
           "path": "src/services/runtime.ts"
         }
       ]
@@ -1509,18 +1389,10 @@
       "host": "api.wto.org",
       "provider": "api.wto.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit api.wto.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-supply-chain-trade.mjs"
-        },
-        {
-          "path": "server/worldmonitor/trade/v1/_shared.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "api.x.com",
@@ -2035,15 +1907,10 @@
       "host": "bothsidesofthetable.com",
       "provider": "bothsidesofthetable.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit bothsidesofthetable.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "breakingdefense.com",
@@ -2125,15 +1992,10 @@
       "host": "canadabuys.canada.ca",
       "provider": "canadabuys.canada.ca",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit canadabuys.canada.ca and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "carnegieendowment.org",
@@ -2316,7 +2178,7 @@
     {
       "host": "changelog.com",
       "provider": "changelog.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit changelog.com and link to the original feed publisher.",
@@ -2327,9 +2189,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -2531,7 +2390,7 @@
     {
       "host": "cointelegraph.com",
       "provider": "cointelegraph.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit cointelegraph.com and link to the original feed publisher.",
@@ -2542,9 +2401,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
         }
       ]
     },
@@ -2579,9 +2435,6 @@
       "references": [
         {
           "path": "src/app/panel-layout.ts"
-        },
-        {
-          "path": "src/config/variant-meta.ts"
         }
       ]
     },
@@ -2595,9 +2448,6 @@
       "status": "terms-review",
       "references": [
         {
-          "path": "scripts/seed-comtrade-bilateral-hs4.mjs"
-        },
-        {
           "path": "scripts/seed-recovery-import-hhi.mjs"
         },
         {
@@ -2605,12 +2455,6 @@
         },
         {
           "path": "scripts/seed-supply-vulnerability.mjs"
-        },
-        {
-          "path": "scripts/seed-trade-flows.mjs"
-        },
-        {
-          "path": "server/worldmonitor/supply-chain/v1/_bilateral-hs4-lazy.ts"
         }
       ]
     },
@@ -2649,15 +2493,10 @@
       "host": "contxto.com",
       "provider": "contxto.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit contxto.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "correctiv.org",
@@ -2779,15 +2618,10 @@
       "host": "customer.dodopayments.com",
       "provider": "customer.dodopayments.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Excluded: first-party, control-plane, UI, or rendering transport",
       "attribution": "Excluded from the external-provider count: not an ingested upstream dataset.",
-      "status": "excluded",
-      "references": [
-        {
-          "path": "src/services/billing.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "dai2.xumo.com",
@@ -2833,35 +2667,19 @@
       "host": "data-api.ecb.europa.eu",
       "provider": "data-api.ecb.europa.eu",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit data-api.ecb.europa.eu and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-ecb-fx-rates.mjs"
-        },
-        {
-          "path": "scripts/seed-ecb-short-rates.mjs"
-        },
-        {
-          "path": "scripts/seed-yield-curve-eu.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "data.api.abs.gov.au",
       "provider": "data.api.abs.gov.au",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit data.api.abs.gov.au and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-world-cpi-abs.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "data.apps.fao.org",
@@ -2881,15 +2699,10 @@
       "host": "data.ecb.europa.eu",
       "provider": "data.ecb.europa.eu",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit data.ecb.europa.eu and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fsi-eu.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "data.humdata.org",
@@ -2915,15 +2728,10 @@
       "host": "data.norges-bank.no",
       "provider": "data.norges-bank.no",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit data.norges-bank.no and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-no.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "data.sec.gov",
@@ -2943,15 +2751,10 @@
       "host": "data.snb.ch",
       "provider": "data.snb.ch",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit data.snb.ch and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-ch.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "data.tps.ca",
@@ -3006,9 +2809,6 @@
       "references": [
         {
           "path": "scripts/seed-education-attainment.mjs"
-        },
-        {
-          "path": "scripts/seed-wb-external-debt.mjs"
         }
       ]
     },
@@ -3016,15 +2816,10 @@
       "host": "datalab.wto.org",
       "provider": "datalab.wto.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit datalab.wto.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-hormuz.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "dataservices.icao.int",
@@ -3117,16 +2912,13 @@
         },
         {
           "path": "server/worldmonitor/research/v1/list-tech-events.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
     {
       "host": "dev.to",
       "provider": "dev.to",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit dev.to and link to the original feed publisher.",
@@ -3137,16 +2929,13 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
     {
       "host": "devops.com",
       "provider": "devops.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit devops.com and link to the original feed publisher.",
@@ -3154,9 +2943,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -3252,15 +3038,10 @@
       "host": "disrupt-africa.com",
       "provider": "disrupt-africa.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit disrupt-africa.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "dlnews.com",
@@ -3405,6 +3186,9 @@
         },
         {
           "path": "scripts/seed-earthquakes.mjs"
+        },
+        {
+          "path": "src/services/evidence-usgs.ts"
         }
       ]
     },
@@ -3419,12 +3203,6 @@
       "references": [
         {
           "path": "scripts/_eurostat-utils.mjs"
-        },
-        {
-          "path": "scripts/seed-economic-calendar.mjs"
-        },
-        {
-          "path": "scripts/seed-eurostat-country-data.mjs"
         },
         {
           "path": "scripts/seed-resilience-static.mjs"
@@ -3590,29 +3368,19 @@
       "host": "en.sge.com.cn",
       "provider": "en.sge.com.cn",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit en.sge.com.cn and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-physical-premiums.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "en.sse.net.cn",
       "provider": "en.sse.net.cn",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit en.sse.net.cn and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-supply-chain-trade.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "en.wikipedia.org",
@@ -3642,9 +3410,6 @@
       "references": [
         {
           "path": "scripts/backfill-fuel-prices-prev.mjs"
-        },
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
         }
       ]
     },
@@ -3659,9 +3424,6 @@
       "references": [
         {
           "path": "src/app/panel-layout.ts"
-        },
-        {
-          "path": "src/config/variant-meta.ts"
         }
       ]
     },
@@ -3925,9 +3687,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -4007,7 +3766,7 @@
     {
       "host": "feed.infoq.com",
       "provider": "feed.infoq.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit feed.infoq.com and link to the original feed publisher.",
@@ -4018,9 +3777,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -4044,7 +3800,7 @@
     {
       "host": "feeds.arstechnica.com",
       "provider": "feeds.arstechnica.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit feeds.arstechnica.com and link to the original feed publisher.",
@@ -4055,9 +3811,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -4112,7 +3865,7 @@
     {
       "host": "feeds.feedburner.com",
       "provider": "feeds.feedburner.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit feeds.feedburner.com and link to the original feed publisher.",
@@ -4123,9 +3876,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ],
       "role": "transport"
@@ -4288,16 +4038,13 @@
       "references": [
         {
           "path": "src/app/panel-layout.ts"
-        },
-        {
-          "path": "src/config/variant-meta.ts"
         }
       ]
     },
     {
       "host": "finance.yahoo.com",
       "provider": "finance.yahoo.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit finance.yahoo.com and link to the original feed publisher.",
@@ -4308,12 +4055,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -4350,22 +4091,10 @@
           "path": "scripts/ais-relay.cjs"
         },
         {
-          "path": "scripts/seed-earnings-calendar.mjs"
-        },
-        {
-          "path": "scripts/seed-economy.mjs"
-        },
-        {
           "path": "scripts/shared/market-quote-provider.mjs"
         },
         {
           "path": "server/worldmonitor/intelligence/v1/_company-shared.ts"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/_quote-provider.ts"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/get-insider-transactions.ts"
         }
       ]
     },
@@ -4472,15 +4201,10 @@
       "host": "fred.stlouisfed.org",
       "provider": "fred.stlouisfed.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit fred.stlouisfed.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-oecd-lt-rates.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "freeipapi.com",
@@ -4552,9 +4276,6 @@
         },
         {
           "path": "scripts/ais-relay.cjs"
-        },
-        {
-          "path": "scripts/seed-prediction-markets.mjs"
         }
       ]
     },
@@ -4697,12 +4418,6 @@
       "references": [
         {
           "path": "scripts/import-gem-pipelines.mjs"
-        },
-        {
-          "path": "src/components/PipelineStatusPanel.ts"
-        },
-        {
-          "path": "src/components/StorageFacilityMapPanel.ts"
         }
       ]
     },
@@ -4916,15 +4631,10 @@
       "host": "happy.worldmonitor.app",
       "provider": "happy.worldmonitor.app",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Excluded: first-party, control-plane, UI, or rendering transport",
       "attribution": "Excluded from the external-provider count: not an ingested upstream dataset.",
-      "status": "excluded",
-      "references": [
-        {
-          "path": "src/config/variant-meta.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "havanatimes.org",
@@ -5008,7 +4718,7 @@
     {
       "host": "hnrss.org",
       "provider": "hnrss.org",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit hnrss.org and link to the original feed publisher.",
@@ -5019,9 +4729,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -5029,15 +4736,10 @@
       "host": "home.treasury.gov",
       "provider": "home.treasury.gov",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit home.treasury.gov and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-us-treasury-par-yield.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "hromadske.ua",
@@ -5141,7 +4843,7 @@
     {
       "host": "inc42.com",
       "provider": "inc42.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit inc42.com and link to the original feed publisher.",
@@ -5152,9 +4854,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -5513,9 +5212,6 @@
       "references": [
         {
           "path": "scripts/_bet-templates-markets.mjs"
-        },
-        {
-          "path": "scripts/seed-prediction-markets.mjs"
         }
       ]
     },
@@ -5570,7 +5266,7 @@
     {
       "host": "kr-asia.com",
       "provider": "kr-asia.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit kr-asia.com and link to the original upstream API/dataset.",
@@ -5578,16 +5274,13 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
     {
       "host": "krebsonsecurity.com",
       "provider": "krebsonsecurity.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit krebsonsecurity.com and link to the original feed publisher.",
@@ -5598,9 +5291,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -5624,7 +5314,7 @@
     {
       "host": "lavca.org",
       "provider": "lavca.org",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit lavca.org and link to the original upstream API/dataset.",
@@ -5632,9 +5322,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -5884,7 +5571,7 @@
     {
       "host": "lobste.rs",
       "provider": "lobste.rs",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit lobste.rs and link to the original feed publisher.",
@@ -5895,9 +5582,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -6111,15 +5795,10 @@
       "host": "mempool.space",
       "provider": "mempool.space",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "mempool.space API terms; underlying Bitcoin data is public but endpoint terms apply",
       "attribution": "mempool.space; link to the mining/hashrate API response.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-economy.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "messari.io",
@@ -6432,7 +6111,7 @@
     {
       "host": "news.crunchbase.com",
       "provider": "news.crunchbase.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit news.crunchbase.com and link to the original feed publisher.",
@@ -6443,9 +6122,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -6485,19 +6161,13 @@
           "path": "server/worldmonitor/intelligence/v1/_country-coverage-feeds.ts"
         },
         {
-          "path": "server/worldmonitor/market/v1/stock-news-search.ts"
+          "path": "server/worldmonitor/intelligence/v1/_stock-news-search.ts"
         },
         {
           "path": "server/worldmonitor/news/v1/_feeds.ts"
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         },
         {
           "path": "src/services/country-coverage.ts"
@@ -6508,7 +6178,7 @@
     {
       "host": "news.mit.edu",
       "provider": "news.mit.edu",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit news.mit.edu and link to the original feed publisher.",
@@ -6516,9 +6186,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -6593,7 +6260,7 @@
     {
       "host": "news.ycombinator.com",
       "provider": "news.ycombinator.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit news.ycombinator.com and link to the original feed publisher.",
@@ -6604,9 +6271,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -6786,15 +6450,10 @@
       "host": "ogcapi.bgs.ac.uk",
       "provider": "British Geological Survey World Mineral Statistics",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "BGS mineral statistics terms; attribution required; redistribution restricted",
       "attribution": "British Geological Survey (BGS) World Mineral Production; credit BGS and link to https://www.bgs.ac.uk/mineralsuk/statistics/world-mineral-statistics/.",
-      "status": "reviewed",
-      "references": [
-        {
-          "path": "scripts/seed-mineral-production.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "oglobo.globo.com",
@@ -7089,15 +6748,10 @@
       "host": "owid-public.owid.io",
       "provider": "Our World in Data",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "CC BY 4.0 for the dataset unless the dataset page states otherwise",
       "attribution": "Our World in Data; link to the dataset page.",
-      "status": "reviewed",
-      "references": [
-        {
-          "path": "scripts/seed-owid-energy-mix.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "pajhwok.com",
@@ -7173,7 +6827,7 @@
     {
       "host": "pitchbook.com",
       "provider": "pitchbook.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit pitchbook.com and link to the original upstream API/dataset.",
@@ -7181,9 +6835,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -7242,13 +6893,7 @@
       "status": "terms-review",
       "references": [
         {
-          "path": "api/mcp/skill-extension/generated.ts"
-        },
-        {
           "path": "scripts/_bet-templates-markets.mjs"
-        },
-        {
-          "path": "scripts/seed-prediction-markets.mjs"
         }
       ]
     },
@@ -7349,15 +6994,10 @@
       "host": "production.dataviz.cnn.io",
       "provider": "production.dataviz.cnn.io",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit production.dataviz.cnn.io and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fear-greed.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "protomaps.com",
@@ -7400,9 +7040,6 @@
       "status": "excluded",
       "references": [
         {
-          "path": "api/widget-agent.ts"
-        },
-        {
           "path": "scripts/seed-security-advisories.mjs"
         },
         {
@@ -7442,43 +7079,28 @@
       "host": "publicacionexterna.azurewebsites.net",
       "provider": "publicacionexterna.azurewebsites.net",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit publicacionexterna.azurewebsites.net and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "publicreporting.cftc.gov",
       "provider": "CFTC Commitments of Traders",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "U.S. government public data; endpoint terms apply",
       "attribution": "U.S. Commodity Futures Trading Commission (CFTC), Commitments of Traders.",
-      "status": "reviewed",
-      "references": [
-        {
-          "path": "scripts/seed-cot.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "purl.org",
       "provider": "PURL namespace",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Excluded: schema/namespace reference",
       "attribution": "Excluded from the provider count: namespace reference, not an ingested source.",
-      "status": "excluded",
-      "references": [
-        {
-          "path": "src/services/rss.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "qevdnlpgjxpwusesmtpx.supabase.co",
@@ -7545,36 +7167,6 @@
         },
         {
           "path": "scripts/ais-relay.cjs"
-        },
-        {
-          "path": "scripts/seed-commodity-quotes.mjs"
-        },
-        {
-          "path": "scripts/seed-economy.mjs"
-        },
-        {
-          "path": "scripts/seed-etf-flows.mjs"
-        },
-        {
-          "path": "scripts/seed-fear-greed.mjs"
-        },
-        {
-          "path": "scripts/seed-fx-yoy.mjs"
-        },
-        {
-          "path": "scripts/seed-gulf-quotes.mjs"
-        },
-        {
-          "path": "scripts/seed-market-correlation-series.mjs"
-        },
-        {
-          "path": "scripts/seed-market-quotes.mjs"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/analyze-stock.ts"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/get-country-stock-index.ts"
         }
       ]
     },
@@ -7800,7 +7392,7 @@
     {
       "host": "review.firstround.com",
       "provider": "review.firstround.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit review.firstround.com and link to the original feed publisher.",
@@ -7811,9 +7403,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -7924,7 +7513,7 @@
     {
       "host": "rss.politico.com",
       "provider": "rss.politico.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit rss.politico.com and link to the original feed publisher.",
@@ -7935,9 +7524,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -8159,15 +7745,10 @@
       "host": "sdmx.oecd.org",
       "provider": "sdmx.oecd.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit sdmx.oecd.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-world-cpi-oecd.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "sealevel.nasa.gov",
@@ -8215,29 +7796,19 @@
       "host": "search.worldbank.org",
       "provider": "search.worldbank.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit search.worldbank.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "search.yahoo.com",
       "provider": "search.yahoo.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Excluded: first-party, control-plane, UI, or rendering transport",
       "attribution": "Excluded from the external-provider count: not an ingested upstream dataset.",
-      "status": "excluded",
-      "references": [
-        {
-          "path": "src/services/rss.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "searchadvisor.naver.com",
@@ -8278,16 +7849,13 @@
       "references": [
         {
           "path": "scripts/backfill-fuel-prices-prev.mjs"
-        },
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
         }
       ]
     },
     {
       "host": "seekingalpha.com",
       "provider": "seekingalpha.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit seekingalpha.com and link to the original feed publisher.",
@@ -8298,12 +7866,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -8348,7 +7910,7 @@
       "status": "terms-review",
       "references": [
         {
-          "path": "server/worldmonitor/market/v1/stock-news-search.ts"
+          "path": "server/worldmonitor/intelligence/v1/_stock-news-search.ts"
         }
       ]
     },
@@ -8408,18 +7970,6 @@
       "references": [
         {
           "path": "scripts/build-chokepoint-transit-snapshot.mjs"
-        },
-        {
-          "path": "scripts/seed-portwatch-chokepoints-ref.mjs"
-        },
-        {
-          "path": "scripts/seed-portwatch-disruptions.mjs"
-        },
-        {
-          "path": "scripts/seed-portwatch-port-activity.mjs"
-        },
-        {
-          "path": "scripts/seed-portwatch.mjs"
         }
       ]
     },
@@ -8440,7 +7990,7 @@
     {
       "host": "sifted.eu",
       "provider": "sifted.eu",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit sifted.eu and link to the original feed publisher.",
@@ -8451,9 +8001,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -8577,24 +8124,10 @@
       "host": "stats.bis.org",
       "provider": "stats.bis.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit stats.bis.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-bis-data.mjs"
-        },
-        {
-          "path": "scripts/seed-bis-extended.mjs"
-        },
-        {
-          "path": "scripts/seed-bis-lbs.mjs"
-        },
-        {
-          "path": "server/worldmonitor/economic/v1/_bis-shared.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "status.circleci.com",
@@ -8801,7 +8334,7 @@
     {
       "host": "stratechery.com",
       "provider": "stratechery.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit stratechery.com and link to the original feed publisher.",
@@ -8812,9 +8345,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -9019,7 +8549,7 @@
     {
       "host": "tech.eu",
       "provider": "tech.eu",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit tech.eu and link to the original feed publisher.",
@@ -9030,9 +8560,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -9047,16 +8574,13 @@
       "references": [
         {
           "path": "src/app/panel-layout.ts"
-        },
-        {
-          "path": "src/config/variant-meta.ts"
         }
       ]
     },
     {
       "host": "techcabal.com",
       "provider": "techcabal.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit techcabal.com and link to the original feed publisher.",
@@ -9067,16 +8591,13 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
     {
       "host": "techcrunch.com",
       "provider": "techcrunch.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit techcrunch.com and link to the original feed publisher.",
@@ -9087,9 +8608,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -9384,7 +8902,7 @@
     {
       "host": "thenewstack.io",
       "provider": "thenewstack.io",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit thenewstack.io and link to the original feed publisher.",
@@ -9395,9 +8913,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -9947,7 +9462,7 @@
     {
       "host": "venturebeat.com",
       "provider": "venturebeat.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit venturebeat.com and link to the original feed publisher.",
@@ -9958,9 +9473,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -10050,15 +9562,10 @@
       "host": "wabi-europe-north-b-api.analysis.windows.net",
       "provider": "wabi-europe-north-b-api.analysis.windows.net",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit wabi-europe-north-b-api.analysis.windows.net and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-hormuz.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "warontherocks.com",
@@ -10095,29 +9602,19 @@
       "host": "web.archive.org",
       "provider": "web.archive.org",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit web.archive.org and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fatf-listing.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "web.cbr.ru",
       "provider": "web.cbr.ru",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Excluded: first-party, control-plane, UI, or rendering transport",
       "attribution": "Excluded from the external-provider count: not an ingested upstream dataset.",
-      "status": "excluded",
-      "references": [
-        {
-          "path": "scripts/seed-cbr-rates.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "webcams.windy.com",
@@ -10321,12 +9818,6 @@
           "path": "scripts/seed-digest-notifications.mjs"
         },
         {
-          "path": "scripts/seed-five-factor-scorecard.mjs"
-        },
-        {
-          "path": "scripts/seed-hyperliquid-flow.mjs"
-        },
-        {
           "path": "scripts/seed-infra.mjs"
         },
         {
@@ -10337,9 +9828,6 @@
         },
         {
           "path": "scripts/seed-service-statuses.mjs"
-        },
-        {
-          "path": "scripts/seed-wb-indicators.mjs"
         },
         {
           "path": "scripts/shared/notify-fields.cjs"
@@ -10366,13 +9854,7 @@
           "path": "src/bootstrap/web-vitals-utils.ts"
         },
         {
-          "path": "src/components/UnifiedSettings.ts"
-        },
-        {
           "path": "src/config/web-origin.ts"
-        },
-        {
-          "path": "src/services/premium-fetch.ts"
         },
         {
           "path": "src/services/runtime.ts"
@@ -10467,7 +9949,7 @@
     {
       "host": "www.a16z.news",
       "provider": "www.a16z.news",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.a16z.news and link to the original feed publisher.",
@@ -10475,9 +9957,6 @@
       "references": [
         {
           "path": "server/worldmonitor/news/v1/_feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -10485,18 +9964,10 @@
       "host": "www.aaii.com",
       "provider": "www.aaii.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.aaii.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-aaii-sentiment.mjs"
-        },
-        {
-          "path": "scripts/seed-fear-greed.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.aajtak.in",
@@ -10519,15 +9990,10 @@
       "host": "www.aaronsw.com",
       "provider": "www.aaronsw.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.aaronsw.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.abc.net.au",
@@ -10664,9 +10130,6 @@
       "references": [
         {
           "path": "scripts/_shared-av.mjs"
-        },
-        {
-          "path": "server/worldmonitor/market/v1/_quote-provider.ts"
         }
       ]
     },
@@ -10834,9 +10297,6 @@
       "references": [
         {
           "path": "scripts/lib/boc-valet.mjs"
-        },
-        {
-          "path": "scripts/seed-yield-curve-ca.mjs"
         }
       ]
     },
@@ -10844,29 +10304,19 @@
       "host": "www.bankofengland.co.uk",
       "provider": "www.bankofengland.co.uk",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.bankofengland.co.uk and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-gb.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.barchart.com",
       "provider": "Barchart",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Barchart terms; redistribution requires review",
       "attribution": "Barchart; link to the source quote or page.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fear-greed.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.bbc.com",
@@ -11020,7 +10470,7 @@
     {
       "host": "www.cbinsights.com",
       "provider": "www.cbinsights.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.cbinsights.com and link to the original feed publisher.",
@@ -11028,9 +10478,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -11038,15 +10485,10 @@
       "host": "www.cbr.ru",
       "provider": "www.cbr.ru",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.cbr.ru and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-cbr-rates.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.cbsnews.com",
@@ -11144,7 +10586,7 @@
     {
       "host": "www.cisa.gov",
       "provider": "www.cisa.gov",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.cisa.gov and link to the original feed publisher.",
@@ -11155,9 +10597,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -11209,7 +10648,7 @@
     {
       "host": "www.cnbc.com",
       "provider": "www.cnbc.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.cnbc.com and link to the original feed publisher.",
@@ -11220,12 +10659,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -11241,7 +10674,7 @@
     {
       "host": "www.coindesk.com",
       "provider": "www.coindesk.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.coindesk.com and link to the original feed publisher.",
@@ -11252,9 +10685,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
         }
       ]
     },
@@ -11262,15 +10692,10 @@
       "host": "www.contractsfinder.service.gov.uk",
       "provider": "www.contractsfinder.service.gov.uk",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.contractsfinder.service.gov.uk and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.corriere.it",
@@ -11368,7 +10793,7 @@
     {
       "host": "www.darkreading.com",
       "provider": "www.darkreading.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.darkreading.com and link to the original feed publisher.",
@@ -11379,9 +10804,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -11533,15 +10955,10 @@
       "host": "www.ecb.europa.eu",
       "provider": "www.ecb.europa.eu",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.ecb.europa.eu and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-economic-calendar.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.ecdc.europa.eu",
@@ -11622,7 +11039,7 @@
     {
       "host": "www.engadget.com",
       "provider": "www.engadget.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.engadget.com and link to the original feed publisher.",
@@ -11630,9 +11047,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -11656,7 +11070,7 @@
     {
       "host": "www.eu-startups.com",
       "provider": "www.eu-startups.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.eu-startups.com and link to the original feed publisher.",
@@ -11664,9 +11078,6 @@
       "references": [
         {
           "path": "server/worldmonitor/news/v1/_feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -11707,15 +11118,12 @@
     {
       "host": "www.fao.org",
       "provider": "www.fao.org",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.fao.org and link to the original feed publisher.",
       "status": "terms-review",
       "references": [
-        {
-          "path": "scripts/seed-fao-food-price-index.mjs"
-        },
         {
           "path": "server/worldmonitor/news/v1/_feeds.ts"
         },
@@ -11728,15 +11136,10 @@
       "host": "www.fatf-gafi.org",
       "provider": "Financial Action Task Force (FATF)",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "FATF website and publication terms",
       "attribution": "Financial Action Task Force (FATF); link to the original publication.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fatf-listing.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.federalreserve.gov",
@@ -11748,9 +11151,6 @@
       "status": "terms-review",
       "references": [
         {
-          "path": "scripts/seed-economic-calendar.mjs"
-        },
-        {
           "path": "scripts/seed-regulatory-actions.mjs"
         },
         {
@@ -11758,9 +11158,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
         }
       ]
     },
@@ -11895,15 +11292,10 @@
       "host": "www.gets.govt.nz",
       "provider": "www.gets.govt.nz",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.gets.govt.nz and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.gitex.com",
@@ -12039,15 +11431,10 @@
       "host": "www.gov.br",
       "provider": "www.gov.br",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.gov.br and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.gov.uk",
@@ -12058,9 +11445,6 @@
       "attribution": "Credit www.gov.uk and link to the original feed publisher.",
       "status": "terms-review",
       "references": [
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
-        },
         {
           "path": "scripts/seed-security-advisories.mjs"
         },
@@ -12107,15 +11491,10 @@
       "host": "www.handybulk.com",
       "provider": "www.handybulk.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.handybulk.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-supply-chain-trade.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.hotnews.ro",
@@ -12179,9 +11558,6 @@
       "references": [
         {
           "path": "scripts/seed-energy-intelligence.mjs"
-        },
-        {
-          "path": "src/components/EnergyCrisisPanel.ts"
         }
       ]
     },
@@ -12468,7 +11844,7 @@
     {
       "host": "www.lennysnewsletter.com",
       "provider": "www.lennysnewsletter.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.lennysnewsletter.com and link to the original feed publisher.",
@@ -12476,9 +11852,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -12574,15 +11947,10 @@
       "host": "www.mbie.govt.nz",
       "provider": "www.mbie.govt.nz",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.mbie.govt.nz and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-fuel-prices.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.miit.gov.cn",
@@ -12687,15 +12055,10 @@
       "host": "www.mof.go.jp",
       "provider": "www.mof.go.jp",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.mof.go.jp and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-jp.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.myjoyonline.com",
@@ -12825,15 +12188,10 @@
       "host": "www.nfx.com",
       "provider": "www.nfx.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.nfx.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.northernminer.com",
@@ -13109,7 +12467,7 @@
     {
       "host": "www.producthunt.com",
       "provider": "www.producthunt.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.producthunt.com and link to the original feed publisher.",
@@ -13120,9 +12478,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13194,7 +12549,7 @@
     {
       "host": "www.ransomware.live",
       "provider": "www.ransomware.live",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.ransomware.live and link to the original feed publisher.",
@@ -13202,9 +12557,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13229,15 +12581,10 @@
       "host": "www.rba.gov.au",
       "provider": "www.rba.gov.au",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.rba.gov.au and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-yield-curve-au.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.reddit.com",
@@ -13349,7 +12696,7 @@
     {
       "host": "www.saastr.com",
       "provider": "www.saastr.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.saastr.com and link to the original feed publisher.",
@@ -13357,9 +12704,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13394,7 +12738,7 @@
     {
       "host": "www.schneier.com",
       "provider": "www.schneier.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.schneier.com and link to the original feed publisher.",
@@ -13402,9 +12746,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13417,9 +12758,6 @@
       "attribution": "U.S. Geological Survey Mineral Commodity Summaries; link to the ScienceBase data release (https://doi.org/10.5066/P1WKQ63T).",
       "status": "reviewed",
       "references": [
-        {
-          "path": "scripts/seed-mineral-production.mjs"
-        },
         {
           "path": "scripts/seed-supply-vulnerability.mjs"
         }
@@ -13482,16 +12820,13 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/finance.ts"
         }
       ]
     },
     {
       "host": "www.semianalysis.com",
       "provider": "www.semianalysis.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.semianalysis.com and link to the original feed publisher.",
@@ -13499,9 +12834,6 @@
       "references": [
         {
           "path": "server/worldmonitor/news/v1/_feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13509,15 +12841,10 @@
       "host": "www.sequoiacap.com",
       "provider": "www.sequoiacap.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.sequoiacap.com and link to the original feed publisher.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.seznamzpravy.cz",
@@ -13585,15 +12912,10 @@
       "host": "www.spdrgoldshares.com",
       "provider": "www.spdrgoldshares.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.spdrgoldshares.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-gold-etf-flows.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.spiegel.de",
@@ -13798,7 +13120,7 @@
     {
       "host": "www.techinasia.com",
       "provider": "www.techinasia.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.techinasia.com and link to the original feed publisher.",
@@ -13806,9 +13128,6 @@
       "references": [
         {
           "path": "server/worldmonitor/news/v1/_feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13832,16 +13151,13 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
     {
       "host": "www.technologyreview.com",
       "provider": "www.technologyreview.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.technologyreview.com and link to the original feed publisher.",
@@ -13852,9 +13168,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -13862,15 +13175,10 @@
       "host": "www.techstars.com",
       "provider": "www.techstars.com",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Provider terms for this upstream API/dataset; verify before redistribution",
       "attribution": "Credit www.techstars.com and link to the original upstream API/dataset.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "src/config/variants/tech.ts"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.telegraph.co.uk",
@@ -13893,15 +13201,10 @@
       "host": "www.tenders.gov.au",
       "provider": "AusTender",
       "kind": "structured",
-      "observed": true,
+      "observed": false,
       "license": "Australian Government data and feed terms",
       "attribution": "Australian Government AusTender; link to the original notice/feed.",
-      "status": "terms-review",
-      "references": [
-        {
-          "path": "scripts/seed-global-tenders.mjs"
-        }
-      ]
+      "status": "excluded"
     },
     {
       "host": "www.theglobeandmail.com",
@@ -14025,7 +13328,7 @@
     {
       "host": "www.theverge.com",
       "provider": "www.theverge.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.theverge.com and link to the original feed publisher.",
@@ -14036,9 +13339,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -14082,7 +13382,7 @@
     {
       "host": "www.tomshardware.com",
       "provider": "www.tomshardware.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.tomshardware.com and link to the original feed publisher.",
@@ -14093,9 +13393,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -14522,7 +13819,7 @@
           "path": "src/config/schema-graph-ids.ts"
         },
         {
-          "path": "src/config/variant-meta.ts"
+          "path": "src/config/site-meta.ts"
         },
         {
           "path": "src/embed/embed-url.ts"
@@ -14532,7 +13829,7 @@
     {
       "host": "www.ycombinator.com",
       "provider": "www.ycombinator.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.ycombinator.com and link to the original feed publisher.",
@@ -14543,9 +13840,6 @@
         },
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -14649,7 +13943,7 @@
     {
       "host": "www.zdnet.com",
       "provider": "www.zdnet.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit www.zdnet.com and link to the original feed publisher.",
@@ -14657,9 +13951,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },
@@ -14824,7 +14115,7 @@
     {
       "host": "yourstory.com",
       "provider": "yourstory.com",
-      "kind": "feed+structured",
+      "kind": "feed",
       "observed": true,
       "license": "Provider terms for this feed publisher; verify before redistribution",
       "attribution": "Credit yourstory.com and link to the original feed publisher.",
@@ -14832,9 +14123,6 @@
       "references": [
         {
           "path": "src/config/feeds.ts"
-        },
-        {
-          "path": "src/config/variants/tech.ts"
         }
       ]
     },

@@ -1,4 +1,5 @@
 import './styles/base-layer.css';
+import './styles/groundtruth-brutalist.css'; // GROUNDTRUTH rebrand skin — loaded after all other styles so it wins
 import './bootstrap/zod-csp';
 import { SITE_VARIANT } from '@/config/variant';
 import { installLcpAttributionDebug } from '@/bootstrap/lcp-attribution';

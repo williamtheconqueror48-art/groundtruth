@@ -231,3 +231,88 @@ and four agent skills. Collapses mission presets to single-variant semantics.
 - `tests/entitlement-crosswalk-classifier.test.mjs`: 15/15 pass.
 - `node scripts/generate-entitlement-crosswalk.mjs --check`: exit 0.
 - `tests/mission-presets.test.mts`: 46/47 (1 pre-existing baseline failure).
+
+## Phase 3 — GROUNDTRUTH rebrand + evidence layer v1 (2026-09-24)
+
+Branch: `feature/rebrand-evidence-v1` (from `strip/tier2-tier3-aibriefs`).
+
+### Rebrand (World Monitor → GROUNDTRUTH)
+
+- `package.json`: package renamed `world-monitor` → `groundtruth` (AGPL-3.0-only retained).
+- `index.html`: title "GROUNDTRUTH — Evidence-First Global Incident Tracker"; new
+  stark black/white/red GT favicon (`public/favico/gt-mark.svg`).
+- `src/config/site-meta.ts`: title/description/keywords/subject/classification rebranded.
+- `src/app/panel-layout.ts`: header wordmark, GitHub link → GROUNDTRUTH repo, footer
+  rebranded; source-offer + AGPL §13 link added; `koala73/worldmonitor` attribution
+  and original author credit preserved; obsolete pricing/blog/status/X footer links removed.
+- `src/locales/en.json`, `src/locales/en.shell.json`: visible World Monitor strings
+  rebranded; obsolete license language neutralized.
+- `src/config/agent-not-found.ts`: not-found copy rebranded.
+- `src/styles/groundtruth-brutalist.css` (new, imported from `src/main.ts`): additive
+  brutalist skin — monospace display type, black/white + signal red, hard borders,
+  claim-tier stamps, evidence-record/timeline layouts.
+
+### Evidence layer v1 (new)
+
+- `shared/evidence/types.ts`: `EvidenceRecord`, `Claim`, `SourceRef`, `Entity`,
+  `ClaimTier`; canonical JSON; dependency-free cyrb53 record fingerprint;
+  `makeRecord()` rejects sourceless records and out-of-bounds claim indexes.
+- `shared/evidence/provenance.ts`: `CLAIM_TIER_META` (5 tiers with labels/meanings/
+  stamp classes); async `stampSource()` writes genuine SHA-256 (WebCrypto
+  `crypto.subtle`; throws rather than mislabeling when unavailable);
+  `attachProvenance()`.
+- `src/services/evidence-usgs.ts`: keyless CORS-open USGS M4.5 monthly GeoJSON
+  → seismic EvidenceRecords, SENSOR-tier claims, USGS event-page sources;
+  fetch failure returns `[]`, never crashes.
+- `src/components/EvidencePanel.ts`, `src/components/EvidenceTimelinePanel.ts`:
+  raw record list + newest-first timeline with tier stamps, provenance, source
+  URLs, retrieval times, digests, entities; "correlation is not proof" stated.
+- Registered in `src/config/panels.ts` (`evidence`, `evidence-timeline`, on by
+  default), `src/config/commands.ts`, `src/app/panel-layout.ts`,
+  `src/components/index.ts`; chunked into `panels-intel` in `vite.config.ts`.
+- `tests/groundtruth-evidence-layer.test.mts`: 11/11 pass (record validation,
+  SHA-256 known-vector + node:crypto parity, USGS mapping, malformed-feature nulls).
+
+### Build repairs (Phase 1/2 stale references)
+
+- `scripts/source-attribution.mjs --write` + 62 host retirements; manifest now
+  records 719 active hosts; `docs/source-attribution.mdx` regenerated.
+- `scripts/crawlable-sources-page.mjs`: explicit catalog-domain overrides for
+  `api.imf.org`, `www.alphavantage.co` (finance), `feeds.feedburner.com`,
+  `news.google.com` (news) — providers whose remaining references no longer
+  match a domain matcher after the strips.
+- `scripts/build-crawlable-corpus.mjs`: tolerates deleted `blog-site/` (empty
+  blog-post set); chokepoint editorial links to missing posts are skipped with
+  a warning instead of failing the build.
+- `scripts/internal-links.mjs`: `blogPages()` returns [] when the blog directory
+  is absent.
+- `scripts/data/related-reading.json`: two dead blog-post links removed.
+- `scripts/build-sitemap.mjs`: deleted `src/config/products.ts` removed from the
+  landing and `/pro` route material sources.
+- `vite.config.ts`: 8 stripped services (prediction, economic, market,
+  positive-events, giving, trade, supply-chain, scenario) removed from the dev
+  API plugin imports/routes; deleted `mcp-grant.html` entry removed.
+- `scripts/generate-product-config.mjs`, `scripts/generate-public-product-facts.mjs`:
+  no-op when the commercial catalog is absent (Phase 2 repair).
+- `scripts/crawlable-developments.mjs`: local proper-noun grounding check replaces
+  the deleted AI-brief import (Phase 2 repair).
+- `src/config/product-ids.generated.ts`: deleted (obsolete Dodo IDs, no consumers).
+
+### Verification (2026-09-24)
+
+- `npm run build`: passes (exit 0).
+- `npm run typecheck`: clean.
+- `npm run lint:boundaries`: clean.
+- `git diff --check`: clean.
+- `tests/panel-config-guardrails.test.mjs`: 23/23 pass.
+- `tests/groundtruth-evidence-layer.test.mts`: 11/11 pass.
+- Root `LICENSE` byte-identical; `cli/` + `sdk/*/` MIT licenses untouched.
+- `AUDIT.md` remains untracked and uncommitted.
+
+### Deliberate remaining WorldMonitor strings (compatibility/attribution, not branding)
+
+- Internal identifiers, protocol/service names, generated namespaces and storage
+  keys, existing API/header names, upstream URLs (`koala73/worldmonitor`,
+  `worldmonitor.app`), and the preserved original-author attribution. Renaming
+  any of these would break API compatibility, stored state, or attribution
+  obligations; visible user-facing branding is GROUNDTRUTH throughout.

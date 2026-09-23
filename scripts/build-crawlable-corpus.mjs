@@ -6,6 +6,7 @@
 import { execFileSync } from 'node:child_process';
 
 import {
+  existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -1374,8 +1375,15 @@ export function buildChokepointPageLinks({ chokepoints, countries, crises, blogP
     if (!Array.isArray(editorialLinks)) throw new Error(`${chokepoint.id}: editorialLinks must be an array`);
     const editorial = new Map();
     for (const link of editorialLinks) {
-      if (!blogPostPaths.has(link?.href) || typeof link.label !== 'string' || !link.label.trim()) {
-        throw new Error(`${chokepoint.id}: editorialLinks requires a canonical blog post path and label: ${link?.href}`);
+      // The blog-site workspace was removed, so editorial blog links may point
+      // at posts that no longer exist. Skip those with a warning instead of
+      // failing the corpus build; the declarations stay intact for reuse.
+      if (!blogPostPaths.has(link?.href)) {
+        console.warn(`buildChokepointPageLinks: skipping missing blog post link ${link?.href} for ${chokepoint.id}`);
+        continue;
+      }
+      if (typeof link.label !== 'string' || !link.label.trim()) {
+        throw new Error(`${chokepoint.id}: editorialLinks requires a label: ${link?.href}`);
       }
       if (!editorial.has(link.href)) editorial.set(link.href, link);
     }
@@ -5303,9 +5311,12 @@ export async function buildCorpus({
 } = {}) {
   const data = await loadCorpusData({ rootDir, livePulseSnapshotPath, now });
   const countrySlugByCode = new Map(data.countries.map((country) => [country.code, country.slug]));
-  const blogPostPaths = new Set(readdirSync(join(rootDir, 'blog-site/src/content/blog'))
+  const blogContentDir = join(rootDir, 'blog-site/src/content/blog');
+  // Phase 1 removed the blog-site workspace; treat a missing blog directory as
+  // an empty post set so the corpus still builds without blog cross-links.
+  const blogPostPaths = new Set(existsSync(blogContentDir) ? readdirSync(blogContentDir)
     .filter((file) => file.endsWith('.md'))
-    .map((file) => `/blog/posts/${file.slice(0, -3)}/`));
+    .map((file) => `/blog/posts/${file.slice(0, -3)}/`) : []);
   const chokepointPageLinks = buildChokepointPageLinks({ ...data, blogPostPaths });
   const relatedReading = loadRelatedReading({ rootDir, blogPostPaths });
   if (clean) {

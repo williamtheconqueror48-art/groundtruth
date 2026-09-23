@@ -18,7 +18,20 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PRODUCT_CATALOG, PUBLIC_PRODUCT_METADATA } from '../convex/config/productCatalog.ts';
+// GROUNDTRUTH (2026-09-24): commercial tier stripped — convex/config/productCatalog.ts
+// no longer exists. Without a catalog there are no public product facts to emit;
+// exit cleanly instead of failing the build.
+let PRODUCT_CATALOG;
+let PUBLIC_PRODUCT_METADATA;
+try {
+  ({ PRODUCT_CATALOG, PUBLIC_PRODUCT_METADATA } = await import('../convex/config/productCatalog.ts'));
+} catch (err) {
+  if (err && (err.code === 'ERR_MODULE_NOT_FOUND' || /productCatalog/.test(String(err.message)))) {
+    console.log('  · product catalog absent (GROUNDTRUTH commercial strip) — skipping public product facts');
+    process.exit(0);
+  }
+  throw err;
+}
 import { AI_DATA_CENTERS } from '../src/config/ai-datacenters.ts';
 import { CHOKEPOINT_REGISTRY } from '../src/config/chokepoint-registry.ts';
 import { UNDERSEA_CABLES } from '../src/config/geo-map.ts';

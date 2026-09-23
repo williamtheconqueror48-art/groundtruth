@@ -1,0 +1,230 @@
+/* ============================================================
+ * GROUNDTRUTH BRUTALIST SKIN — Phase 3 rebrand (2026-09-24)
+ * Anti-AI-mush aesthetic: monospace, black/white, one signal-red
+ * accent, hard borders, stamped labels. Zero gradients, zero
+ * shadows. Additive overrides only — loaded AFTER every other
+ * stylesheet so it wins the cascade.
+ * ============================================================ */
+
+:root {
+  --gt-ink: #0a0a0a;
+  --gt-paper: #ffffff;
+  --gt-signal: #ff2a1a; /* the one accent */
+  --gt-grey: #6b6b6b;
+  --gt-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+/* ---- header wordmark ---- */
+header .logo,
+.logo {
+  font-family: var(--gt-mono) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--gt-ink) !important;
+  background: var(--gt-paper) !important;
+  border: 2px solid var(--gt-ink) !important;
+  padding: 2px 10px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.logo-mobile {
+  font-family: var(--gt-mono) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* ---- kill gradients + shadows globally (brutalist flatness) ---- */
+* {
+  --wm-shadow: none;
+}
+.gt-flat,
+header,
+.site-footer,
+.panel,
+.panel-card {
+  box-shadow: none !important;
+}
+
+/* ---- claim-tier stamps ---- */
+.gt-stamp {
+  display: inline-block;
+  font-family: var(--gt-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 2px solid var(--gt-ink);
+  padding: 2px 8px;
+  border-radius: 0;
+  background: var(--gt-paper);
+  color: var(--gt-ink);
+  transform: rotate(-1.2deg);
+  white-space: nowrap;
+}
+.gt-stamp--official {
+  background: var(--gt-ink);
+  color: var(--gt-paper);
+}
+.gt-stamp--journalistic {
+  background: var(--gt-paper);
+  color: var(--gt-ink);
+}
+.gt-stamp--allegation {
+  background: var(--gt-signal);
+  border-color: var(--gt-signal);
+  color: var(--gt-paper);
+}
+.gt-stamp--sensor {
+  background: var(--gt-paper);
+  color: var(--gt-ink);
+  border-style: dashed;
+}
+.gt-stamp--verified {
+  background: var(--gt-ink);
+  color: var(--gt-paper);
+  outline: 2px solid var(--gt-signal);
+  outline-offset: 2px;
+}
+
+/* ---- evidence records: raw-record cards ---- */
+.gt-evidence-list {
+  font-family: var(--gt-mono);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.gt-evidence-record {
+  border: 2px solid var(--gt-ink);
+  border-bottom-width: 0;
+  background: var(--gt-paper);
+  padding: 10px 12px;
+  border-radius: 0;
+}
+.gt-evidence-record:last-child {
+  border-bottom-width: 2px;
+}
+.gt-evidence-title {
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 6px 0 4px;
+}
+.gt-evidence-meta {
+  font-size: 11px;
+  color: var(--gt-grey);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 6px;
+}
+.gt-evidence-meta b {
+  color: var(--gt-ink);
+}
+.gt-evidence-sources {
+  margin-top: 8px;
+  border-top: 1px dashed var(--gt-grey);
+  padding-top: 6px;
+  font-size: 11px;
+}
+.gt-evidence-sources summary {
+  cursor: pointer;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.gt-evidence-sources a {
+  color: var(--gt-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+.gt-evidence-sources code {
+  font-size: 10px;
+  background: #f0f0f0;
+  padding: 1px 4px;
+  word-break: break-all;
+}
+.gt-evidence-entities {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.gt-entity-chip {
+  font-size: 10px;
+  border: 1px solid var(--gt-ink);
+  padding: 1px 6px;
+  border-radius: 0;
+  background: var(--gt-paper);
+}
+.gt-entity-chip::before {
+  content: attr(data-kind) ": ";
+  font-weight: 800;
+  color: var(--gt-grey);
+}
+
+/* ---- evidence timeline ---- */
+.gt-timeline {
+  font-family: var(--gt-mono);
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 22px;
+  list-style: none;
+}
+.gt-timeline::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--gt-ink);
+}
+.gt-timeline-item {
+  position: relative;
+  margin: 0 0 14px;
+  border: 2px solid var(--gt-ink);
+  background: var(--gt-paper);
+  padding: 8px 10px;
+  border-radius: 0;
+}
+.gt-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  background: var(--gt-signal);
+  border: 2px solid var(--gt-ink);
+}
+.gt-timeline-time {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 4px;
+}
+.gt-timeline-item a {
+  color: var(--gt-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+/* ---- footer: stamped source offer ---- */
+.site-footer-name {
+  font-family: var(--gt-mono) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+}
+.site-footer .site-footer-copy a,
+.site-footer-credit {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}

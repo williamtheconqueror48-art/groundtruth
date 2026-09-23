@@ -111,6 +111,9 @@ function apiReferencePages() {
 
 function blogPages() {
   const dir = join(ROOT, 'blog-site/src/content/blog');
+  // The blog-site workspace was removed; an absent blog directory yields no
+  // blog pages instead of failing link maintenance.
+  if (!existsSync(dir)) return [];
   return readdirSync(dir).filter((n) => n.endsWith('.md') || n.endsWith('.mdx')).map((n) => {
     const md = parseMarkdown(readFileSync(join(dir, n), 'utf8'));
     const slug = n.replace(/\.mdx?$/, '');

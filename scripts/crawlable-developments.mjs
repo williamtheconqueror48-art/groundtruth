@@ -9,7 +9,26 @@
 import { publisherFamilyFor, publisherFamilyForDomain } from '../shared/publisher-families.js';
 import { AGGREGATOR_LINK_HOSTS, isVerifiableArticleUrl } from '../shared/article-url.js';
 export { AGGREGATOR_LINK_HOSTS, isVerifiableArticleUrl };
-import { validateNoHallucinatedProperNouns } from '../shared/brief-llm-core.js';
+// GROUNDTRUTH (2026-09-24): shared/brief-llm-core.js was removed with the
+// AI-brief strip. Minimal local reimplementation of the proper-noun grounding
+// check: every capitalized word sequence in the claim must appear
+// (case-insensitively) in the cited evidence title, else it is flagged as
+// ungrounded. Stop-words that are capitalized by orthography are ignored.
+function validateNoHallucinatedProperNouns(summary, headline, { failClosed = false } = {}) {
+  const unavailable = () => (failClosed ? { ok: false, hallucinated: [] } : { ok: true });
+  if (typeof summary !== 'string' || !summary.trim()) return unavailable();
+  if (typeof headline !== 'string' || !headline.trim()) return unavailable();
+  const STOP = new Set(['The', 'A', 'An', 'And', 'Or', 'But', 'In', 'On', 'At', 'To', 'For', 'Of', 'With', 'By', 'From', 'As', 'Is', 'Are', 'Was', 'Were', 'Be', 'Been', 'Has', 'Have', 'Had', 'Will', 'Would', 'Can', 'Could', 'Should', 'May', 'Might', 'This', 'That', 'These', 'Those', 'It', 'Its', 'He', 'She', 'They', 'We', 'You', 'I']);
+  const seqs = summary.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) ?? [];
+  const hay = headline.toLowerCase();
+  const hallucinated = [];
+  for (const seq of seqs) {
+    const words = seq.split(/\s+/).filter((w) => !STOP.has(w));
+    if (words.length === 0) continue;
+    if (!hay.includes(words.join(' ').toLowerCase())) hallucinated.push(seq);
+  }
+  return hallucinated.length > 0 ? { ok: false, hallucinated } : { ok: true };
+}
 import { resolveIso2 } from './_country-resolver.mjs';
 const BRIEF_SECTION_HEADERS = ['SITUATION NOW', 'KEY RISKS', 'OUTLOOK', 'WATCH ITEMS'];
 
