@@ -1,4 +1,4 @@
-import docsConfigJson from '../../docs/docs.json';
+import docsNavData from './docs-nav-data';
 import { WEB_APP_ORIGIN } from './web-origin';
 
 const docsOrigin = new URL(WEB_APP_ORIGIN);
@@ -66,7 +66,7 @@ export function buildRootlessDocsRedirects(config: DocsConfigLike): Map<string, 
 }
 
 export const ROOTLESS_DOC_REDIRECTS = buildRootlessDocsRedirects(
-  docsConfigJson as DocsConfigLike
+  docsNavData as DocsConfigLike
 );
 
 export function getRootlessDocsDestination(pathname: string): string | null {

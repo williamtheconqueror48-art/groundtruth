@@ -9,7 +9,7 @@ import {
   shouldTransformDocsUpstreamHtml,
 } from './src/config/docs-locale-seo';
 import { getRootlessDocsDestination } from './src/config/docs-root-redirects';
-import agentRequestPolicy from './shared/agent-request-policy.json';
+import agentRequestPolicy from './shared/agent-request-policy';
 import { isMcpAliasRequest, normalizeMcpHost } from './shared/mcp-host-policy';
 
 const AGENT_UA = new RegExp(`(?:^|[^a-z0-9-])(?:${agentRequestPolicy.userAgents.join('|')})(?:$|[^a-z0-9-])`, 'i');
