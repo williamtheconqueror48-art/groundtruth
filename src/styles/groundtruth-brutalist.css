@@ -49,6 +49,21 @@ main,
   --card-bg: #111111 !important;
 }
 
+/* ---- force dark even when theme-manager sets data-theme="light" ---- */
+[data-theme="light"],
+[data-theme="light"] * {
+  --bg: #0a0a0a !important;
+  --bg-secondary: #111111 !important;
+  --surface: #111111 !important;
+  --surface-hover: #1a1a1a !important;
+  --surface-active: #222222 !important;
+  --panel-bg: #111111 !important;
+  --card-bg: #111111 !important;
+  --text: #f5f5f5 !important;
+  --text-dim: #8a8a8a !important;
+  --border: #2a2a2a !important;
+}
+
 /* ---- kill gradients + shadows + rounding globally ---- */
 * {
   --wm-shadow: none !important;
