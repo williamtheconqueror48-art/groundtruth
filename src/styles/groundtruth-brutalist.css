@@ -31,10 +31,22 @@ body,
 #app,
 .app,
 .dashboard,
-main {
+main,
+[class*="app"],
+[class*="dashboard"],
+[class*="layout"],
+[class*="container"]:not([class*="map"]) {
   background: var(--gt-paper) !important;
+  background-color: var(--gt-paper) !important;
   color: var(--gt-ink) !important;
   font-family: var(--gt-mono) !important;
+}
+
+/* ---- nuke the light --bg variable everywhere ---- */
+* {
+  --bg: #0a0a0a !important;
+  --panel-bg: #111111 !important;
+  --card-bg: #111111 !important;
 }
 
 /* ---- kill gradients + shadows + rounding globally ---- */
