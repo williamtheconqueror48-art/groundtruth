@@ -1,50 +1,166 @@
 /* ============================================================
- * GROUNDTRUTH BRUTALIST SKIN — Phase 3 rebrand (2026-09-24)
- * Anti-AI-mush aesthetic: monospace, black/white, one signal-red
- * accent, hard borders, stamped labels. Zero gradients, zero
- * shadows. Additive overrides only — loaded AFTER every other
- * stylesheet so it wins the cascade.
+ * GROUNDTRUTH BRUTALIST — Dark takeover (2026-09-24)
+ * Full visual break from World Monitor: black ground, white
+ * ink, one signal-red accent. Monospace everywhere, hard
+ * 2px borders, zero gradients, zero shadows, zero rounding.
+ * Loaded AFTER every other stylesheet so it wins the cascade.
  * ============================================================ */
 
 :root {
-  --gt-ink: #0a0a0a;
-  --gt-paper: #ffffff;
+  --gt-ink: #f5f5f5;
+  --gt-paper: #0a0a0a;
+  --gt-panel: #111111;
+  --gt-line: #2a2a2a;
   --gt-signal: #ff2a1a; /* the one accent */
-  --gt-grey: #6b6b6b;
-  --gt-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas,
+  --gt-grey: #8a8a8a;
+  --gt-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas,
     "Liberation Mono", monospace;
+
+  /* ---- nuke every sans-serif variable the upstream theme defines ---- */
+  --font-body-base: var(--gt-mono) !important;
+  --font-display: var(--gt-mono) !important;
+  --font-sans: var(--gt-mono) !important;
+  --font-serif: var(--gt-mono) !important;
+  --wm-font-body: var(--gt-mono) !important;
+  --wm-font-heading: var(--gt-mono) !important;
 }
 
-/* ---- header wordmark ---- */
+/* ---- page ground ---- */
+html,
+body,
+#app,
+.app,
+.dashboard,
+main {
+  background: var(--gt-paper) !important;
+  color: var(--gt-ink) !important;
+  font-family: var(--gt-mono) !important;
+}
+
+/* ---- kill gradients + shadows + rounding globally ---- */
+* {
+  --wm-shadow: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* ---- header: black bar, stamped wordmark ---- */
+header,
+.site-header,
+.app-header {
+  background: #000 !important;
+  border-bottom: 2px solid var(--gt-ink) !important;
+  color: var(--gt-ink) !important;
+}
 header .logo,
 .logo {
   font-family: var(--gt-mono) !important;
   font-weight: 900 !important;
   letter-spacing: 0.08em !important;
-  color: var(--gt-ink) !important;
-  background: var(--gt-paper) !important;
+  color: #000 !important;
+  background: var(--gt-ink) !important;
   border: 2px solid var(--gt-ink) !important;
   padding: 2px 10px !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
 }
 .logo-mobile {
   font-family: var(--gt-mono) !important;
   font-weight: 900 !important;
   letter-spacing: 0.08em !important;
+  color: var(--gt-ink) !important;
 }
 
-/* ---- kill gradients + shadows globally (brutalist flatness) ---- */
-* {
-  --wm-shadow: none;
+/* ---- hide World-Monitor-isms: sibling monitor strip ---- */
+.sibling-strip,
+.sibling-monitors,
+.variant-strip,
+[class*="sibling"] {
+  display: none !important;
 }
-.gt-flat,
-header,
-.site-footer,
+
+/* ---- panels: black cards, white 2px borders ---- */
 .panel,
-.panel-card {
-  box-shadow: none !important;
+.panel-card,
+.card,
+.widget {
+  background: var(--gt-panel) !important;
+  border: 2px solid var(--gt-line) !important;
+  color: var(--gt-ink) !important;
+}
+.panel-header,
+.panel-title,
+.card-header,
+.widget-header {
+  font-family: var(--gt-mono) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  font-size: 11px !important;
+  color: var(--gt-ink) !important;
+  border-bottom: 2px solid var(--gt-line) !important;
+  background: #000 !important;
+  padding: 8px 12px !important;
+}
+
+/* ---- map container: framed, not floating ---- */
+.map-container,
+#map,
+.globe-container,
+[class*="map-container"] {
+  border: 2px solid var(--gt-ink) !important;
+  background: #000 !important;
+}
+
+/* ---- buttons + pills: stamped ---- */
+button,
+.btn,
+.pill,
+[class*="pill"],
+[class*="btn"] {
+  font-family: var(--gt-mono) !important;
+  border: 2px solid var(--gt-ink) !important;
+  background: #000 !important;
+  color: var(--gt-ink) !important;
+  border-radius: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+button:hover,
+.btn:hover,
+.pill:hover {
+  background: var(--gt-ink) !important;
+  color: #000 !important;
+}
+button.active,
+.pill.active,
+[class*="active"] {
+  background: var(--gt-signal) !important;
+  border-color: var(--gt-signal) !important;
+  color: #fff !important;
+}
+
+/* ---- inputs ---- */
+input,
+select,
+textarea {
+  font-family: var(--gt-mono) !important;
+  background: #000 !important;
+  color: var(--gt-ink) !important;
+  border: 2px solid var(--gt-line) !important;
+  border-radius: 0 !important;
+}
+
+/* ---- links ---- */
+a {
+  color: var(--gt-ink) !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+}
+a:hover {
+  color: var(--gt-signal) !important;
 }
 
 /* ---- claim-tier stamps ---- */
@@ -58,32 +174,32 @@ header,
   border: 2px solid var(--gt-ink);
   padding: 2px 8px;
   border-radius: 0;
-  background: var(--gt-paper);
+  background: #000;
   color: var(--gt-ink);
   transform: rotate(-1.2deg);
   white-space: nowrap;
 }
 .gt-stamp--official {
   background: var(--gt-ink);
-  color: var(--gt-paper);
+  color: #000;
 }
 .gt-stamp--journalistic {
-  background: var(--gt-paper);
+  background: #000;
   color: var(--gt-ink);
 }
 .gt-stamp--allegation {
   background: var(--gt-signal);
   border-color: var(--gt-signal);
-  color: var(--gt-paper);
+  color: #fff;
 }
 .gt-stamp--sensor {
-  background: var(--gt-paper);
+  background: #000;
   color: var(--gt-ink);
   border-style: dashed;
 }
 .gt-stamp--verified {
   background: var(--gt-ink);
-  color: var(--gt-paper);
+  color: #000;
   outline: 2px solid var(--gt-signal);
   outline-offset: 2px;
 }
@@ -98,7 +214,8 @@ header,
 .gt-evidence-record {
   border: 2px solid var(--gt-ink);
   border-bottom-width: 0;
-  background: var(--gt-paper);
+  background: var(--gt-panel);
+  color: var(--gt-ink);
   padding: 10px 12px;
   border-radius: 0;
 }
@@ -111,6 +228,7 @@ header,
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin: 6px 0 4px;
+  color: var(--gt-ink);
 }
 .gt-evidence-meta {
   font-size: 11px;
@@ -134,17 +252,16 @@ header,
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  color: var(--gt-ink);
 }
 .gt-evidence-sources a {
   color: var(--gt-ink);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
   word-break: break-all;
 }
 .gt-evidence-sources code {
   font-size: 10px;
-  background: #f0f0f0;
+  background: #1a1a1a;
+  color: var(--gt-ink);
   padding: 1px 4px;
   word-break: break-all;
 }
@@ -159,7 +276,8 @@ header,
   border: 1px solid var(--gt-ink);
   padding: 1px 6px;
   border-radius: 0;
-  background: var(--gt-paper);
+  background: #000;
+  color: var(--gt-ink);
 }
 .gt-entity-chip::before {
   content: attr(data-kind) ": ";
@@ -188,7 +306,8 @@ header,
   position: relative;
   margin: 0 0 14px;
   border: 2px solid var(--gt-ink);
-  background: var(--gt-paper);
+  background: var(--gt-panel);
+  color: var(--gt-ink);
   padding: 8px 10px;
   border-radius: 0;
 }
@@ -208,23 +327,102 @@ header,
   letter-spacing: 0.08em;
   display: block;
   margin-bottom: 4px;
-}
-.gt-timeline-item a {
   color: var(--gt-ink);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
 }
 
-/* ---- footer: stamped source offer ---- */
+/* ---- footer ---- */
+.site-footer,
+footer {
+  background: #000 !important;
+  border-top: 2px solid var(--gt-ink) !important;
+  color: var(--gt-ink) !important;
+}
 .site-footer-name {
   font-family: var(--gt-mono) !important;
   font-weight: 900 !important;
   letter-spacing: 0.1em !important;
+  color: var(--gt-ink) !important;
 }
-.site-footer .site-footer-copy a,
-.site-footer-credit {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+
+/* ---- scrollbars: brutalist ---- */
+::-webkit-scrollbar {
+  width: 12px;
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gt-line);
+  border: 2px solid #000;
+}
+
+/* ============================================================
+ * ANTI-AI HARDENING — kill every smooth/soft/AI-mush cue
+ * ============================================================ */
+
+/* No transitions, no animations — instant state changes only */
+*,
+*::before,
+*::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Panels: 3px hard borders, square, stamped headers */
+.panel,
+.panel-card,
+.card,
+.widget,
+[class*="panel-"] {
+  border: 3px solid var(--gt-ink) !important;
+  background: #000 !important;
+}
+
+/* Panel headers: inverted stamp bar */
+.panel-header,
+.panel-title,
+.card-header,
+.widget-header,
+[class*="panel-header"] {
+  background: var(--gt-ink) !important;
+  color: #000 !important;
+  font-weight: 900 !important;
+  padding: 6px 10px !important;
+  border-bottom: 3px solid var(--gt-ink) !important;
+}
+
+/* All text: monospace, no smoothing tricks */
+body,
+body * {
+  font-family: var(--gt-mono) !important;
+  -webkit-font-smoothing: none !important;
+}
+
+/* Numbers/timestamps: tabular, harsh */
+time,
+[data-timestamp],
+.stat-value,
+.metric-value {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 700 !important;
+}
+
+/* Dividers: hard rules, not hairlines */
+hr,
+.divider,
+[class*="divider"] {
+  border: none !important;
+  border-top: 2px solid var(--gt-ink) !important;
+  margin: 12px 0 !important;
+}
+
+/* Focus: hard outline, not soft glow */
+*:focus,
+*:focus-visible {
+  outline: 3px solid var(--gt-signal) !important;
+  outline-offset: 0 !important;
+}
+
+/* Selection: inverted */
+::selection {
+  background: var(--gt-signal) !important;
+  color: #fff !important;
 }
