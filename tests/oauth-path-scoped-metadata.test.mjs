@@ -122,7 +122,7 @@ describe('authorization-server metadata — path-scoped probe', () => {
 
 describe('the MCP 401 challenge points at the path-scoped document', () => {
   it('wwwAuthHeader carries the /mcp resource metadata URL', async () => {
-    const { wwwAuthHeader } = await import('../api/mcp/auth.ts');
+    const { wwwAuthHeader } = await import('../api/mcp/_auth.ts');
     assert.equal(
       wwwAuthHeader('https://worldmonitor.app/.well-known/oauth-protected-resource/mcp'),
       'Bearer realm="worldmonitor", resource_metadata="https://worldmonitor.app/.well-known/oauth-protected-resource/mcp"',

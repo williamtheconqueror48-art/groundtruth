@@ -29,7 +29,7 @@ import { mcpHandler } from '../api/mcp/handler.ts';
 import {
   applyAnonDiscoveryLimit,
   applyPerMinuteLimit,
-} from '../api/mcp/auth.ts';
+} from '../api/mcp/_auth.ts';
 import { HMAC_SECRET, PRO_BEARER, makeProDeps } from './helpers/mcp-pro-deps.mjs';
 import { assertJsonRpcError, assertJsonRpcResult } from './helpers/mcp-jsonrpc-schema.mjs';
 

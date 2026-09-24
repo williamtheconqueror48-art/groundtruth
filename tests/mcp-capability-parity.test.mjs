@@ -31,8 +31,8 @@ import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 
 import { BASE_URL } from './helpers/mcp-pro-deps.mjs';
-import { resolveMcpBudget } from '../api/mcp/quota.ts';
-import { MCP_DEFAULT_BURST_PER_MINUTE, resolveMcpBurstPerMinute } from '../api/mcp/auth.ts';
+import { resolveMcpBudget } from '../api/mcp/_quota.ts';
+import { MCP_DEFAULT_BURST_PER_MINUTE, resolveMcpBurstPerMinute } from '../api/mcp/_auth.ts';
 import { PRODUCT_CATALOG } from '../convex/config/productCatalog.ts';
 
 const originalFetch = globalThis.fetch;

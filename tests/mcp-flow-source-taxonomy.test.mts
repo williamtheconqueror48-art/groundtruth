@@ -17,7 +17,7 @@
 import assert from 'node:assert/strict';
 import { describe, it, beforeEach, afterEach } from 'node:test';
 
-import { CACHE_TOOLS } from '../api/mcp/registry/cache-tools.ts';
+import { CACHE_TOOLS } from '../api/mcp/registry/_cache-tools.ts';
 
 const tool = CACHE_TOOLS.find((t) => t.name === 'get_chokepoint_status');
 

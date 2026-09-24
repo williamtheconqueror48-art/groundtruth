@@ -16,7 +16,7 @@ const durations = JSON.parse(readFileSync(join(root, 'scripts/shared/data-test-d
 const workflow = parse(readFileSync(join(root, '.github/workflows/test.yml'), 'utf8'));
 const ciShards = workflow.jobs['unit-shards'].strategy.matrix.shard;
 const ciShardCount = ciShards.length;
-const patterns = ['tests/*.test.mjs', 'tests/*.test.mts', 'cli/test/*.test.mjs', 'api/security/report.test.mjs'];
+const patterns = ['tests/*.test.mjs', 'tests/*.test.mts', 'cli/test/*.test.mjs', 'api/security/_report.test.mjs'];
 const inventory = globSync(patterns, { cwd: root });
 const childEnv = { ...process.env };
 delete childEnv.NODE_TEST_CONTEXT;
@@ -33,7 +33,7 @@ test('every CI shard together executes the complete data inventory exactly once,
   assert.deepEqual(shards.flat().sort(), [...inventory].sort());
   assert.equal(new Set(shards.flat()).size, inventory.length);
   assert.ok(shards.every((files) => files.length > 0), 'no CI shard may be empty');
-  assert.ok(shards.flat().includes('api/security/report.test.mjs'));
+  assert.ok(shards.flat().includes('api/security/_report.test.mjs'));
   assert.ok(shards.flat().some((file) => file.startsWith('cli/test/')));
   const withNewFile = partitionTests([...inventory, 'tests/new-unmeasured.test.mts'], durations, ciShardCount).flat();
   assert.equal(withNewFile.filter((file) => file === 'tests/new-unmeasured.test.mts').length, 1);

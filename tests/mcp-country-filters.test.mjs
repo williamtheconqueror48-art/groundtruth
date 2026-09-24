@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { afterEach, it } from 'node:test';
-import { TOOL_REGISTRY } from '../api/mcp/registry/index.ts';
-import { dispatchToolsCall } from '../api/mcp/dispatch.ts';
-import { RpcValidationError } from '../api/mcp/billing-denial.ts';
+import { TOOL_REGISTRY } from '../api/mcp/registry/_index.ts';
+import { dispatchToolsCall } from '../api/mcp/_dispatch.ts';
+import { RpcValidationError } from '../api/mcp/_billing-denial.ts';
 import { installRedis } from './helpers/fake-upstash-redis.mts';
 
 const originalFetch = globalThis.fetch;

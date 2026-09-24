@@ -14,9 +14,9 @@
 // Genuine tool-execution failures deliberately stay `isError` results — the
 // MCP spec reserves top-level errors for protocol-level failures only.
 import { ENDPOINT_RATE_POLICIES, checkScopedRateLimit, checkIpScopedEdgeProof, getClientIp } from '../server/_shared/rate-limit';
-import { readBoundedRequestBody, RequestBodyTooLargeError } from './mcp/bounded-body';
-import { MAX_JSON_RPC_BODY_BYTES } from './mcp/body-limits';
-import { safeJsonRpcId } from './mcp/utils';
+import { readBoundedRequestBody, RequestBodyTooLargeError } from './mcp/_bounded-body.ts';
+import { MAX_JSON_RPC_BODY_BYTES } from './mcp/_body-limits.ts';
+import { safeJsonRpcId } from './mcp/_utils.ts';
 
 export const config = { runtime: 'edge' };
 

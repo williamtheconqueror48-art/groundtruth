@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { Window } from 'happy-dom';
 
-import { MARKET_RADAR_APP_HTML } from '../api/mcp/ui/market-radar-app';
+import { MARKET_RADAR_APP_HTML } from '../api/mcp/ui/_market-radar-app.ts';
 import { buildProducerBackedMarketFixture } from './helpers/mcp-producer-fixtures.mjs';
 
 const FIXTURE = path.join(

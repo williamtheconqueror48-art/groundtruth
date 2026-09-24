@@ -6,10 +6,10 @@ import { afterEach, describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 
-import { TOOL_REGISTRY } from '../api/mcp/registry/index.ts';
-import { dispatchToolsCall } from '../api/mcp/dispatch.ts';
-import { RpcValidationError } from '../api/mcp/billing-denial.ts';
-import { downstreamErrorTags } from '../api/mcp/downstream.ts';
+import { TOOL_REGISTRY } from '../api/mcp/registry/_index.ts';
+import { dispatchToolsCall } from '../api/mcp/_dispatch.ts';
+import { RpcValidationError } from '../api/mcp/_billing-denial.ts';
+import { downstreamErrorTags } from '../api/mcp/_downstream.ts';
 
 const ORIGINAL_FETCH = globalThis.fetch;
 process.env.MCP_TELEMETRY = 'false';

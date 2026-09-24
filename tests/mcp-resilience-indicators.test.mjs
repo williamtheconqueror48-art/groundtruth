@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, mock, test } from 'node:test';
 
-import { TOOL_REGISTRY } from '../api/mcp/registry/index.ts';
+import { TOOL_REGISTRY } from '../api/mcp/registry/_index.ts';
 import { HMAC_SECRET } from './helpers/mcp-pro-deps.mjs';
 
 const ORIGINAL_FETCH = globalThis.fetch;

@@ -1324,10 +1324,10 @@
           "path": "api/a2a.ts"
         },
         {
-          "path": "api/mcp/downstream.ts"
+          "path": "api/mcp/_downstream.ts"
         },
         {
-          "path": "api/mcp/skill-extension/generated.ts"
+          "path": "api/mcp/skill-extension/_generated.ts"
         },
         {
           "path": "scripts/ais-relay.cjs"
@@ -3182,7 +3182,7 @@
       "status": "terms-review",
       "references": [
         {
-          "path": "api/mcp/skill-extension/generated.ts"
+          "path": "api/mcp/skill-extension/_generated.ts"
         },
         {
           "path": "scripts/seed-earthquakes.mjs"
@@ -5175,7 +5175,7 @@
       "status": "excluded",
       "references": [
         {
-          "path": "api/mcp/constants.ts"
+          "path": "api/mcp/_constants.ts"
         }
       ]
     },
@@ -9735,7 +9735,7 @@
           "path": "api/fwdstart.js"
         },
         {
-          "path": "api/mcp/skill-extension/generated.ts"
+          "path": "api/mcp/skill-extension/_generated.ts"
         },
         {
           "path": "api/notification-suppressions.js"
@@ -13641,7 +13641,7 @@
       "status": "terms-review",
       "references": [
         {
-          "path": "api/mcp/skill-extension/generated.ts"
+          "path": "api/mcp/skill-extension/_generated.ts"
         },
         {
           "path": "server/worldmonitor/webcam/v1/get-webcam-image.ts"
@@ -13718,7 +13718,7 @@
           "path": "api/ask.ts"
         },
         {
-          "path": "api/mcp/skill-extension/generated.ts"
+          "path": "api/mcp/skill-extension/_generated.ts"
         },
         {
           "path": "api/not-found.ts"

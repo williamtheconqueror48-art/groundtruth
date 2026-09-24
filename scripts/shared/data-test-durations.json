@@ -1,5 +1,5 @@
 {
-  "api/security/report.test.mjs": 54,
+  "api/security/_report.test.mjs": 54,
   "cli/test/core.test.mjs": 38,
   "tests/511-rate-limit.test.mjs": 23,
   "tests/a11y-cii-nested-interactive.test.mjs": 21,

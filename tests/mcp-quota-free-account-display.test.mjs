@@ -13,7 +13,7 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { quotaHandler } from '../api/user/mcp-quota.ts';
-import { FREE_ACCOUNT_CALLS_PER_DAY, freeAccountCallsKey } from '../api/mcp/free-account-allowance.ts';
+import { FREE_ACCOUNT_CALLS_PER_DAY, freeAccountCallsKey } from '../api/mcp/_free-account-allowance.ts';
 import { dailyCounterKey } from '../server/_shared/pro-mcp-token.ts';
 
 const USER = 'user_free_display';

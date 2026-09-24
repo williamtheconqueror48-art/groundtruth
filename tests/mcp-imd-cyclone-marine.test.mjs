@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { executeTool } from '../api/mcp/dispatch.ts';
-import { CACHE_TOOLS } from '../api/mcp/registry/cache-tools.ts';
-import { TOOL_REGISTRY } from '../api/mcp/registry/index.ts';
+import { executeTool } from '../api/mcp/_dispatch.ts';
+import { CACHE_TOOLS } from '../api/mcp/registry/_cache-tools.ts';
+import { TOOL_REGISTRY } from '../api/mcp/registry/_index.ts';
 import { IMD_CANONICAL_KEY } from '../scripts/lib/imd-cyclone-marine.mjs';
 
 const findTool = (name) => CACHE_TOOLS.find((tool) => tool.name === name);

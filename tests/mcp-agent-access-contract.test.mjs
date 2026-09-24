@@ -2,14 +2,14 @@ import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 
-import { SERVER_INSTRUCTIONS } from '../api/mcp/constants.ts';
+import { SERVER_INSTRUCTIONS } from '../api/mcp/_constants.ts';
 import {
   buildPublicTool,
   TOOL_LIST_RESPONSE,
   TOOL_REGISTRY,
   toolWeight,
-} from '../api/mcp/registry/index.ts';
-import { RESOURCE_TEMPLATE_LIST_RESPONSE } from '../api/mcp/resources/index.ts';
+} from '../api/mcp/registry/_index.ts';
+import { RESOURCE_TEMPLATE_LIST_RESPONSE } from '../api/mcp/resources/_index.ts';
 
 const accessFor = (name) => TOOL_LIST_RESPONSE
   .find((tool) => tool.name === name)?._meta?.['worldmonitor/access'];

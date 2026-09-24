@@ -69,7 +69,7 @@ for (const m of R('src/shared/pro-fresh-rpc.ts').matchAll(/^\s*'(\/api\/[^']+)',
 for (const m of R('src/config/map-layer-definitions.ts').matchAll(/^\s*([a-zA-Z0-9_]+):\s*def\('([^']+)'[^\n]*?,\s*(?:_desktop \? )?'(locked|enhanced)'/gm))
   add('layer', m[2], m[3]);
 // 7. FREE_* caps
-for (const f of ['src/config/panels.ts','convex/constants.ts','src/services/gates/export-resolver.ts','src/services/followed-countries.ts','api/mcp/upgrade-constants.ts'])
+for (const f of ['src/config/panels.ts','convex/constants.ts','src/services/gates/export-resolver.ts','src/services/followed-countries.ts','api/mcp/_upgrade-constants.ts'])
   for (const m of R(f).matchAll(/^export const (FREE_[A-Z_]+)\s*=\s*([^;]+);/gm)) add('cap', m[1], `${m[2].trim()} (${f})`);
 
 

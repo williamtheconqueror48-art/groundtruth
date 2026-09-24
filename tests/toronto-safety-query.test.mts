@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 
 import { ApiError } from '../src/generated/server/worldmonitor/safety/v1/service_server.ts';
 import { queryTorontoSafety } from '../server/worldmonitor/safety/v1/get-toronto-safety.ts';
-import { CACHE_TOOLS } from '../api/mcp/registry/cache-tools.ts';
+import { CACHE_TOOLS } from '../api/mcp/registry/_cache-tools.ts';
 
 const MCI_KEY = 'safety:toronto:tps-mci:v1';
 const MCI_META = 'seed-meta:safety:tps-mci';

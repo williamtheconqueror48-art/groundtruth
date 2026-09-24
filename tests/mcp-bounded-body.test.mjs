@@ -6,11 +6,11 @@ import {
   readBoundedResponseBody,
   RequestBodyTooLargeError,
   ResponseBodyTooLargeError,
-} from '../api/mcp/bounded-body.ts';
+} from '../api/mcp/_bounded-body.ts';
 import {
   MAX_JSON_RPC_BODY_BYTES,
   MAX_MCP_PROXY_RESPONSE_BYTES,
-} from '../api/mcp/body-limits.ts';
+} from '../api/mcp/_body-limits.ts';
 
 describe('readBoundedRequestBody', () => {
   it('exports the shared 256 KiB MCP JSON-RPC body cap', () => {

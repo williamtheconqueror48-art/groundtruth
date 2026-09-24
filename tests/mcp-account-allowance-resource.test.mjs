@@ -9,8 +9,8 @@ import {
   freeAccountCallsKey,
   freeAccountLastActivityKey,
   freeAccountRequestsKey,
-} from '../api/mcp/free-account-allowance.ts';
-import { SHARED_API_BUDGET } from '../api/mcp/quota.ts';
+} from '../api/mcp/_free-account-allowance.ts';
+import { SHARED_API_BUDGET } from '../api/mcp/_quota.ts';
 import { apiKeyDailyKey } from '../server/_shared/api-key-rate-limit.ts';
 import { dailyCounterKey, envPrefix } from '../server/_shared/pro-mcp-token.ts';
 import {

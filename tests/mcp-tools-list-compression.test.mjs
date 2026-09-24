@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 
-import { TOOL_REGISTRY, toolAccess } from '../api/mcp/registry/index.ts';
+import { TOOL_REGISTRY, toolAccess } from '../api/mcp/registry/_index.ts';
 
 const originalEnv = { ...process.env };
 

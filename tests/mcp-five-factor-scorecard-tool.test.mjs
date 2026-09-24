@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { HMAC_SECRET, callBody, makeProDeps, proReq } from './helpers/mcp-pro-deps.mjs';
-import { dispatchToolsCall } from '../api/mcp/dispatch.ts';
-import { TOOL_REGISTRY } from '../api/mcp/registry/index.ts';
+import { dispatchToolsCall } from '../api/mcp/_dispatch.ts';
+import { TOOL_REGISTRY } from '../api/mcp/registry/_index.ts';
 import { documentedOutputSchema } from './helpers/mcp-output-schema.mjs';
 
 const originalFetch = globalThis.fetch;

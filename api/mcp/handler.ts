@@ -9,8 +9,8 @@ import {
   resolveAuthContext,
   runContextPreChecks,
   wwwAuthHeader,
-} from './auth';
-import { readBoundedRequestBody, RequestBodyTooLargeError } from './bounded-body';
+} from './_auth.ts';
+import { readBoundedRequestBody, RequestBodyTooLargeError } from './_bounded-body.ts';
 import {
   MAX_JSON_RPC_BODY_BYTES,
   MCP_LOG_LEVELS,
@@ -18,10 +18,10 @@ import {
   SERVER_INSTRUCTIONS,
   SERVER_NAME,
   SERVER_VERSION,
-} from './constants';
-import { dispatchToolsCall } from './dispatch';
-import { buildPromptResponse, PROMPT_LIST_RESPONSE } from './prompts/index';
-import { FREE_TIER_TOOL_NAMES, TOOL_LIST_BYTES, TOOL_LIST_RESPONSE } from './registry/index';
+} from './_constants.ts';
+import { dispatchToolsCall } from './_dispatch.ts';
+import { buildPromptResponse, PROMPT_LIST_RESPONSE } from './prompts/_index.ts';
+import { FREE_TIER_TOOL_NAMES, TOOL_LIST_BYTES, TOOL_LIST_RESPONSE } from './registry/_index.ts';
 import {
   ACCOUNT_RESOURCE_LIST_RESPONSE,
   buildAccountAllowanceResourceResponse,
@@ -31,20 +31,20 @@ import {
   isPublicResourceUri,
   RESOURCE_LIST_RESPONSE,
   RESOURCE_TEMPLATE_LIST_RESPONSE,
-} from './resources/index';
-import { rpcError, rpcOk, withMcpNoStore } from './rpc';
+} from './resources/_index.ts';
+import { rpcError, rpcOk, withMcpNoStore } from './_rpc.ts';
 import {
   buildSkillResourceRead,
   buildSkillsGetResponse,
   buildSkillsListResponse,
   isSkillUri,
   isSkillResourceUri,
-} from './skill-extension/index';
-import { buildUiResourceRead, isUiResourceUri, UI_RESOURCE_LIST_RESPONSE } from './ui/registry';
-import { emitTelemetry, principalIdForLog } from './telemetry';
+} from './skill-extension/_index.ts';
+import { buildUiResourceRead, isUiResourceUri, UI_RESOURCE_LIST_RESPONSE } from './ui/_registry.ts';
+import { emitTelemetry, principalIdForLog } from './_telemetry.ts';
 import { hashKeySync } from '../../server/_shared/usage-identity';
-import { createMcpUsage, emitMcpRequestEvent, setUsageContext, setUsageRpc, type McpUsage } from './usage';
-import { safeJsonRpcId, utf8ByteLength } from './utils';
+import { createMcpUsage, emitMcpRequestEvent, setUsageContext, setUsageRpc, type McpUsage } from './_usage.ts';
+import { safeJsonRpcId, utf8ByteLength } from './_utils.ts';
 import {
   isMcpAliasRequest,
   MCP_CANONICAL_ENDPOINT_ERROR_CODE,
@@ -53,8 +53,8 @@ import {
   MCP_CANONICAL_LINK,
   mcpCanonicalLocation,
 } from '../../shared/mcp-host-policy';
-import type { McpAuthContext, McpHandlerDeps } from './types';
-import type { McpBudget } from './quota';
+import type { McpAuthContext, McpHandlerDeps } from './_types.ts';
+import type { McpBudget } from './_quota.ts';
 
 // MCP methods servable WITHOUT authentication — on the machine-discovery
 // aliases only (WELL_KNOWN_MCP_PATHS). The transport paths (`/mcp`, `/api/mcp`)

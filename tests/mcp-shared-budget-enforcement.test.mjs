@@ -8,8 +8,8 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import { budgetCounterKey, resolveMcpBudget, SHARED_API_BUDGET } from '../api/mcp/quota.ts';
-import { TOOL_REGISTRY, toolWeight } from '../api/mcp/registry/index.ts';
+import { budgetCounterKey, resolveMcpBudget, SHARED_API_BUDGET } from '../api/mcp/_quota.ts';
+import { TOOL_REGISTRY, toolWeight } from '../api/mcp/registry/_index.ts';
 import { mergeEntitlementFeatures } from '../convex/lib/entitlements.ts';
 import { PRODUCT_CATALOG } from '../convex/config/productCatalog.ts';
 import { apiKeyDailyKey } from '../server/_shared/api-key-rate-limit.ts';

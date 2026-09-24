@@ -419,7 +419,7 @@ describe('mcp-quota handler — plan-resolved limit (U3b)', () => {
   it('reuses api/mcp/quota.ts resolveDailyLimit — no second copy of the normalisation', async () => {
     // Drift guard: if the reader ever grows its own copy of the three-way
     // contract, this import breaks or the pairing below diverges.
-    const { resolveDailyLimit } = await import('../api/mcp/quota.ts');
+    const { resolveDailyLimit } = await import('../api/mcp/_quota.ts');
     for (const [planLimit, expected] of [
       [250, 250],
       [null, null],

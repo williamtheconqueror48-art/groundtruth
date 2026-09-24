@@ -10,7 +10,7 @@ import {
   RpcValidationError,
   ToolBackoffError,
   throwIfBillingDenial,
-} from '../api/mcp/billing-denial.ts';
+} from '../api/mcp/_billing-denial.ts';
 
 function response(status, headerMap = {}) {
   return {
@@ -232,7 +232,7 @@ describe('assertToolFetchOk RPC validation 400s', () => {
 
 describe('internal signature failure classification', () => {
   it('preserves confirmed signature failures across tools for fingerprinting', async () => {
-    const { mcpErrorFingerprint } = await import('../api/mcp/error-fingerprint.ts');
+    const { mcpErrorFingerprint } = await import('../api/mcp/_error-fingerprint.ts');
     for (const operation of ['list-global-tenders', 'get-country-risk', 'deduct-situation']) {
       await assert.rejects(
         () => assertToolFetchOk(new Response(JSON.stringify({ error: 'invalid_internal_mcp_signature' }), {
@@ -247,7 +247,7 @@ describe('internal signature failure classification', () => {
   });
 
   it('keeps entitlement, unknown, malformed and empty 401s out of the signature group', async () => {
-    const { mcpErrorFingerprint } = await import('../api/mcp/error-fingerprint.ts');
+    const { mcpErrorFingerprint } = await import('../api/mcp/_error-fingerprint.ts');
     for (const body of [
       JSON.stringify({ error: 'insufficient_entitlement' }),
       JSON.stringify({ error: 'invalid_api_key' }),

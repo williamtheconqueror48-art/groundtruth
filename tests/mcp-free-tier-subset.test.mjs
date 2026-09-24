@@ -17,11 +17,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Ratelimit } from '@upstash/ratelimit';
 
-import { TOOL_REGISTRY, TOOL_LIST_RESPONSE } from '../api/mcp/registry/index.ts';
-import { buildAuthHeaders } from '../api/mcp/auth.ts';
-import { setUsageContext, createMcpUsage } from '../api/mcp/usage.ts';
-import { principalIdForLog } from '../api/mcp/telemetry.ts';
-import { dispatchToolsCall } from '../api/mcp/dispatch.ts';
+import { TOOL_REGISTRY, TOOL_LIST_RESPONSE } from '../api/mcp/registry/_index.ts';
+import { buildAuthHeaders } from '../api/mcp/_auth.ts';
+import { setUsageContext, createMcpUsage } from '../api/mcp/_usage.ts';
+import { principalIdForLog } from '../api/mcp/_telemetry.ts';
+import { dispatchToolsCall } from '../api/mcp/_dispatch.ts';
 import { mcpHandler } from '../api/mcp/handler.ts';
 
 const freeTools = TOOL_REGISTRY.filter((t) => t._freeTier === true);
@@ -337,7 +337,7 @@ describe('free-tier ceiling fails closed', () => {
   });
 
   it('classifies a limiter outage separately from an exhausted bucket in usage telemetry', async () => {
-    const { mcpReasonFor } = await import('../api/mcp/usage.ts');
+    const { mcpReasonFor } = await import('../api/mcp/_usage.ts');
     assert.equal(mcpReasonFor('limit', 429), 'rate_limit_429');
     assert.equal(mcpReasonFor('limit', 503), 'rate_limit_degraded');
   });

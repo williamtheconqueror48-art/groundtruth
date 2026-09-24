@@ -11,7 +11,7 @@ export {
   PRODUCTION_DEPS,
   resolveAuthContext,
   wwwAuthHeader,
-} from './mcp/auth';
+} from './mcp/_auth.ts';
 export {
   JMESPATH_MAX_EXPR_BYTES,
   JMESPATH_MAX_OUTPUT_BYTES,
@@ -19,7 +19,7 @@ export {
   MCP_SUPPORTED_CLIENT_MATRIX,
   negotiateProtocolVersion,
   TOOL_DESCRIPTION_MAX_BYTES,
-} from './mcp/constants';
+} from './mcp/_constants.ts';
 
 // MCP_SUPPORTED_PROTOCOL_VERSIONS / MCP_PROTOCOL_VERSION snapshot the env at
 // THIS module's load. They live here (not in ./mcp/constants) so dynamic
@@ -39,17 +39,17 @@ export const MCP_SUPPORTED_PROTOCOL_VERSIONS: readonly string[] =
 export const MCP_PROTOCOL_VERSION: string = MCP_PROTOCOL_FLOOR_2025_06_18_DISABLED
   ? '2025-03-26'
   : '2025-06-18';
-export { dispatchToolsCall, executeTool } from './mcp/dispatch';
-export { evaluateFreshness } from './mcp/freshness';
-export { applyJmespath, JMESPATH_SCHEMA } from './mcp/jmespath';
-export { reserveQuota } from './mcp/quota';
+export { dispatchToolsCall, executeTool } from './mcp/_dispatch.ts';
+export { evaluateFreshness } from './mcp/_freshness.ts';
+export { applyJmespath, JMESPATH_SCHEMA } from './mcp/_jmespath.ts';
+export { reserveQuota } from './mcp/_quota.ts';
 export {
   buildPublicTool,
   SUMMARY_SCHEMA,
   TOOL_LIST_BYTES,
   TOOL_LIST_RESPONSE,
   TOOL_REGISTRY,
-} from './mcp/registry/index';
+} from './mcp/registry/_index.ts';
 export {
   emitMcpRateLimitHit,
   emitTelemetry,
@@ -59,17 +59,17 @@ export {
   MCP_TOOLS_LIST_TELEMETRY_KEYS,
   principalIdForLog,
   telemetryEnabled,
-} from './mcp/telemetry';
+} from './mcp/_telemetry.ts';
 export type {
   ApplyJmespathResult,
   JmespathFailKind,
   McpAuthContext,
   McpHandlerDeps,
   PublicToolShape,
-} from './mcp/types';
-export { compressDescription, utf8ByteLength } from './mcp/utils';
+} from './mcp/_types.ts';
+export { compressDescription, utf8ByteLength } from './mcp/_utils.ts';
 
-export { buildPromptResponse, PROMPT_LIST_RESPONSE, PROMPT_REGISTRY } from './mcp/prompts/index';
+export { buildPromptResponse, PROMPT_LIST_RESPONSE, PROMPT_REGISTRY } from './mcp/prompts/_index.ts';
 export {
   buildPublicResourceResponse,
   buildResourceResponse,
@@ -78,8 +78,8 @@ export {
   RESOURCE_LIST_RESPONSE,
   RESOURCE_TEMPLATE_LIST_RESPONSE,
   TEMPLATE_RESOURCE_REGISTRY,
-} from './mcp/resources/index';
-export { CHOKEPOINT_SLUGS } from './mcp/resources/slugs';
+} from './mcp/resources/_index.ts';
+export { CHOKEPOINT_SLUGS } from './mcp/resources/_slugs.ts';
 
 // Test-only escape hatch. Exposes the TOOL_REGISTRY by REFERENCE so mutations
 // inside `tests/mcp-tool-output-contracts.test.mjs` (which monkey-patches
@@ -91,12 +91,12 @@ export { CHOKEPOINT_SLUGS } from './mcp/resources/slugs';
 // capability-parity test's "advertised → non-empty registry" check stays
 // aligned with the wire; the data-bearing URI templates are exposed
 // separately as TEMPLATE_RESOURCE_REGISTRY.
-import { PROMPT_REGISTRY as __PROMPT_REGISTRY } from './mcp/prompts/index';
+import { PROMPT_REGISTRY as __PROMPT_REGISTRY } from './mcp/prompts/_index.ts';
 import {
   PUBLIC_RESOURCE_REGISTRY as __PUBLIC_RESOURCE_REGISTRY,
   TEMPLATE_RESOURCE_REGISTRY as __TEMPLATE_RESOURCE_REGISTRY,
-} from './mcp/resources/index';
-import { TOOL_REGISTRY as __TOOL_REGISTRY } from './mcp/registry/index';
+} from './mcp/resources/_index.ts';
+import { TOOL_REGISTRY as __TOOL_REGISTRY } from './mcp/registry/_index.ts';
 export const __testing__ = {
   TOOL_REGISTRY: __TOOL_REGISTRY,
   PROMPT_REGISTRY: __PROMPT_REGISTRY,

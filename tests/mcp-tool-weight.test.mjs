@@ -17,7 +17,7 @@ import { strict as assert } from 'node:assert';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { TOOL_REGISTRY, toolWeight } from '../api/mcp/registry/index.ts';
+import { TOOL_REGISTRY, toolWeight } from '../api/mcp/registry/_index.ts';
 import COUNTRY_BBOXES from '../shared/country-bboxes.js';
 
 const REGISTRY_DIR = fileURLToPath(new URL('../api/mcp/registry/', import.meta.url));

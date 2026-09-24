@@ -9,19 +9,19 @@ import {
   FREE_ACCOUNT_CALLS_PER_DAY,
   FREE_ACCOUNT_IDLE_GAP_MS,
   FREE_ACCOUNT_REQUESTS_PER_DAY,
-} from '../api/mcp/upgrade-constants.ts';
+} from '../api/mcp/_upgrade-constants.ts';
 import {
   reserveFreeAccountAllowance,
   freeAccountCallsKey,
   freeAccountRequestsKey,
   freeAccountLastActivityKey,
-} from '../api/mcp/free-account-allowance.ts';
+} from '../api/mcp/_free-account-allowance.ts';
 import {
   buildMcpStructuredDenial,
   MCP_UPGRADE_URL,
   MCP_ATTRIBUTION_SOURCE,
   normalizeCheckoutAttributionSource,
-} from '../api/mcp/upgrade.ts';
+} from '../api/mcp/_upgrade.ts';
 import { HMAC_SECRET, PRO_USER_ID, PRO_TOKEN_ID, makeProDeps } from './helpers/mcp-pro-deps.mjs';
 
 const RESOURCE_META_URL = 'https://worldmonitor.app/.well-known/oauth-protected-resource';

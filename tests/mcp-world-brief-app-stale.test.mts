@@ -16,7 +16,7 @@ import { describe, it, before, after } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { Window } from 'happy-dom';
 
-import { WORLD_BRIEF_APP_HTML } from '../api/mcp/ui/world-brief-app';
+import { WORLD_BRIEF_APP_HTML } from '../api/mcp/ui/_world-brief-app.ts';
 
 function briefPayload(overrides: Record<string, unknown> = {}) {
   return {

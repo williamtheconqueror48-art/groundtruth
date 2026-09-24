@@ -7,7 +7,7 @@ import {
   classifyFailureReason,
   BothSourcesFailedError,
   downstreamErrorTags,
-} from '../api/mcp/downstream.ts';
+} from '../api/mcp/_downstream.ts';
 
 describe('classifyFailureReason', () => {
   it('returns "timeout" for AbortError', () => {

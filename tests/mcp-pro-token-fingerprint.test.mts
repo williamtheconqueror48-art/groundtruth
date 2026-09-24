@@ -48,7 +48,7 @@ process.env.CONVEX_SERVER_SHARED_SECRET = 'test-convex-shared-secret';
 
 const ENVELOPE_URL_PREFIX = 'https://sentry.test/api/12345/envelope';
 
-const { validateProMcpAuthorization } = await import('../api/mcp/auth.ts');
+const { validateProMcpAuthorization } = await import('../api/mcp/_auth.ts');
 
 const originalFetch = globalThis.fetch;
 after(() => {
