@@ -1,47 +1,74 @@
 /**
- * DIAGNOSTIC WRAPPER — temporary.
+ * DIAGNOSTIC BISECT — temporary.
  *
- * Production returns MIDDLEWARE_INVOCATION_FAILED on every request the
- * middleware processes, while the same bundle passes in a local edge VM.
- * This wrapper surfaces the real exception as response text so the root
- * cause can be read from the deployed site instead of guessed at.
+ * The wrapped middleware throws at MODULE LOAD in Vercel's runtime
+ * (import of ./middleware.impl fails) while the same bundle evaluates
+ * fine in a local edge VM. This entry dynamically imports each
+ * dependency of the real middleware with an isolated try/catch and
+ * reports which one throws, with its stack.
  *
- * If the failure is at module load, the import below throws and Vercel
- * still reports MIDDLEWARE_INVOCATION_FAILED (binary signal: load-time).
- * If the failure is inside the handler, the response body carries the
- * stack (signal: invoke-time + the actual error).
- *
- * REMOVE after the root cause is fixed; the real middleware lives in
- * middleware.impl.ts.
+ * REMOVE after the root cause is fixed.
  */
-export { config } from './middleware.impl';
-import impl from './middleware.impl';
+export const config = {
+  matcher: [
+    '/mcp',
+    '/api/:path*',
+    '/((?!api(?:/|$)|mcp(?:/|$)|.*\\.[^/]+$).*)',
+  ],
+};
 
-function errorResponse(err: unknown): Response {
+function fmt(label: string, err: unknown): string {
   const detail =
-    err instanceof Error
-      ? err.stack || `${err.name}: ${err.message}`
-      : String(err);
-  return new Response(`MIDDLEWARE_THREW\n${detail}`.slice(0, 4000), {
-    status: 500,
-    headers: {
-      'content-type': 'text/plain; charset=utf-8',
-      'cache-control': 'no-store',
-    },
-  });
+    err instanceof Error ? err.stack || `${err.name}: ${err.message}` : String(err);
+  return `THROW ${label} :: ${detail}`.slice(0, 1500);
 }
 
-export default function middleware(
-  request: Request,
-): Response | undefined | Promise<Response | undefined> {
-  let result: unknown;
-  try {
-    result = (impl as (req: Request) => unknown)(request);
-  } catch (err) {
-    return errorResponse(err);
-  }
-  if (result instanceof Promise) {
-    return result.catch(errorResponse);
-  }
-  return result as Response | undefined;
+export default function middleware(_request: Request): Promise<Response> {
+  return (async () => {
+    const out: string[] = [];
+    try {
+      await import('./src/config/agent-not-found');
+      out.push('OK ./src/config/agent-not-found');
+    } catch (e) {
+      out.push(fmt('./src/config/agent-not-found', e));
+    }
+    try {
+      await import('./src/config/docs-locale-seo');
+      out.push('OK ./src/config/docs-locale-seo');
+    } catch (e) {
+      out.push(fmt('./src/config/docs-locale-seo', e));
+    }
+    try {
+      await import('./src/config/docs-root-redirects');
+      out.push('OK ./src/config/docs-root-redirects');
+    } catch (e) {
+      out.push(fmt('./src/config/docs-root-redirects', e));
+    }
+    try {
+      await import('./shared/agent-request-policy');
+      out.push('OK ./shared/agent-request-policy');
+    } catch (e) {
+      out.push(fmt('./shared/agent-request-policy', e));
+    }
+    try {
+      await import('./shared/mcp-host-policy');
+      out.push('OK ./shared/mcp-host-policy');
+    } catch (e) {
+      out.push(fmt('./shared/mcp-host-policy', e));
+    }
+    try {
+      const impl = await import('./middleware.impl');
+      out.push(
+        `OK ./middleware.impl (default export: ${typeof impl.default}, config: ${typeof impl.config})`,
+      );
+    } catch (e) {
+      out.push(fmt('./middleware.impl', e));
+    }
+    return new Response(out.join('\n---\n'), {
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+        'cache-control': 'no-store',
+      },
+    });
+  })();
 }
