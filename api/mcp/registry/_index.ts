@@ -1,12 +1,12 @@
-import { TOOL_DESCRIPTION_MAX_BYTES } from '../_constants.ts';
-import { JMESPATH_SCHEMA } from '../_jmespath.ts';
-import { advertisedOutputSchema } from '../_structured-content.ts';
-import type { McpAccessClass, PublicToolShape, ToolDef } from '../_types.ts';
-import { compressDescription, utf8ByteLength } from '../_utils.ts';
-import { CACHE_TOOLS } from './_cache-tools.ts';
-import { NLP_TOOLS } from './_nlp-tools.ts';
-import { RPC_TOOLS } from './_rpc-tools.ts';
-import { SOURCE_TOOLS } from './_source-tools.ts';
+import { TOOL_DESCRIPTION_MAX_BYTES } from '../_constants';
+import { JMESPATH_SCHEMA } from '../_jmespath';
+import { advertisedOutputSchema } from '../_structured-content';
+import type { McpAccessClass, PublicToolShape, ToolDef } from '../_types';
+import { compressDescription, utf8ByteLength } from '../_utils';
+import { CACHE_TOOLS } from './_cache-tools';
+import { NLP_TOOLS } from './_nlp-tools';
+import { RPC_TOOLS } from './_rpc-tools';
+import { SOURCE_TOOLS } from './_source-tools';
 
 // Merged tool registry — cache tools first (no `_execute`), then RPC tools
 // (with `_execute`), then the NLP utilities. Order is observable: `tools/list`

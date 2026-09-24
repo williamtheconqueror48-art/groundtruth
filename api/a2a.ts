@@ -14,10 +14,10 @@
 // stay false and tasks/* methods answer TaskNotFound.
 
 import { suggestTools } from './_agent-tool-suggest';
-import { PUBLIC_RESOURCE_REGISTRY } from './mcp/resources/_index.ts';
-import { readBoundedRequestBody, RequestBodyTooLargeError } from './mcp/_bounded-body.ts';
-import { MAX_JSON_RPC_BODY_BYTES } from './mcp/_body-limits.ts';
-import { safeJsonRpcId } from './mcp/_utils.ts';
+import { PUBLIC_RESOURCE_REGISTRY } from './mcp/resources/_index';
+import { readBoundedRequestBody, RequestBodyTooLargeError } from './mcp/_bounded-body';
+import { MAX_JSON_RPC_BODY_BYTES } from './mcp/_body-limits';
+import { safeJsonRpcId } from './mcp/_utils';
 import { ENDPOINT_RATE_POLICIES, checkScopedRateLimit, checkIpScopedEdgeProof, getClientIp } from '../server/_shared/rate-limit';
 
 // Re-exported so existing consumers (tests, api/ask.ts historically) keep a

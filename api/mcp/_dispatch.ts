@@ -4,36 +4,36 @@ import { isAppOwnedRedisKey } from '../_redis-key-ownership.js';
 // @ts-expect-error — JS module, no declaration file
 import { captureSilentError } from '../_sentry-edge.js';
 import { secondsUntilUtcMidnight } from '../../server/_shared/pro-mcp-token';
-import { getMcpBillingVerificationDenial, wwwAuthHeader } from './_auth.ts';
-import { BillingDenialError, RpcValidationError, ToolBackoffError } from './_billing-denial.ts';
+import { getMcpBillingVerificationDenial, wwwAuthHeader } from './_auth';
+import { BillingDenialError, RpcValidationError, ToolBackoffError } from './_billing-denial';
 import {
   BothSourcesFailedError,
   createMcpToolExecutionContext,
   downstreamErrorTags,
-} from './_downstream.ts';
-import { mcpErrorFingerprint } from './_error-fingerprint.ts';
-import { argBool, summarizeData } from './_filters.ts';
-import { evaluateFreshness } from './_freshness.ts';
-import { applyJmespath } from './_jmespath.ts';
-import { isSharedRestCounter, reserveQuota, type McpBudget } from './_quota.ts';
-import { reserveFreeAccountAllowance } from './_free-account-allowance.ts';
-import { buildMcpStructuredDenial, type McpDenial } from './_upgrade.ts';
-import { isQuotaExemptMetadataTool, toolAccess, toolWeight, TOOL_REGISTRY } from './registry/_index.ts';
-import { rpcError, rpcOk, withMcpNoStore } from './_rpc.ts';
-import { McpSourceUnavailableError } from './_source-unavailable.ts';
-import { buildStructuredContent } from './_structured-content.ts';
+} from './_downstream';
+import { mcpErrorFingerprint } from './_error-fingerprint';
+import { argBool, summarizeData } from './_filters';
+import { evaluateFreshness } from './_freshness';
+import { applyJmespath } from './_jmespath';
+import { isSharedRestCounter, reserveQuota, type McpBudget } from './_quota';
+import { reserveFreeAccountAllowance } from './_free-account-allowance';
+import { buildMcpStructuredDenial, type McpDenial } from './_upgrade';
+import { isQuotaExemptMetadataTool, toolAccess, toolWeight, TOOL_REGISTRY } from './registry/_index';
+import { rpcError, rpcOk, withMcpNoStore } from './_rpc';
+import { McpSourceUnavailableError } from './_source-unavailable';
+import { buildStructuredContent } from './_structured-content';
 import {
   emitTelemetry,
   principalIdForLog,
   telemetryEnabled,
-} from './_telemetry.ts';
+} from './_telemetry';
 import type {
   CacheToolDef,
   McpAuthContext,
   McpHandlerDeps,
   McpToolExecutionContext,
-} from './_types.ts';
-import { utf8ByteLength } from './_utils.ts';
+} from './_types';
+import { utf8ByteLength } from './_utils';
 // Currently the only stored-contract violation a post-filter can raise; add to this seam
 // rather than widening the catch below if another dataset grows one.
 import { isPhysicalDivergenceContractError as isMcpStoredContractError } from '../../server/_shared/physical-divergence-snapshot';

@@ -23,7 +23,7 @@ import { CII_RISK_SCORE_CACHE_KEYS } from '../../_cii-risk-cache-keys.js';
 import { BOOTSTRAP_CACHE_KEYS } from '../../_bootstrap-tier-keys.js';
 // @ts-expect-error — Edge-safe JS policy shared with health and seed-health
 import { PORTWATCH_CONTENT_FRESHNESS_ACTIVATION_KEY } from '../../_content-freshness.js';
-import { DEFAULT_LIST_LIMIT, MARKET_FRESHNESS_CHECKS } from '../_constants.ts';
+import { DEFAULT_LIST_LIMIT, MARKET_FRESHNESS_CHECKS } from '../_constants';
 import {
   argBool,
   argNum,
@@ -45,11 +45,11 @@ import {
   pickNestedMap,
   selectDatasets,
   summarizeData,
-} from '../_filters.ts';
+} from '../_filters';
 import { resolveCountryFilter } from '../_country-args';
-import type { ToolDef } from '../_types.ts';
+import type { ToolDef } from '../_types';
 
-import { utf8ByteLength } from '../_utils.ts';
+import { utf8ByteLength } from '../_utils';
 import {
   PHYSICAL_DIVERGENCE_OUTPUT_SCHEMA,
   PHYSICAL_PREMIUM_OUTPUT_SCHEMA,
@@ -64,7 +64,7 @@ import {
   NATURAL_DISASTERS_UI_URI,
   NEWS_INTELLIGENCE_UI_URI,
   PREDICTION_MARKETS_UI_URI,
-} from '../ui/_registry.ts';
+} from '../ui/_registry';
 
 // Eurostat uses EL for Greece and also publishes these two non-country geos.
 function resolveEurostatCountryFilter(raw: unknown): string[] {

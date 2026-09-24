@@ -9,11 +9,11 @@ import {
   canonicalJson,
   hasExactKeys,
   type JsonObject,
-} from './company-monitoring-evaluation.ts';
+} from './company-monitoring-evaluation';
 import type {
   BlindCorpus,
   GoldLabelSet,
-} from './company-monitoring-blind-evaluation.ts';
+} from './company-monitoring-blind-evaluation';
 
 export type CompanyMonitoringGeography = 'US' | 'GB';
 export type CompanyMonitoringTimePrecision = 'day' | 'second';

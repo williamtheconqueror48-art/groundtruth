@@ -11,9 +11,9 @@ import {
   readBoundedResponseBody,
   RequestBodyTooLargeError,
   ResponseBodyTooLargeError,
-} from './mcp/_bounded-body.ts';
-import { MAX_JSON_RPC_BODY_BYTES, MAX_MCP_PROXY_RESPONSE_BYTES } from './mcp/_body-limits.ts';
-import { McpProxyJsonDepthError, parseMcpProxyJson } from './mcp/_bounded-json.ts';
+} from './mcp/_bounded-body';
+import { MAX_JSON_RPC_BODY_BYTES, MAX_MCP_PROXY_RESPONSE_BYTES } from './mcp/_body-limits';
+import { McpProxyJsonDepthError, parseMcpProxyJson } from './mcp/_bounded-json';
 import { ENDPOINT_RATE_POLICIES, checkScopedRateLimit, checkIpScopedEdgeProof, getClientIp } from '../server/_shared/rate-limit';
 import { captureSilentError } from './_sentry-edge.js';
 import {

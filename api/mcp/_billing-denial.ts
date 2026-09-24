@@ -6,7 +6,7 @@
 // renewal verification exists to cover.
 
 import type { BillingVerificationStatus } from '../../server/_shared/entitlement-check';
-import { readBoundedResponseText } from './_bounded-body.ts';
+import { readBoundedResponseText } from './_bounded-body';
 
 export type BillingVerificationCode =
   | BillingVerificationStatus

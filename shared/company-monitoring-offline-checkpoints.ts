@@ -4,7 +4,7 @@ import {
   hasExactKeys,
   isEvidenceDigest,
   type JsonObject,
-} from './company-monitoring-evaluation.ts';
+} from './company-monitoring-evaluation';
 import {
   CompanyMonitoringOfflinePredictionError,
   type OfflineClassifierResult,
@@ -12,7 +12,7 @@ import {
   type OfflinePredictionReconciliation,
   type OfflineProviderObservationManifest,
   type OfflineRetainedProviderResponse,
-} from './company-monitoring-offline-prediction-contracts.ts';
+} from './company-monitoring-offline-prediction-contracts';
 
 const ATTEMPT_ID = /^cm_attempt_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const CHECKPOINT_KEYS = new Set([

@@ -19,14 +19,14 @@
  * not relax — admitting one would charge a slot for a call the gateway rejects.
  */
 
-import type { PipelineFn } from './_types.ts';
+import type { PipelineFn } from './_types';
 import { RESERVE_FREE_ACCOUNT_ALLOWANCE_SCRIPT } from '../../shared/free-account-allowance-scripts.mjs';
 import { envPrefix } from '../../server/_shared/pro-mcp-token';
 import {
   FREE_ACCOUNT_CALLS_PER_DAY,
   FREE_ACCOUNT_IDLE_GAP_MS,
   FREE_ACCOUNT_REQUESTS_PER_DAY,
-} from './_upgrade-constants.ts';
+} from './_upgrade-constants';
 
 export type FreeAccountAllowanceOk = {
   ok: true;
@@ -174,4 +174,4 @@ export {
   FREE_ACCOUNT_CALLS_PER_DAY,
   FREE_ACCOUNT_IDLE_GAP_MS,
   FREE_ACCOUNT_REQUESTS_PER_DAY,
-} from './_upgrade-constants.ts';
+} from './_upgrade-constants';

@@ -1,4 +1,4 @@
-import type { Prediction, PredictionSet } from './company-monitoring-blind-evaluation.ts';
+import type { Prediction, PredictionSet } from './company-monitoring-blind-evaluation';
 
 export type OfflineProviderCoverage = 'complete' | 'not_applicable' | 'incomplete';
 

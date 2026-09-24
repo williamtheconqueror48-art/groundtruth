@@ -32,7 +32,7 @@
 // (api/mcp.ts) re-declares the snapshot constants locally so its own
 // `mod.MCP_SUPPORTED_PROTOCOL_VERSIONS` / `mod.MCP_PROTOCOL_VERSION`
 // exports also reflect the per-import env state.
-import { MCP_UPGRADE_URL } from './_upgrade.ts';
+import { MCP_UPGRADE_URL } from './_upgrade';
 
 function supportedProtocolVersions(): readonly string[] {
   return process.env.MCP_PROTOCOL_FLOOR_2025_06_18 === 'off'
@@ -368,7 +368,7 @@ export const JMESPATH_MAX_OUTPUT_BYTES = 256 * 1024;
 // lives in `./body-limits` so Edge facades can import the cap without the
 // MCP upgrade/attribution module graph. Imported (not just re-exported) because
 // a bare `export ... from` creates no local binding for SERVER_INSTRUCTIONS.
-import { MAX_JSON_RPC_BODY_BYTES } from './_body-limits.ts';
+import { MAX_JSON_RPC_BODY_BYTES } from './_body-limits';
 export { MAX_JSON_RPC_BODY_BYTES };
 
 // tools/list tool-description compression cap (v1.5.0). Defined here

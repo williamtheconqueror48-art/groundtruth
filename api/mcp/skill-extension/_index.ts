@@ -1,5 +1,5 @@
-import { SKILL_ENTRIES, SKILL_RESOURCES } from './_generated.ts';
-import { rpcError, rpcOk } from '../_rpc.ts';
+import { SKILL_ENTRIES, SKILL_RESOURCES } from './_generated';
+import { rpcError, rpcOk } from '../_rpc';
 
 const entriesByUri = new Map<string, (typeof SKILL_ENTRIES)[number]>(
   SKILL_ENTRIES.map((entry) => [entry.uri, entry]),

@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 import handler from './embed.js';
-import { TRUSTED_RETURN_URL_ORIGINS } from '../../convex/payments/returnUrlOrigin.ts';
+import { TRUSTED_RETURN_URL_ORIGINS } from '../../convex/payments/returnUrlOrigin';
 
 function makeRequest(query = '') {
   return new Request(`https://worldmonitor.app/api/youtube/embed${query}`);

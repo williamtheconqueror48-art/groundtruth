@@ -21,8 +21,8 @@ import { getSourceProvenanceState } from '../../../shared/source-provenance';
 import { TELEGRAM_CHANNEL_TRUST } from '../../../shared/telegram-channel-trust';
 import { SOURCE_TIERS } from '../../../server/_shared/source-tiers';
 import { resolveSourceOrigin, sourceOriginFilterValue, sourceOriginLabel } from '../../../scripts/source-origin.mjs';
-import { argNum, argStr, ciIncludes } from '../_filters.ts';
-import type { ToolDef } from '../_types.ts';
+import { argNum, argStr, ciIncludes } from '../_filters';
+import type { ToolDef } from '../_types';
 
 interface ManifestEntry {
   host: string;

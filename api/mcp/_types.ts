@@ -3,7 +3,7 @@
 // from anywhere without creating evaluation-order surprises or cycles.
 
 import type { BillingVerificationStatus } from '../../server/_shared/entitlement-check';
-import type { McpBudget } from './_quota.ts';
+import type { McpBudget } from './_quota';
 
 // ---------------------------------------------------------------------------
 // Auth-context shape passed into tool _execute. U7 widened the previous

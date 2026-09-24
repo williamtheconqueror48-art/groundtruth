@@ -45,12 +45,12 @@ import type {
   McpHandlerDeps,
   PublicResourceDef,
   TemplateResourceDef,
-} from '../_types.ts';
-import { TOOL_REGISTRY, toolAccess } from '../registry/_index.ts';
-import { dispatchToolsCall } from '../_dispatch.ts';
-import { evaluateFreshness } from '../_freshness.ts';
-import { budgetCounterKey, isSharedRestCounter, resolveDailyLimit, type McpBudget } from '../_quota.ts';
-import { rpcError, rpcOk, withMcpNoStore } from '../_rpc.ts';
+} from '../_types';
+import { TOOL_REGISTRY, toolAccess } from '../registry/_index';
+import { dispatchToolsCall } from '../_dispatch';
+import { evaluateFreshness } from '../_freshness';
+import { budgetCounterKey, isSharedRestCounter, resolveDailyLimit, type McpBudget } from '../_quota';
+import { rpcError, rpcOk, withMcpNoStore } from '../_rpc';
 import { readJsonFromUpstash } from '../../_upstash-json.js';
 import { isAppOwnedRedisKey } from '../../_redis-key-ownership.js';
 import {
@@ -60,8 +60,8 @@ import {
   freeAccountCallsKey,
   freeAccountLastActivityKey,
   freeAccountRequestsKey,
-} from '../_free-account-allowance.ts';
-import { CHOKEPOINT_SLUGS } from './_slugs.ts';
+} from '../_free-account-allowance';
+import { CHOKEPOINT_SLUGS } from './_slugs';
 import { READ_FREE_ACCOUNT_ALLOWANCE_SCRIPT } from '../../../shared/free-account-allowance-scripts.mjs';
 
 // ---------------------------------------------------------------------------

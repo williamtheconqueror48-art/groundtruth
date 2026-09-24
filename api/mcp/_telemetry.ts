@@ -1,5 +1,5 @@
 import { hashKeySync } from '../../server/_shared/usage-identity';
-import type { McpAuthContext } from './_types.ts';
+import type { McpAuthContext } from './_types';
 
 // ---------------------------------------------------------------------------
 // Telemetry

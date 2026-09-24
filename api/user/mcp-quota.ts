@@ -56,11 +56,11 @@ import {
   type CachedEntitlements,
 } from '../../server/_shared/entitlement-check';
 import { checkProMcpAccess } from '../../server/_shared/pro-mcp-gate';
-import { budgetCounterKey, isSharedRestCounter, resolveDailyLimit, resolveMcpBudget, type McpBudget } from '../mcp/_quota.ts';
+import { budgetCounterKey, isSharedRestCounter, resolveDailyLimit, resolveMcpBudget, type McpBudget } from '../mcp/_quota';
 import {
   FREE_ACCOUNT_CALLS_PER_DAY,
   freeAccountCallsKey,
-} from '../mcp/_free-account-allowance.ts';
+} from '../mcp/_free-account-allowance';
 import { secondsUntilUtcMidnight } from '../../server/_shared/pro-mcp-token';
 
 /** Inner handler — exported for unit tests with injected deps. */

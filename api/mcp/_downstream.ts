@@ -4,14 +4,14 @@ import {
   RpcValidationError,
   parseSafeRpcViolations,
   throwIfBillingDenial,
-} from './_billing-denial.ts';
-import type { RpcValidationViolation } from './_billing-denial.ts';
-import { readBoundedResponseText } from './_bounded-body.ts';
-import { emitTelemetry } from './_telemetry.ts';
+} from './_billing-denial';
+import type { RpcValidationViolation } from './_billing-denial';
+import { readBoundedResponseText } from './_bounded-body';
+import { emitTelemetry } from './_telemetry';
 import type {
   McpAuthContext,
   McpToolExecutionContext,
-} from './_types.ts';
+} from './_types';
 
 export const MCP_CANONICAL_API_ORIGIN = 'https://api.worldmonitor.app';
 

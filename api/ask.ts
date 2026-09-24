@@ -12,7 +12,7 @@
 // Accept: text/event-stream) emits SSE with the NLWeb event types
 // start → result (one per item) → complete.
 
-import { readBoundedRequestBody, RequestBodyTooLargeError } from './mcp/_bounded-body.ts';
+import { readBoundedRequestBody, RequestBodyTooLargeError } from './mcp/_bounded-body';
 
 import { suggestTools } from './_agent-tool-suggest';
 import { ENDPOINT_RATE_POLICIES, checkScopedRateLimit, checkIpScopedEdgeProof, getClientIp } from '../server/_shared/rate-limit';

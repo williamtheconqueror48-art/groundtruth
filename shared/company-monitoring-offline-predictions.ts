@@ -7,7 +7,7 @@ import {
   projectCompanyMonitoringCandidate,
   type NormalizedCompanyCandidate,
   type NormalizedCompanyEvidence,
-} from './company-monitoring-evidence.ts';
+} from './company-monitoring-evidence';
 import {
   computeBlindCorpusDigest,
   computeExpansionManifestDigest,
@@ -20,12 +20,12 @@ import {
   type Prediction,
   type PredictionSet,
   type ScoreReport,
-} from './company-monitoring-blind-evaluation.ts';
+} from './company-monitoring-blind-evaluation';
 import {
   compileCompanyMonitoringBlindCorpus,
   computeCompanyMonitoringCurationManifestDigest,
   type CompanyMonitoringCurationManifest,
-} from './company-monitoring-curation.ts';
+} from './company-monitoring-curation';
 import {
   canonicalJson,
   evaluateStage0,
@@ -34,7 +34,7 @@ import {
   parseRfc3339Timestamp,
   validateProtocolFixture,
   type JsonObject,
-} from './company-monitoring-evaluation.ts';
+} from './company-monitoring-evaluation';
 import {
   CompanyMonitoringOfflinePredictionError,
   type OfflineClassifierConfiguration,
@@ -47,24 +47,24 @@ import {
   type OfflineProviderObservation,
   type OfflineProviderObservationManifest,
   type OfflineProviderCoverage,
-} from './company-monitoring-offline-prediction-contracts.ts';
+} from './company-monitoring-offline-prediction-contracts';
 import {
   authenticateOfflineArtifact,
   computeOfflineClassifierRuntimeDigest,
   decodeOfflineCheckpointAuthenticationKey,
   verifyOfflineArtifactAuthentication,
-} from './company-monitoring-offline-checkpoints.ts';
+} from './company-monitoring-offline-checkpoints';
 import {
   normalizeOfflineEvaluationEvidence,
   validateOfflineFirstPartyIdentityBindings,
-} from './company-monitoring-offline-evidence.ts';
+} from './company-monitoring-offline-evidence';
 
-export * from './company-monitoring-offline-prediction-contracts.ts';
+export * from './company-monitoring-offline-prediction-contracts';
 export {
   computeOfflineClassifierRuntimeDigest,
   createOfflinePredictionReconciliation,
   validateOfflineRetainedProviderResponse,
-} from './company-monitoring-offline-checkpoints.ts';
+} from './company-monitoring-offline-checkpoints';
 
 const ROOT_KEYS = new Set([
   'schemaVersion', 'captureVersion', 'corpusVersion', 'corpusSha256',

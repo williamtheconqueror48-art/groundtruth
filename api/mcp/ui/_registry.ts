@@ -18,18 +18,18 @@
 // (the extension's content profile) — NOT `text/html+skybridge` (that is the
 // OpenAI Apps SDK's marker).
 
-import { rpcError, rpcOk } from '../_rpc.ts';
-import { CHOKEPOINT_MONITOR_APP_HTML } from './_chokepoint-monitor-app.ts';
-import { COUNTRY_BRIEF_APP_HTML } from './_country-brief-app.ts';
-import { COUNTRY_RISK_APP_HTML } from './_country-risk-app.ts';
-import { MARKET_RADAR_APP_HTML } from './_market-radar-app.ts';
-import { buildUiMeta, UI_RESOURCE_MIME_TYPE as SHELL_UI_MIME_TYPE, type UiResourceMeta } from './_shell.ts';
-import { WORLD_BRIEF_APP_HTML } from './_world-brief-app.ts';
-import { NEWS_INTELLIGENCE_APP_HTML } from './_news-intelligence-app.ts';
-import { CONFLICT_EVENTS_APP_HTML } from './_conflict-events-app.ts';
-import { NATURAL_DISASTERS_APP_HTML } from './_natural-disasters-app.ts';
-import { PREDICTION_MARKETS_APP_HTML } from './_prediction-markets-app.ts';
-import { FORECASTS_APP_HTML } from './_forecasts-app.ts';
+import { rpcError, rpcOk } from '../_rpc';
+import { CHOKEPOINT_MONITOR_APP_HTML } from './_chokepoint-monitor-app';
+import { COUNTRY_BRIEF_APP_HTML } from './_country-brief-app';
+import { COUNTRY_RISK_APP_HTML } from './_country-risk-app';
+import { MARKET_RADAR_APP_HTML } from './_market-radar-app';
+import { buildUiMeta, UI_RESOURCE_MIME_TYPE as SHELL_UI_MIME_TYPE, type UiResourceMeta } from './_shell';
+import { WORLD_BRIEF_APP_HTML } from './_world-brief-app';
+import { NEWS_INTELLIGENCE_APP_HTML } from './_news-intelligence-app';
+import { CONFLICT_EVENTS_APP_HTML } from './_conflict-events-app';
+import { NATURAL_DISASTERS_APP_HTML } from './_natural-disasters-app';
+import { PREDICTION_MARKETS_APP_HTML } from './_prediction-markets-app';
+import { FORECASTS_APP_HTML } from './_forecasts-app';
 
 // Re-exported from the shared shell so the mimeType has a single source of
 // truth across the fleet (the first widget defined it here in v1.11.0).

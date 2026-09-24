@@ -26,12 +26,12 @@ import type { NewsItemCore } from '../../../shared/news-clustering-core.js';
 import { getSourceProvenanceState } from '../../../shared/source-provenance.js';
 import { computeCredibilityScore } from '../../../shared/news-credibility.js';
 import { getSourceTier } from '../../../server/_shared/source-tiers';
-import { buildAuthHeaders } from '../_auth.ts';
-import { fetchMcpDownstream } from '../_downstream.ts';
-import { assertToolFetchOk } from '../_billing-denial.ts';
-import { argStr, ciIncludes } from '../_filters.ts';
-import { McpSourceUnavailableError } from '../_source-unavailable.ts';
-import type { ToolDef, McpToolExecutionContext } from '../_types.ts';
+import { buildAuthHeaders } from '../_auth';
+import { fetchMcpDownstream } from '../_downstream';
+import { assertToolFetchOk } from '../_billing-denial';
+import { argStr, ciIncludes } from '../_filters';
+import { McpSourceUnavailableError } from '../_source-unavailable';
+import type { ToolDef, McpToolExecutionContext } from '../_types';
 
 // ── #5697 on-demand NLP intelligence utilities ──────────────────────────────
 // Four deterministic (classify_event excepted — enum-validated LLM) utilities

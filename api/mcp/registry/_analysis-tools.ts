@@ -1,4 +1,4 @@
-import { RpcValidationError } from '../_billing-denial.ts';
+import { RpcValidationError } from '../_billing-denial';
 import { requireCountryCode } from '../_country-args';
 import { CII_RISK_SCORE_CACHE_KEYS } from '../../_cii-risk-cache-keys.js';
 import { hasRedistributableProviderAttribution } from '../../../shared/provider-redistribution';
@@ -56,9 +56,9 @@ import {
 import { INTEL_HOTSPOTS } from '../../../shared/geo-data';
 import { applyRedisKeyPrefix, readJsonBatchFromUpstashWithStatus } from '../../_upstash-json.js';
 import { isAppOwnedRedisKey } from '../../_redis-key-ownership.js';
-import { evaluateFreshness } from '../_freshness.ts';
-import { McpSourceUnavailableError } from '../_source-unavailable.ts';
-import type { FreshnessCheck, ToolDef } from '../_types.ts';
+import { evaluateFreshness } from '../_freshness';
+import { McpSourceUnavailableError } from '../_source-unavailable';
+import type { FreshnessCheck, ToolDef } from '../_types';
 
 type PayloadValidator = (value: unknown) => boolean;
 

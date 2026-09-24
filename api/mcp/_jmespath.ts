@@ -1,7 +1,7 @@
 import jmespath from 'jmespath';
-import { JMESPATH_MAX_EXPR_BYTES, JMESPATH_MAX_OUTPUT_BYTES } from './_constants.ts';
-import type { ApplyJmespathResult } from './_types.ts';
-import { utf8ByteLength } from './_utils.ts';
+import { JMESPATH_MAX_EXPR_BYTES, JMESPATH_MAX_OUTPUT_BYTES } from './_constants';
+import type { ApplyJmespathResult } from './_types';
+import { utf8ByteLength } from './_utils';
 
 // ---------------------------------------------------------------------------
 // JMESPath projection helpers (v1.4.0)

@@ -7,7 +7,7 @@ import {
   PRO_DAILY_QUOTA_TTL_SECONDS,
 } from '../../server/_shared/pro-mcp-token';
 import { MCP_QUOTA_RESERVE_SCRIPT as RESERVE_QUOTA_SCRIPT } from '../../shared/mcp-quota-reserve-script.mjs';
-import type { PipelineFn, QuotaRejected, QuotaReserved } from './_types.ts';
+import type { PipelineFn, QuotaRejected, QuotaReserved } from './_types';
 
 // ---------------------------------------------------------------------------
 // Daily quota helpers (Pro-only). Reservation runs synchronously on the

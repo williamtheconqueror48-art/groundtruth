@@ -2,13 +2,13 @@ import {
   normalizeCompanyEvidence,
   type NormalizedCompanyEvidence,
   type ProviderEvidence,
-} from './company-monitoring-evidence.ts';
+} from './company-monitoring-evidence';
 import {
   CompanyMonitoringOfflinePredictionError,
   type OfflineProviderObservation,
   type OfflineProviderObservationManifest,
-} from './company-monitoring-offline-prediction-contracts.ts';
-import type { CompanyMonitoringCurationManifest } from './company-monitoring-curation.ts';
+} from './company-monitoring-offline-prediction-contracts';
+import type { CompanyMonitoringCurationManifest } from './company-monitoring-curation';
 
 export function validateOfflineFirstPartyIdentityBindings(
   curationById: Map<string, CompanyMonitoringCurationManifest['candidates'][number]>,

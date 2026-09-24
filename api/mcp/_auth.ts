@@ -11,14 +11,14 @@ import { getClientIp, hasCloudflareTransitProof } from '../_client-ip.js';
 // @ts-expect-error — JS module, no declaration file
 import { captureSilentError } from '../_sentry-edge.js';
 import { redisPipeline as rawRedisPipeline } from '../_upstash-json.js';
-import { resolveMcpBudget } from './_quota.ts';
+import { resolveMcpBudget } from './_quota';
 import {
   getBillingVerificationDenial,
   getEntitlements,
   isEntitlementBackendConfigured,
 } from '../../server/_shared/entitlement-check';
 import { checkProMcpAccess } from '../../server/_shared/pro-mcp-gate';
-import type { BillingVerificationCode } from './_billing-denial.ts';
+import type { BillingVerificationCode } from './_billing-denial';
 import {
   buildInternalMcpHeaders,
   signInternalMcpRequest,
@@ -31,17 +31,17 @@ import {
   RATE_LIMIT_DEGRADED_HEADERS,
   reportRateLimitDegraded,
 } from '../../server/_shared/rate-limit';
-import { rpcError, withMcpNoStore } from './_rpc.ts';
+import { rpcError, withMcpNoStore } from './_rpc';
 import type {
   AuthResolution,
   AuthResolutionRejected,
   McpAuthContext,
   McpHandlerDeps,
   McpPreCheckResult,
-} from './_types.ts';
-import { emitMcpRateLimitHit } from './_telemetry.ts';
-import { FREE_ACCOUNT_CALLS_PER_DAY } from './_upgrade-constants.ts';
-import { buildMcpStructuredDenial, type McpStaticDenialReason } from './_upgrade.ts';
+} from './_types';
+import { emitMcpRateLimitHit } from './_telemetry';
+import { FREE_ACCOUNT_CALLS_PER_DAY } from './_upgrade-constants';
+import { buildMcpStructuredDenial, type McpStaticDenialReason } from './_upgrade';
 
 // ---------------------------------------------------------------------------
 // Rate limiters

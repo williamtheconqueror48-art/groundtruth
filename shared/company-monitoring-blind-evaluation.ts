@@ -24,7 +24,7 @@ import {
   validateProtocolFixture,
   type CalibrationExample,
   type JsonObject,
-} from './company-monitoring-evaluation.ts';
+} from './company-monitoring-evaluation';
 
 export type EvaluationPurpose = 'pilot' | 'tracer_gate' | 'stage3_gate';
 export type Materiality = 'material' | 'immaterial';

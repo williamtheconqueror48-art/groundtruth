@@ -1,5 +1,5 @@
 import { resolveCountryCode } from '../../shared/country-code-resolve';
-import { RpcValidationError } from './_billing-denial.ts';
+import { RpcValidationError } from './_billing-denial';
 
 /** Bound on the caller-supplied value echoed back in a resolution failure. */
 const MAX_ECHOED_COUNTRY_INPUT = 64;

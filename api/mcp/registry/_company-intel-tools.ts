@@ -1,7 +1,7 @@
-import { buildAuthHeaders } from '../_auth.ts';
-import { fetchMcpDownstream } from '../_downstream.ts';
-import { assertToolFetchOk } from '../_billing-denial.ts';
-import type { ToolDef } from '../_types.ts';
+import { buildAuthHeaders } from '../_auth';
+import { fetchMcpDownstream } from '../_downstream';
+import { assertToolFetchOk } from '../_billing-denial';
+import type { ToolDef } from '../_types';
 
 export const COMPANY_INTEL_VIEWS = [
   'enrichment',
