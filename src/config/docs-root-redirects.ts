@@ -1,5 +1,5 @@
-import docsNavData from './docs-nav-data';
-import { WEB_APP_ORIGIN } from './web-origin';
+import docsNavData from './docs-nav-data.js';
+import { WEB_APP_ORIGIN } from './web-origin.js';
 
 const docsOrigin = new URL(WEB_APP_ORIGIN);
 docsOrigin.hostname = `www.${docsOrigin.hostname}`;

@@ -12,8 +12,8 @@
  * - x-default points at the English URL
  */
 
-import { CANONICAL_ORIGIN, ORGANIZATION_ID, PERSON_ID, WEBSITE_ID } from './schema-graph-ids';
-import { DOCS_PAGE_DATES } from './docs-page-dates.generated';
+import { CANONICAL_ORIGIN, ORGANIZATION_ID, PERSON_ID, WEBSITE_ID } from './schema-graph-ids.js';
+import { DOCS_PAGE_DATES } from './docs-page-dates.generated.js';
 
 export const DOCS_PUBLIC_ORIGIN = 'https://www.worldmonitor.app';
 export const DOCS_ZH_HREFLANG = 'zh-Hans';
